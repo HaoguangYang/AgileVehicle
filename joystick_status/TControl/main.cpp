@@ -22,6 +22,7 @@ using namespace std;
 #include <sys/ioctl.h>
 #include <linux/joystick.h>
 #include <errno.h>
+#include <SDL.h>
 
 #endif
 
@@ -78,6 +79,26 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	joyinfoex_tag joyinfo;
 
+#ifdef __linux__
+	SDL_Joystick *joy;
+    int CtrlNum = SDL_NumJoysticks();
+    if (CtrlNum == 1)
+        int JOYSTICKID1 = 0;
+    else{
+        cout << "There are " << CtrlNum << " controllers found..." << endl;
+        for(int i=0;i<CtrlNum;i++)
+            printf(i, "%s\n", SDL_JoystickName(i));
+        cout << "Choose the one you wish to use: " << endl;
+        cin >> JOYSTICKID1;
+    }
+    joy=SDL_JoystickOpen(JOYSTICKID1);
+    int JoystickFlag = SDL_JoystickOpened(JOYSTICKID1);
+    if (JoystickFlag == 0){
+        cout << "Controller Open Error!" << endl;
+        return -1*JOYSTICKID1;
+    }
+#endif
+
 //button status
 	bool is_in_situ=false;
 	bool is_any_direction=false;
@@ -92,10 +113,19 @@ int _tmain(int argc, _TCHAR* argv[])
 	//int count = 0;
 //start control
 	bool action = 1;
-	while(SP->IsConnected())
+	while(SP->IsConnected())                            // CYCLES HERE...
 	{
 		//acquire joystick info **********************
+#if defined(_MSC_VER)
 		joyGetPosEx(JOYSTICKID1, &joyinfo);
+#elif defined(__linux__)
+        &joyinfo.dwXpos = SDL_JoystickGetAxis(JOYSTICK1,0);
+		&joyinfo.dwYpos = SDL_JoystickGetAxis(JOYSTICK1,1);
+		&joyinfo.dwZpos = SDL_JoystickGetAxis(JOYSTICK1,2);
+		&joyinfo.dwRpos = SDL_JoystickGetAxis(JOYSTICK1,3);
+		&joyinfo.dwUpos = SDL_JoystickGetAxis(JOYSTICK1,4);
+		&joyinfo.dwVpos = SDL_JoystickGetAxis(JOYSTICK1,5);
+#endif
 		cout << "X·½ÏòÅÌ:" << joyinfo.dwXpos << endl;
 		if(joyinfo.dwZpos != 32767)
 			action = 0;
@@ -171,9 +201,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		cout << "WriteSucceed?" << isWriteSpeed << endl;
 		printf("outcomingData:%s\n",outcomingData);
 		bool isWriteAngle = SP->WriteData((char*)&outcomingData, strlen(outcomingData));
-		
 
-		
 		Sleep(1000);
 		/*system("cls");*/
 		readResult = SP->ReadData(incomingData,dataLengthin);
@@ -193,6 +221,9 @@ int _tmain(int argc, _TCHAR* argv[])
 		printf("RecY:%d\n",ptr_to_first_valid->y);
 		
 	}
+#ifdef __linux__
+	SDL_JoystickClose(joy);
+#endif
 	system("pause");
 	return 0;
 }
