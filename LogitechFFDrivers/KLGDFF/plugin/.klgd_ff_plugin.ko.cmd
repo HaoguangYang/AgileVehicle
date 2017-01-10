@@ -1,0 +1,1 @@
+cmd_/mnt/Developer/Dev/LogitechFFDrivers/KLGDFF/plugin/klgd_ff_plugin.ko := ld -r -m elf_x86_64 -T ./scripts/module-common.lds --build-id  -o /mnt/Developer/Dev/LogitechFFDrivers/KLGDFF/plugin/klgd_ff_plugin.ko /mnt/Developer/Dev/LogitechFFDrivers/KLGDFF/plugin/klgd_ff_plugin.o /mnt/Developer/Dev/LogitechFFDrivers/KLGDFF/plugin/klgd_ff_plugin.mod.o

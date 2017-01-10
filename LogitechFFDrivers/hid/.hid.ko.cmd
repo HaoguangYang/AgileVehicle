@@ -1,0 +1,1 @@
+cmd_/mnt/Developer/Dev/LogitechFFDrivers/hid/hid.ko := ld -r -m elf_x86_64 -T ./scripts/module-common.lds --build-id  -o /mnt/Developer/Dev/LogitechFFDrivers/hid/hid.ko /mnt/Developer/Dev/LogitechFFDrivers/hid/hid.o /mnt/Developer/Dev/LogitechFFDrivers/hid/hid.mod.o

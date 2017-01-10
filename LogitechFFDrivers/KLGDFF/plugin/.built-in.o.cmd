@@ -1,0 +1,1 @@
+cmd_/mnt/Developer/Dev/LogitechFFDrivers/KLGDFF/plugin/built-in.o :=  rm -f /mnt/Developer/Dev/LogitechFFDrivers/KLGDFF/plugin/built-in.o; ar rcsD /mnt/Developer/Dev/LogitechFFDrivers/KLGDFF/plugin/built-in.o

@@ -1,0 +1,1 @@
+cmd_/mnt/Developer/Dev/LogitechFFDrivers/hid/hid.o := ld -m elf_x86_64   -r -o /mnt/Developer/Dev/LogitechFFDrivers/hid/hid.o /mnt/Developer/Dev/LogitechFFDrivers/hid/hid-core.o /mnt/Developer/Dev/LogitechFFDrivers/hid/hid-input.o /mnt/Developer/Dev/LogitechFFDrivers/hid/hid-debug.o /mnt/Developer/Dev/LogitechFFDrivers/hid/hidraw.o 
