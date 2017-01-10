@@ -1,6 +1,5 @@
-#include "SerialClass.h"	// Library described above
 #include <stdio.h>
-#include <tchar.h>
+#include "auto_tchar.h"
 #include <string>
 #include <iostream>
 #include <stdlib.h>
@@ -9,9 +8,7 @@
 #if defined(_MSC_VER)
 #include <windows.h>
 #include <mmsystem.h>
-
-using namespace std;
-
+#include "SerialClass.h"	// Library described above
 #pragma comment(lib,"winmm.lib")
 
 #elif defined(__linux__)
@@ -22,10 +19,10 @@ using namespace std;
 #include <sys/ioctl.h>
 #include <linux/joystick.h>
 #include <errno.h>
-#include <SDL.h>
+#include <SDL/SDL.h>
 
 #endif
-
+using namespace std;
 
 typedef struct {
   char end_1;
@@ -50,6 +47,7 @@ typedef struct {
     unsigned long dwReserved1;
     unsigned long dwReserved2;
     } JOYINFOEX;
+  Uint JOYSTICKID1;
 #endif
 
 // application reads from the specified serial port and reports the collected data
@@ -57,8 +55,10 @@ int _tmain(int argc, _TCHAR* argv[])
 {
 // connect the COM
 	printf("Welcome to the serial test app!\n\n");
-
+#if defined (_MSC_VER)
 	Serial* SP = new Serial("\\\\.\\COM6");    // adjust as needed
+#elif defined (__linux__)
+	Serial* SP = new Serial("/dev/ttyS6");
 
 	if (SP->IsConnected())
 		printf("We're connected!\n");
@@ -83,11 +83,11 @@ int _tmain(int argc, _TCHAR* argv[])
 	SDL_Joystick *joy;
     int CtrlNum = SDL_NumJoysticks();
     if (CtrlNum == 1)
-        int JOYSTICKID1 = 0;
+        JOYSTICKID1 = 0;
     else{
         cout << "There are " << CtrlNum << " controllers found..." << endl;
         for(int i=0;i<CtrlNum;i++)
-            printf(i, "%s\n", SDL_JoystickName(i));
+            printf("%d%s\n", i, SDL_JoystickName(i));
         cout << "Choose the one you wish to use: " << endl;
         cin >> JOYSTICKID1;
     }
@@ -201,8 +201,11 @@ int _tmain(int argc, _TCHAR* argv[])
 		cout << "WriteSucceed?" << isWriteSpeed << endl;
 		printf("outcomingData:%s\n",outcomingData);
 		bool isWriteAngle = SP->WriteData((char*)&outcomingData, strlen(outcomingData));
-
+#if defined(_MSC_VER)
 		Sleep(1000);
+#elif defined (__linux__)
+		usleep(1000000);
+#endif
 		/*system("cls");*/
 		readResult = SP->ReadData(incomingData,dataLengthin);
 

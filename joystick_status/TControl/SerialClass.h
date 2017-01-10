@@ -2,10 +2,13 @@
 #define SERIALCLASS_H_INCLUDED
 
 #define ARDUINO_WAIT_TIME 2000
-
-#include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
+#if defined (_MSC_VER)
+#include <windows.h>
+#elif defined(__linux__)
+#include "Migration.h"
+#endif
 
 class Serial
 {
@@ -38,4 +41,4 @@ class Serial
 
 };
 
-#endif // SERIALCLASS_H_INCLUDED
+#endif
