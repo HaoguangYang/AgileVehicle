@@ -10,6 +10,9 @@ includes linux joystick utilities sources.
 Current working directory, adding serial interfaces that can run on linux. See reference folder for a RS232 example.
 current TControl requires SDL (libsdl-dev) installed. You can also refer to ./utils/jstest.c for another approach.
 
+Update on Jan 11:
+Seems a little bit troublesome to use SDL, may refer to joystick library and use ioctl directly...
+
 ####/libelas_opencv_test
 Integration of OpenCV in libelas, slow on progress and untested.
 
