@@ -45,10 +45,12 @@ typedef LONGLONG           USN;
 typedef BYTE               BOOLEAN;
 typedef void                *PVOID;
 
+/*
 typedef struct _FILETIME {
         DWORD dwLowDateTime;
         DWORD dwHighDateTime;
      }    FILETIME;
+*/
 
 typedef union _ULARGE_INTEGER {
   struct {

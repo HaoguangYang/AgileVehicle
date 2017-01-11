@@ -4,15 +4,14 @@
 #include <iostream>
 #include <stdlib.h>
 #include <bitset>
+#include "SerialClass.h"	// Library described above
 
 #if defined(_MSC_VER)
 #include <windows.h>
 #include <mmsystem.h>
-#include "SerialClass.h"	// Library described above
 #pragma comment(lib,"winmm.lib")
 
 #elif defined(__linux__)
-#include "Migration.h"
 #include <sys/time.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -47,7 +46,6 @@ typedef struct {
     unsigned long dwReserved1;
     unsigned long dwReserved2;
     } JOYINFOEX;
-  Uint JOYSTICKID1;
 #endif
 
 // application reads from the specified serial port and reports the collected data
@@ -59,6 +57,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	Serial* SP = new Serial("\\\\.\\COM6");    // adjust as needed
 #elif defined (__linux__)
 	Serial* SP = new Serial("/dev/ttyS6");
+	unsigned int JOYSTICKID1;
 #endif
 
 	if (SP->IsConnected())
@@ -120,12 +119,12 @@ int _tmain(int argc, _TCHAR* argv[])
 #if defined(_MSC_VER)
 		joyGetPosEx(JOYSTICKID1, &joyinfo);
 #elif defined(__linux__)
-        &joyinfo.dwXpos = SDL_JoystickGetAxis(JOYSTICK1,0);
-		&joyinfo.dwYpos = SDL_JoystickGetAxis(JOYSTICK1,1);
-		&joyinfo.dwZpos = SDL_JoystickGetAxis(JOYSTICK1,2);
-		&joyinfo.dwRpos = SDL_JoystickGetAxis(JOYSTICK1,3);
-		&joyinfo.dwUpos = SDL_JoystickGetAxis(JOYSTICK1,4);
-		&joyinfo.dwVpos = SDL_JoystickGetAxis(JOYSTICK1,5);
+        &joyinfo.dwXpos = SDL_JoystickGetAxis(JOYSTICKID1,0);
+		&joyinfo.dwYpos = SDL_JoystickGetAxis(JOYSTICKID1,1);
+		&joyinfo.dwZpos = SDL_JoystickGetAxis(JOYSTICKID1,2);
+		&joyinfo.dwRpos = SDL_JoystickGetAxis(JOYSTICKID1,3);
+		&joyinfo.dwUpos = SDL_JoystickGetAxis(JOYSTICKID1,4);
+		&joyinfo.dwVpos = SDL_JoystickGetAxis(JOYSTICKID1,5);
 #endif
 		cout << "X·½ÏòÅÌ:" << joyinfo.dwXpos << endl;
 		if(joyinfo.dwZpos != 32767)

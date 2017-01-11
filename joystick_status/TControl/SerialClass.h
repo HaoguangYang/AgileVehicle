@@ -1,7 +1,6 @@
+#define ARDUINO_WAIT_TIME 2000
 #ifndef SERIALCLASS_H_INCLUDED
 #define SERIALCLASS_H_INCLUDED
-
-#define ARDUINO_WAIT_TIME 2000
 #include <stdio.h>
 #include <stdlib.h>
 #if defined (_MSC_VER)
@@ -17,8 +16,10 @@ class Serial
         HANDLE hSerial;
         //Connection status
         bool connected;
+#ifdef _MSC_VER
         //Get various information about the connection
         COMSTAT status;
+#endif
         //Keep track of last error
         DWORD errors;
 

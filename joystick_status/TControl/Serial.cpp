@@ -140,7 +140,7 @@ bool Serial::WriteData(char *buffer, unsigned int nbChar)
 
 #elif defined (__linux__)
 
-Serial::Serial(char *PortName)
+Serial::Serial(char *portName)
 {
 	this->connected = false;
 	this->hSerial = open(portName, O_RDWR | O_NOCTTY | O_NDELAY);
@@ -227,15 +227,15 @@ bool Serial::WriteData(char *buffer, unsigned int nbChar)
   {
     if(errno == EAGAIN)
     {
-      return true
+      return true;
     }
     else
     {
-      return false
+      return false;
     }
   }
 
-  return true
+  return true;
 }
 
 int Serial::ReadData(char *buffer, unsigned int nbChar)
