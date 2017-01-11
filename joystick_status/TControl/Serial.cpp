@@ -54,7 +54,7 @@ Serial::Serial(char *portName)
             dcbSerialParams.fDtrControl = DTR_CONTROL_ENABLE;
 
              //Set the parameters and check for their proper application
-             if(!SetCommState(hSerial, &dcbSerialParams))
+             if(!SetCommState(this->hSerial, &dcbSerialParams))
              {
                 printf("ALERT: Could not set Serial Port parameters");
              }
@@ -138,35 +138,29 @@ bool Serial::WriteData(char *buffer, unsigned int nbChar)
         return true;
 }
 
-bool Serial::IsConnected()
-{
-    //Simply return the connection status
-    return this->connected;
-}
-
 #elif defined (__linux__)
 
 Serial::Serial(char *PortName)
 {
 	this->connected = false;
 	this->hSerial = open(portName, O_RDWR | O_NOCTTY | O_NDELAY);
-	if(hSerial==-1)
+	if(this->hSerial==-1)
     {
 		perror("unable to open comport ");
 		return(1);
     }
-	if(flock(hSerial, LOCK_EX | LOCK_NB) != 0)
+	if(flock(this->hSerial, LOCK_EX | LOCK_NB) != 0)
     {
-		close(hSerial);
+		close(this->hSerial);
 		perror("Another process has locked the comport.");
 		return(1);
 	}
 
-	error = tcgetattr(hSerial, old_port_settings + comport_number);
+	error = tcgetattr(this->hSerial, old_port_settings + comport_number);
 	if(error==-1)
 	{
-		close(hSerial);
-		flock(hSerial, LOCK_UN);  /* free the port so that others can use it. */
+		close(this->hSerial);
+		flock(this->hSerial, LOCK_UN);  /* free the port so that others can use it. */
 		perror("unable to read portsettings ");
 		return(1);
 	}
@@ -178,10 +172,10 @@ Serial::Serial(char *PortName)
 		cpar = 0,
 		ipar = IGNPAR;
 	
-	if(ioctl(hSerial, TIOCMGET, &status) == -1)
+	if(ioctl(this->hSerial, TIOCMGET, &status) == -1)
 	{
-		tcsetattr(hSerial, TCSANOW, old_port_settings + comport_number);
-		flock(hSerial, LOCK_UN);  /* free the port so that others can use it. */
+		tcsetattr(this->hSerial, TCSANOW, old_port_settings + comport_number);
+		flock(this->hSerial, LOCK_UN);  /* free the port so that others can use it. */
 		perror("unable to get portstatus");
 	}
 	
@@ -195,7 +189,7 @@ Serial::Serial(char *PortName)
 	cfsetispeed(&new_port_settings, baudr);
 	cfsetospeed(&new_port_settings, baudr);
 	
-	error = tcsetattr(hSerial, TCSANOW, &new_port_settings);
+	error = tcsetattr(this->hSerial, TCSANOW, &new_port_settings);
 	if(error==-1)
 	{
 		printf("ALERT: Could not set Serial Port parameters");
@@ -205,7 +199,7 @@ Serial::Serial(char *PortName)
 		//If everything went fine we're connected
         this->connected = true;
 		//Flush any remaining characters in the buffers 
-        tcflush(hSerial, TCOFLUSH);
+        tcflush(this->hSerial, TCOFLUSH);
         //We wait 2s as the arduino board will be reseting
         usleep(ARDUINO_WAIT_TIME*1000);
 	}
@@ -219,29 +213,53 @@ Serial::~Serial()
         //We're no longer connected
         this->connected = false;
         //Close the serial handler
-        tcsetattr(Cport[comport_number], TCSANOW, old_port_settings + comport_number);
-		close(Cport[comport_number]);
+        tcsetattr(this->hSerial, TCSANOW, old_port_settings + comport_number);
+		close(this->hSerial);
 
-		flock(Cport[comport_number], LOCK_UN);  /* free the port so that others can use it. */
+		flock(this->hSerial, LOCK_UN);  /* free the port so that others can use it. */
     }
 }
 
-int Serial::ReadData(char *buffer, unsigned int nbChar)
+bool Serial::WriteData(char *buffer, unsigned int nbChar)
 {
-  int n = write(hSerial, buffer, nbChar);
+  int n = write(this->hSerial, buffer, nbChar);
   if(n < 0)
   {
     if(errno == EAGAIN)
     {
-      return 0;
+      return true
     }
     else
     {
-      return 1;
+      return false
     }
   }
 
-  return(0);
+  return true
+}
+
+int Serial::ReadData(char *buffer, unsigned int nbChar)
+{
+    //Number of bytes we'll have read
+    unsigned long bytesRead;
+	
+    //Try to read the require number of chars, and return the number of read bytes on success
+	bytesRead = read(this->hSerial, buffer, nbChar);
+    if(bytesRead>=0)
+    {
+		buffer[bytesRead]=0; /* always put a "null" at the end of a string! */
+        return bytesRead;
+    }
+
+    //If nothing has been read, or that an error was detected return 0
+    return 0;
 }
 
 #endif
+
+bool Serial::IsConnected()
+{
+    //Simply return the connection status
+    return this->connected;
+}
+

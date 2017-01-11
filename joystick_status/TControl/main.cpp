@@ -59,6 +59,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	Serial* SP = new Serial("\\\\.\\COM6");    // adjust as needed
 #elif defined (__linux__)
 	Serial* SP = new Serial("/dev/ttyS6");
+#endif
 
 	if (SP->IsConnected())
 		printf("We're connected!\n");
