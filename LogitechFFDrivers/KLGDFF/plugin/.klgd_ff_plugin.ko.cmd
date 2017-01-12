@@ -1,1 +1,0 @@
-cmd_/mnt/Data/AgileV_Dev/LogitechFFDrivers/KLGDFF/plugin/klgd_ff_plugin.ko := ld -r -m elf_x86_64 -T ./scripts/module-common.lds --build-id  -o /mnt/Data/AgileV_Dev/LogitechFFDrivers/KLGDFF/plugin/klgd_ff_plugin.ko /mnt/Data/AgileV_Dev/LogitechFFDrivers/KLGDFF/plugin/klgd_ff_plugin.o /mnt/Data/AgileV_Dev/LogitechFFDrivers/KLGDFF/plugin/klgd_ff_plugin.mod.o

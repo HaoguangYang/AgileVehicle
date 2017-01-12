@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
@@ -11,3 +12,18 @@
     </Filter>
   </ItemGroup>
 </Project>
+=======
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<Project ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="E:\Vision Program Testing\libelas\build\CMakeFiles\54666a0665bb8a8d0261731ed98b837f\generate.stamp.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{C5791641-5A10-31AD-8FC9-ABF73DD78B69}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
+>>>>>>> f22ec6c22c6fa5e43b341e05886f52a49472abd7

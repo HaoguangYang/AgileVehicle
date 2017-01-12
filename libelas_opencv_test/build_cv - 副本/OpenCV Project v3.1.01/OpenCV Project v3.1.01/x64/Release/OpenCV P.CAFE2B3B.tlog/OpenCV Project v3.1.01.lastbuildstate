@@ -1,2 +1,7 @@
+<<<<<<< HEAD
 #TargetFrameworkVersion=v4.0:PlatformToolSet=v120:EnableManagedIncrementalBuild=false:VCToolArchitecture=Native32Bit
 Release|x64|E:\Vision Program Testing\libelas\build_cv\OpenCV Project v3.1.01\|
+=======
+#TargetFrameworkVersion=v4.0:PlatformToolSet=v120:EnableManagedIncrementalBuild=false:VCToolArchitecture=Native32Bit
+Release|x64|E:\Vision Program Testing\libelas\build_cv\OpenCV Project v3.1.01\|
+>>>>>>> f22ec6c22c6fa5e43b341e05886f52a49472abd7
