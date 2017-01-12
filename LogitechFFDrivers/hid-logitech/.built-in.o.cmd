@@ -1,0 +1,1 @@
+cmd_/mnt/Data/AgileV_Dev/LogitechFFDrivers/hid-logitech/built-in.o :=  rm -f /mnt/Data/AgileV_Dev/LogitechFFDrivers/hid-logitech/built-in.o; ar rcsD /mnt/Data/AgileV_Dev/LogitechFFDrivers/hid-logitech/built-in.o

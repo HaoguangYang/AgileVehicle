@@ -1,0 +1,1 @@
+cmd_/mnt/Data/AgileV_Dev/LogitechFFDrivers/hid/hid.ko := ld -r -m elf_x86_64 -T ./scripts/module-common.lds --build-id  -o /mnt/Data/AgileV_Dev/LogitechFFDrivers/hid/hid.ko /mnt/Data/AgileV_Dev/LogitechFFDrivers/hid/hid.o /mnt/Data/AgileV_Dev/LogitechFFDrivers/hid/hid.mod.o
