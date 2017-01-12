@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include "auto_tchar.h"
 #include <string>
+#include <cstring>
 #include <iostream>
 #include <stdlib.h>
 #include <bitset>
@@ -32,19 +33,15 @@ typedef struct {
 
 #ifdef __linux__
   typedef struct joyinfoex_tag {
-    unsigned long dwSize;
-    unsigned long dwFlags;
-    unsigned long dwXpos;
-    unsigned long dwYpos;
-    unsigned long dwZpos;
-    unsigned long dwRpos;
-    unsigned long dwUpos;
-    unsigned long dwVpos;
+    unsigned int dwXpos;
+    unsigned int dwYpos;
+    unsigned int dwZpos;
+    unsigned int dwRpos;
+    unsigned int dwUpos;
+    unsigned int dwVpos;
     unsigned long dwButtons;
-    unsigned long dwButtonNumber;
+    unsigned int dwButtonNumber;
     unsigned long dwPOV;
-    unsigned long dwReserved1;
-    unsigned long dwReserved2;
     } JOYINFOEX;
 #endif
 
@@ -56,7 +53,12 @@ int _tmain(int argc, _TCHAR* argv[])
 #if defined (_MSC_VER)
 	Serial* SP = new Serial("\\\\.\\COM6");    // adjust as needed
 #elif defined (__linux__)
-	Serial* SP = new Serial("/dev/ttyACM2");
+    string PORTNAMEIN;
+    cout << "Input Serial Port (e.g. /dev/ttyACM0): " << endl;
+    cin >> PORTNAMEIN;
+    char *PORTNAME = new char [PORTNAMEIN.length() + 1];
+    std::strcpy(PORTNAME, PORTNAMEIN.c_str());
+	Serial* SP = new Serial(PORTNAME);
 	unsigned int JOYSTICKID1;
 #endif
 
@@ -131,10 +133,11 @@ int _tmain(int argc, _TCHAR* argv[])
 #if defined(_MSC_VER)
 		joyGetPosEx(JOYSTICKID1, &joyinfo);
 #elif defined(__linux__)
-        joyinfo.dwXpos = SDL_JoystickGetAxis(joy,0);
-		joyinfo.dwYpos = SDL_JoystickGetAxis(joy,1);
-		joyinfo.dwZpos = SDL_JoystickGetAxis(joy,2);
-		joyinfo.dwRpos = SDL_JoystickGetAxis(joy,3);
+        SDL_JoystickUpdate();
+        joyinfo.dwXpos = SDL_JoystickGetAxis(joy,0) + 32767 + 1 ;
+		joyinfo.dwYpos = SDL_JoystickGetAxis(joy,1) + 32767 + 1 ;
+		joyinfo.dwZpos = SDL_JoystickGetAxis(joy,2) + 32767 + 1 ;
+		joyinfo.dwRpos = SDL_JoystickGetAxis(joy,3) + 32767 + 1 ;
 		//Only 4 axis.
 		//joyinfo.dwUpos = SDL_JoystickGetAxis(joy,4);
 		//joyinfo.dwVpos = SDL_JoystickGetAxis(joy,5);
