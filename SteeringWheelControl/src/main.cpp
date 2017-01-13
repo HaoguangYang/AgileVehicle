@@ -127,17 +127,34 @@ int _tmain(int argc, _TCHAR* argv[])
 	//int count = 0;
 //start control
 	bool action = 1;
+#if defined(_MSC_VER)
 	while(SP->IsConnected())                            // CYCLES HERE...
 	{
 		//acquire joystick info **********************
-#if defined(_MSC_VER)
 		joyGetPosEx(JOYSTICKID1, &joyinfo);
 #elif defined(__linux__)
-        SDL_JoystickUpdate();
-        joyinfo.dwXpos = SDL_JoystickGetAxis(joy,0) + 32767 + 1 ;
-		joyinfo.dwYpos = SDL_JoystickGetAxis(joy,1) + 32767 + 1 ;
-		joyinfo.dwZpos = SDL_JoystickGetAxis(joy,2) + 32767 + 1 ;
-		joyinfo.dwRpos = SDL_JoystickGetAxis(joy,3) + 32767 + 1 ;
+    SDL_Event SysEvent;
+    bool NoQuit = true;
+    while(SP->IsConnected() && NoQuit)
+    {
+        while (SDL_PollEvent(&SysEvent))
+        {
+            switch (SysEvent.type)
+            {
+                case SDL_JOYAXISMOTION:
+                {
+                    joyinfo.dwXpos = SDL_JoystickGetAxis(joy,0) + 32767 + 1 ;
+	    	        joyinfo.dwYpos = SDL_JoystickGetAxis(joy,1) + 32767 + 1 ;
+	    	        joyinfo.dwZpos = SDL_JoystickGetAxis(joy,2) + 32767 + 1 ;
+	    	        joyinfo.dwRpos = SDL_JoystickGetAxis(joy,3) + 32767 + 1 ;
+	    	        break;
+	    	    }
+	    	    case SDL_QUIT:
+	    	    {
+	    	        NoQuit = false;
+	    	        break;
+	    	    }
+	    	}
 		//Only 4 axis.
 		//joyinfo.dwUpos = SDL_JoystickGetAxis(joy,4);
 		//joyinfo.dwVpos = SDL_JoystickGetAxis(joy,5);
@@ -241,6 +258,8 @@ int _tmain(int argc, _TCHAR* argv[])
 		
 	}
 #ifdef __linux__
+    }
+    SP->~Serial();
 	SDL_JoystickClose(joy);
 #endif
 	system("pause");
