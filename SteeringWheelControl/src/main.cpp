@@ -235,9 +235,9 @@ int _tmain(int argc, _TCHAR* argv[])
 		printf("outcomingData:%s\n",outcomingData);
 		bool isWriteAngle = SP->WriteData((char*)&outcomingData, strlen(outcomingData));
 #if defined(_MSC_VER)
-		Sleep(1000);
+		Sleep(30);
 #elif defined (__linux__)
-		usleep(1000000);
+		usleep(30000);
 #endif
 		/*system("cls");*/
 		readResult = SP->ReadData(incomingData,dataLengthin);
@@ -256,12 +256,16 @@ int _tmain(int argc, _TCHAR* argv[])
 		printf("RecX:%d\n",ptr_to_first_valid->x);
 		printf("RecY:%d\n",ptr_to_first_valid->y);
 		
-	}
+	
 #ifdef __linux__
     }
+#endif
+    }
     SP->~Serial();
+#ifdef __linux__
 	SDL_JoystickClose(joy);
 #endif
+    
 	system("pause");
 	return 0;
 }
