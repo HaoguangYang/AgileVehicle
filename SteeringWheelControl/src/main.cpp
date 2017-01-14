@@ -164,12 +164,12 @@ int _tmain(int argc, _TCHAR* argv[])
 		if(joyinfo.dwZpos != 32767)
 			action = 0;
 		if(action)
-			cout << "Z Throttle:" << 65536 << endl; //���� ��ʼֵ65535���ȵ���Ϊ0		
+			cout << "Z Throttle:" << 65536 << endl; //The original value of the inactivated throttle is 32767, should be modified to 65535 so that speed is 0		
 		else
-			cout << "Z Throttle:" << joyinfo.dwZpos << endl; /*//���� ��ʼֵ65535���ȵ���Ϊ0	
-		cout << "Rɲ��:" << joyinfo.dwRpos << endl; //ɲ�� ��ʼֵ65535���ȵ���Ϊ0
+			cout << "Z Throttle:" << joyinfo.dwZpos << endl; /*//If activated (moved), output real value.
+		cout << "R Break:" << joyinfo.dwRpos << endl; //The same for breaks.
 		cout << "buttonNumber" << joyinfo.dwButtonNumber << endl;
-		cout << "buttonStatus" << bitset<64>(joyinfo.dwButtons) << endl; //��������Ϊ�ӵ�λ����λ
+		cout << "buttonStatus" << bitset<64>(joyinfo.dwButtons) << endl; //Output button status
 		now_in_situ=bitset<64>(joyinfo.dwButtons)[0];
 		now_any_direction=bitset<64>(joyinfo.dwButtons)[3];
 		now_tradition=bitset<64>(joyinfo.dwButtons)[1];
@@ -208,7 +208,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		last_in_situ =now_in_situ;
 		last_any_direction =now_any_direction;
 		last_tradition =now_tradition;*/
-		if(action)//��ʼʱĬ����32767��Ҫ����65535
+		if(action)//Double-check that the inactivated throttle value is set to 0.
 			speedDutycycle = 0;
 		else
 			speedDutycycle = (int)((1-joyinfo.dwZpos/65535.0)*fullDutycycle);
