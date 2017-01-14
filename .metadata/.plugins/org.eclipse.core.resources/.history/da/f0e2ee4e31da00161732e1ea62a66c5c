@@ -67,7 +67,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 //data communication
 	char incomingData[256] = "";			// don't forget to pre-
-	int dataLengthin = 127;
+	int dataLengthin = 255;
 	int readResult = 0;
 
 	int angle=2048;
@@ -137,7 +137,7 @@ int _tmain(int argc, _TCHAR* argv[])
     bool NoQuit = true;
     while(SP->IsConnected() && NoQuit)
     {
-    	if (SDL_PollEvent(&SysEvent))
+        if (SDL_PollEvent(&SysEvent))
         {
             switch (SysEvent.type)
             {
@@ -158,18 +158,17 @@ int _tmain(int argc, _TCHAR* argv[])
 	    	        break;
 	    	    }
 	    	}
-            SDL_FlushEvents(SDL_APP_TERMINATING, SDL_LASTEVENT); //Flush Old Events
 #endif
 		cout << "X Steering Wheel:" << joyinfo.dwXpos << endl;
 		if(joyinfo.dwZpos != 32767)
 			action = 0;
 		if(action)
-			cout << "Z Throttle:" << 65536 << endl; //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ê¼Öµ65535ï¿½ï¿½ï¿½Èµï¿½ï¿½ï¿½Îª0		
+			cout << "Z Throttle:" << 65536 << endl; //ÓÍÃÅ ³õÊ¼Öµ65535£¬²Èµ½µ×Îª0		
 		else
-			cout << "Z Throttle:" << joyinfo.dwZpos << endl; /*//ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ê¼Öµ65535ï¿½ï¿½ï¿½Èµï¿½ï¿½ï¿½Îª0	
-		cout << "RÉ²ï¿½ï¿½:" << joyinfo.dwRpos << endl; //É²ï¿½ï¿½ ï¿½ï¿½Ê¼Öµ65535ï¿½ï¿½ï¿½Èµï¿½ï¿½ï¿½Îª0
+			cout << "Z Throttle:" << joyinfo.dwZpos << endl; /*//ÓÍÃÅ ³õÊ¼Öµ65535£¬²Èµ½µ×Îª0	
+		cout << "RÉ²³µ:" << joyinfo.dwRpos << endl; //É²³µ ³õÊ¼Öµ65535£¬²Èµ½µ×Îª0
 		cout << "buttonNumber" << joyinfo.dwButtonNumber << endl;
-		cout << "buttonStatus" << bitset<64>(joyinfo.dwButtons) << endl; //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îªï¿½Óµï¿½Î»ï¿½ï¿½ï¿½ï¿½Î»
+		cout << "buttonStatus" << bitset<64>(joyinfo.dwButtons) << endl; //´ÓÓÒÍù×óÎª´ÓµÍÎ»µ½¸ßÎ»
 		now_in_situ=bitset<64>(joyinfo.dwButtons)[0];
 		now_any_direction=bitset<64>(joyinfo.dwButtons)[3];
 		now_tradition=bitset<64>(joyinfo.dwButtons)[1];
@@ -208,7 +207,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		last_in_situ =now_in_situ;
 		last_any_direction =now_any_direction;
 		last_tradition =now_tradition;*/
-		if(action)//ï¿½ï¿½Ê¼Ê±Ä¬ï¿½ï¿½ï¿½ï¿½32767ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½65535
+		if(action)//³õÊ¼Ê±Ä¬ÈÏÊÇ32767£¬Òªµ÷³É65535
 			speedDutycycle = 0;
 		else
 			speedDutycycle = (int)((1-joyinfo.dwZpos/65535.0)*fullDutycycle);
@@ -239,7 +238,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		Sleep(30);
 #elif defined (__linux__)
 		}       //If have sysevent then update joystick values
-		usleep(120000);
+		usleep(30000);
 #endif
 		/*system("cls");*/
 		readResult = SP->ReadData(incomingData,dataLengthin);
@@ -250,7 +249,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		//}*/
 
 		int ptr=0;
-		while(!(incomingData[ptr]=='?' && incomingData[ptr+1]=='?') && ptr<readResult-sizeof(serial_format)) {
+		while(!(incomingData[ptr]==0x3f && incomingData[ptr+1]==0x3f) && ptr<readResult-sizeof(serial_format)) {
 			ptr++;
 		}
 		serial_format* ptr_to_first_valid = (serial_format*) &incomingData[ptr];

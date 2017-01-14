@@ -67,7 +67,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 //data communication
 	char incomingData[256] = "";			// don't forget to pre-
-	int dataLengthin = 127;
+	int dataLengthin = 255;
 	int readResult = 0;
 
 	int angle=2048;
@@ -137,7 +137,7 @@ int _tmain(int argc, _TCHAR* argv[])
     bool NoQuit = true;
     while(SP->IsConnected() && NoQuit)
     {
-    	if (SDL_PollEvent(&SysEvent))
+        if (SDL_PollEvent(&SysEvent))
         {
             switch (SysEvent.type)
             {
@@ -158,7 +158,6 @@ int _tmain(int argc, _TCHAR* argv[])
 	    	        break;
 	    	    }
 	    	}
-            SDL_FlushEvents(SDL_APP_TERMINATING, SDL_LASTEVENT); //Flush Old Events
 #endif
 		cout << "X Steering Wheel:" << joyinfo.dwXpos << endl;
 		if(joyinfo.dwZpos != 32767)
@@ -239,7 +238,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		Sleep(30);
 #elif defined (__linux__)
 		}       //If have sysevent then update joystick values
-		usleep(120000);
+		usleep(30000);
 #endif
 		/*system("cls");*/
 		readResult = SP->ReadData(incomingData,dataLengthin);
@@ -250,13 +249,13 @@ int _tmain(int argc, _TCHAR* argv[])
 		//}*/
 
 		int ptr=0;
-		while(!(incomingData[ptr]=='?' && incomingData[ptr+1]=='?') && ptr<readResult-sizeof(serial_format)) {
+		while(!(incomingData[ptr]==0x3f && incomingData[ptr+1]==0x3f) && ptr<readResult-sizeof(serial_format)) {
 			ptr++;
 		}
 		serial_format* ptr_to_first_valid = (serial_format*) &incomingData[ptr];
 
 		printf("RecX:%d\n",ptr_to_first_valid->x);
-		printf("RecY:%d\n",ptr_to_first_valid->y);
+		//printf("RecY:%d\n",ptr_to_first_valid->y);
         //However always read serial data.
     }
     SP->~Serial();

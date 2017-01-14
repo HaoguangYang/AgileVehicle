@@ -256,6 +256,12 @@ int Serial::ReadData(char *buffer, unsigned int nbChar)
     if(bytesRead>=0)
     {
 		buffer[bytesRead]=0; /* always put a "null" at the end of a string! */
+		if (bytesRead<nbChar)
+		{
+		    void* tmp;
+		    unsigned long i = read(this->hSerial,tmp, nbChar);
+		    if (i!=0){printf("Warning: Read is incorrect.");}
+		}
         return bytesRead;
     }
 
