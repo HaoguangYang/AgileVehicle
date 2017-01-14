@@ -137,7 +137,7 @@ int _tmain(int argc, _TCHAR* argv[])
     bool NoQuit = true;
     while(SP->IsConnected() && NoQuit)
     {
-        while (SDL_PollEvent(&SysEvent))
+        if (SDL_PollEvent(&SysEvent))
         {
             switch (SysEvent.type)
             {
@@ -147,6 +147,9 @@ int _tmain(int argc, _TCHAR* argv[])
 	    	        joyinfo.dwYpos = SDL_JoystickGetAxis(joy,1) + 32767 + 1 ;
 	    	        joyinfo.dwZpos = SDL_JoystickGetAxis(joy,2) + 32767 + 1 ;
 	    	        joyinfo.dwRpos = SDL_JoystickGetAxis(joy,3) + 32767 + 1 ;
+	    	        //Only 4 axis.
+		            //joyinfo.dwUpos = SDL_JoystickGetAxis(joy,4);
+		            //joyinfo.dwVpos = SDL_JoystickGetAxis(joy,5);
 	    	        break;
 	    	    }
 	    	    case SDL_QUIT:
@@ -155,9 +158,6 @@ int _tmain(int argc, _TCHAR* argv[])
 	    	        break;
 	    	    }
 	    	}
-		//Only 4 axis.
-		//joyinfo.dwUpos = SDL_JoystickGetAxis(joy,4);
-		//joyinfo.dwVpos = SDL_JoystickGetAxis(joy,5);
 #endif
 		cout << "X Steering Wheel:" << joyinfo.dwXpos << endl;
 		if(joyinfo.dwZpos != 32767)
@@ -211,23 +211,23 @@ int _tmain(int argc, _TCHAR* argv[])
 			speedDutycycle = 0;
 		else
 			speedDutycycle = (int)((1-joyinfo.dwZpos/65535.0)*fullDutycycle);
-			if(speedDutycycle>=0 && speedDutycycle<=255)
+		if(speedDutycycle>=0 && speedDutycycle<=255)
+		{
+			for (int k=0;k<3;k++)
 			{
-				for (int k=0;k<3;k++)
-				{
-					outSpeed[2-k]=char(speedDutycycle%10 + '0');
-					speedDutycycle=speedDutycycle/10;
-				}
+				outSpeed[2-k]=char(speedDutycycle%10 + '0');
+				speedDutycycle=speedDutycycle/10;
 			}
+		}
 		angle=(int)(joyinfo.dwXpos/65535.0*encoder_resolution);
-			if(angle>=0 && angle<=encoder_resolution)
+		if(angle>=0 && angle<=encoder_resolution)
+		{
+			for (int k=0;k<4;k++)
 			{
-				for (int k=0;k<4;k++)
-				{
-					outcomingData[3-k]=char(angle%10 + '0');
-					angle=angle/10;
-				}
+				outcomingData[3-k]=char(angle%10 + '0');
+				angle=angle/10;
 			}
+		}
 		
 		printf("outSpeed:%s\n",outSpeed);
 		bool isWriteSpeed = SP->WriteData((char*)&outSpeed, strlen(outSpeed));
@@ -237,6 +237,7 @@ int _tmain(int argc, _TCHAR* argv[])
 #if defined(_MSC_VER)
 		Sleep(30);
 #elif defined (__linux__)
+		}       //If have sysevent then update joystick values
 		usleep(30000);
 #endif
 		/*system("cls");*/
@@ -255,11 +256,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 		printf("RecX:%d\n",ptr_to_first_valid->x);
 		printf("RecY:%d\n",ptr_to_first_valid->y);
-		
-	
-#ifdef __linux__
-    }
-#endif
+        //However always read serial data.
     }
     SP->~Serial();
 #ifdef __linux__
