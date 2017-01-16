@@ -5,7 +5,7 @@ Coming soon.
 ##Linux Prerequisites
 For Ubuntu and other Debian based users, please run the following command to ensure everything is set up:
 
-sudo apt-get install g++, arduino, libsdl2-dev, joystick
+sudo apt-get install g++ arduino libsdl2-dev joystick
 
 ##Directory Structure
 
