@@ -70,12 +70,12 @@ int _tmain(int argc, _TCHAR* argv[])
 	int dataLengthin = 127;
 	int readResult = 0;
 
-	int angle=2048;
+	int steer=2048;
 	const int encoder_resolution=4096;
-	char outcomingData[6]="2048c";
-	int speedDutycycle=0;
+	char outSteer[6]="2048c";
+	int driveDutycycle=0;
 	const int fullDutycycle=255;
-	char outSpeed[5]="001a";
+	char outDrive[5]="001a";
 
 //joystick initialize***********************
 
@@ -164,13 +164,19 @@ int _tmain(int argc, _TCHAR* argv[])
 		if(joyinfo.dwZpos != 32767)
 			action = 0;
 		if(action)
-			cout << "Z Throttle:" << 65536 << endl; //The original value of the inactivated throttle is 32767, should be modified to 65535 so that speed is 0		
+		{
+			cout << "Z Throttle:" << 65536 << endl; //The original value of the inactivated throttle is 32767, should be modified to 65535 so that throttle is 0		
+			cout << "R Break:" << 0.9*65536 << endl;
+		}
 		else
-			cout << "Z Throttle:" << joyinfo.dwZpos << endl; /*//If activated (moved), output real value.
-		cout << "R Break:" << joyinfo.dwRpos << endl; //The same for breaks.
+		{
+			cout << "Z Throttle:" << joyinfo.dwZpos << endl; //If activated (moved), output real value.
+			cout << "R Break:" << joyinfo.dwRpos << endl; //The same for breaks.
+		}
 		cout << "buttonNumber" << joyinfo.dwButtonNumber << endl;
 		cout << "buttonStatus" << bitset<64>(joyinfo.dwButtons) << endl; //Output button status
-		now_in_situ=bitset<64>(joyinfo.dwButtons)[0];
+		//Buttons:
+		/*now_in_situ=bitset<64>(joyinfo.dwButtons)[0];
 		now_any_direction=bitset<64>(joyinfo.dwButtons)[3];
 		now_tradition=bitset<64>(joyinfo.dwButtons)[1];
 		cout << "is_in_situ:" << is_in_situ << endl;
@@ -208,35 +214,45 @@ int _tmain(int argc, _TCHAR* argv[])
 		last_in_situ =now_in_situ;
 		last_any_direction =now_any_direction;
 		last_tradition =now_tradition;*/
+		
 		if(action)//Double-check that the inactivated throttle value is set to 0.
-			speedDutycycle = 0;
+		{
+			driveDutycycle = 0;
+			breaking = 0.9;
+		}
 		else
-			speedDutycycle = (int)((1-joyinfo.dwZpos/65535.0)*fullDutycycle);
-		if(speedDutycycle>=0 && speedDutycycle<=255)
+		{
+			breaking = (int)((1-joyinfo.dwRpos/65535.0)*fullDutycycle);			//Modify as necessary.
+			if (braking=0)
+				driveDutycycle = (int)((1-joyinfo.dwZpos/65535.0)*fullDutycycle);
+			else
+				driveDutycycle = 0;
+		}
+		if(driveDutycycle>=0 && driveDutycycle<=255)
 		{
 			for (int k=0;k<3;k++)
 			{
-				outSpeed[2-k]=char(speedDutycycle%10 + '0');
-				speedDutycycle=speedDutycycle/10;
+				outDrive[2-k]=char(driveDutycycle%10 + '0');
+				driveDutycycle=driveDutycycle/10;
 			}
 		}
-		angle=(int)(joyinfo.dwXpos/65535.0*encoder_resolution);
-		if(angle>=0 && angle<=encoder_resolution)
+		steer=(int)(joyinfo.dwXpos/65535.0*encoder_resolution);
+		if(steer>=0 && steer<=encoder_resolution)
 		{
 			for (int k=0;k<4;k++)
 			{
-				outcomingData[3-k]=char(angle%10 + '0');
-				angle=angle/10;
+				outSteer[3-k]=char(steer%10 + '0');
+				steer=steer/10;
 			}
 		}
 		
-		printf("outSpeed:%s\n",outSpeed);
-		bool isWriteSpeed = SP->WriteData((char*)&outSpeed, strlen(outSpeed));
-		cout << "WriteSucceed?" << isWriteSpeed << endl;
-		printf("outcomingData:%s\n",outcomingData);
-		bool isWriteAngle = SP->WriteData((char*)&outcomingData, strlen(outcomingData));
+		printf("outDrive:%s\n",outDrive);
+		bool isWriteDrive = SP->WriteData((char*)&outDrive, strlen(outDrive));
+		cout << "WriteSucceed?" << isWriteDrive << endl;
+		printf("outSteer:%s\n",outSteer);
+		bool isWriteSteer = SP->WriteData((char*)&outSteer, strlen(outSteer));
 #if defined(_MSC_VER)
-		Sleep(30);
+		Sleep(120);
 #elif defined (__linux__)
 		}       //If have sysevent then update joystick values
 		usleep(120000);
