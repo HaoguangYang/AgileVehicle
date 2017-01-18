@@ -28,8 +28,10 @@ int PulseTime=100; //in ms, the cycle for angle motor
 String inputString ="";
 String inputDutycycle="";
 String inputAngle="";
+String inputBreak="";
 boolean SpeedComplete = false;
 boolean AngleComplete = false;
+boolean BreakComplete = false;
 
 typedef struct {
   char end_1;
@@ -167,23 +169,29 @@ void loop() {
 void serialEvent(){
     while(Serial.available()){
         char inChar = (char)Serial.read();
-        if((inChar != 'c') && (inChar != 'a') && (inChar != 'b') && (inChar != 'f')){
+        if((inChar != 's') && (inChar != 'd') && (inChar != 'b') && (inChar != 'r') && (inChar != 'f')){
             inputString+=inChar;
         }
-        if(inChar == 'c'){ // c是转角数据开头
+        if(inChar == 's'){ // c是转角数据开头
             AngleComplete = true;
             inputAngle=inputString;
             inputString="";
             return;
         }
-        if(inChar == 'a'){ // a是速度数据开头
+        if(inChar == 'd'){ // a是驱动数据开头
             SpeedComplete = true;
             inputDutycycle=inputString;
             inputString="";
             //Serial.println("aaa");
             return;
         }
-        if(inChar == 'b'){ // b是倒车开头
+		if(inChar == 'b'){ // b是刹车数据开头
+            BreakComplete = true;
+            inputBreak=inputString;
+            inputString="";
+            return;
+        }
+        if(inChar == 'r'){ // r是倒车开头
             digitalWrite(BACK,HIGH); //adjust for the switch
             return;
         }

@@ -72,10 +72,11 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	int steer=2048;
 	const int encoder_resolution=4096;
-	char outSteer[6]="2048c";
+	char outSteer[6]="2048s";
 	int driveDutycycle=0;
 	const int fullDutycycle=255;
-	char outDrive[5]="001a";
+	char outDrive[5]="001d";
+	char outBreak[5]="100b"
 
 //joystick initialize***********************
 
@@ -218,7 +219,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		if(action)//Double-check that the inactivated throttle value is set to 0.
 		{
 			driveDutycycle = 0;
-			breaking = 0.9;
+			breaking = 225;
 		}
 		else
 		{
@@ -236,6 +237,14 @@ int _tmain(int argc, _TCHAR* argv[])
 				driveDutycycle=driveDutycycle/10;
 			}
 		}
+		if(breaking>=0 && breaking<=255)
+		{
+			for (int k=0;k<3;k++)
+			{
+				outBreak[2-k]=char(breaking%10 + '0');
+				breaking=breaking/10;
+			}
+		}
 		steer=(int)(joyinfo.dwXpos/65535.0*encoder_resolution);
 		if(steer>=0 && steer<=encoder_resolution)
 		{
@@ -251,6 +260,10 @@ int _tmain(int argc, _TCHAR* argv[])
 		cout << "WriteSucceed?" << isWriteDrive << endl;
 		printf("outSteer:%s\n",outSteer);
 		bool isWriteSteer = SP->WriteData((char*)&outSteer, strlen(outSteer));
+		cout << "WriteSucceed?" << isWriteSteer << endl;
+		printf("outBreak:%s\n",outBreak);
+		bool isWriteBreak = SP->WriteData((char*)&outBreak, strlen(outBreak));
+		cout << "WriteSucceed?" << isWriteBreak << endl;
 #if defined(_MSC_VER)
 		Sleep(120);
 #elif defined (__linux__)

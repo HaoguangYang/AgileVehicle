@@ -70,16 +70,16 @@ void loop() {
 void serialEvent(){
     while(Serial.available()){
         char inChar = (char)Serial.read();
-        if(inChar != 'c' && inChar != 'a'){
+        if(inChar != 's' && inChar != 'd' && inChar != 'b'){
             inputString+=inChar;
         }
-        if(inChar == 'c'){ // c是转角数据开头
+        if(inChar == 's'){ // s是转角数据开头
             angleComplete = true;
             inputAngle=inputString;
             inputString="";
             return;
         }
-        if(inChar == 'a'){ // c是转角数据开头
+        if(inChar == 'd'){ // d是驱动数据开头
             inputString="";
             return;
         }
