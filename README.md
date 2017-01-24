@@ -26,3 +26,6 @@ Logitech G29 drivers source and interface for force feedback.
 
 ####/Motor Control
 Arduino code for motor control on Patroller, the miniaturized test platform built with Mr. Jianhui Zhao.
+
+###Notice for the holiday
+Workstation was down for the holiday, commits between Jan.18 and Feb.14 are made in Windows environment, therefore Linux-specific and ROS related codes are un-verified DRAFT. Could be buggy XD.

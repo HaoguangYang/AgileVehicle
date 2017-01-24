@@ -288,7 +288,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		printf("RecY:%d\n",ptr_to_first_valid->y);
         //However always read serial data.
 #ifdef (__linux__)
-		//int errNum = FFupdate();
+		int errNum = FFupdate(joy,ptr_to_first_valid->x);
 #endif
     }
     SP->~Serial();
@@ -300,7 +300,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	return 0;
 }
 
-int FFupdate( SDL_Joystick * joystick ) 
+int FFupdate( SDL_Joystick * joystick , unsigned short center) 
 {
  SDL_Haptic *haptic;
  SDL_HapticEffect effect;
@@ -311,21 +311,17 @@ int FFupdate( SDL_Joystick * joystick )
  if (haptic == NULL) return -1; // Most likely joystick isn't haptic
 
  // See if it can do sine waves
- if ((SDL_HapticQuery(haptic) & SDL_HAPTIC_SINE)==0) {
+ if ((SDL_HapticQuery(haptic) & SDL_HAPTIC_SPRING)==0) {
   SDL_HapticClose(haptic); // No sine effect
   return -1;
  }
 
  // Create the effect
  memset( &effect, 0, sizeof(SDL_HapticEffect) ); // 0 is safe default
- effect.type = SDL_HAPTIC_SINE;
- effect.periodic.direction.type = SDL_HAPTIC_POLAR; // Polar coordinates
- effect.periodic.direction.dir[0] = 18000; // Force comes from south
- effect.periodic.period = 1000; // 1000 ms
- effect.periodic.magnitude = 20000; // 20000/32767 strength
- effect.periodic.length = 5000; // 5 seconds long
- effect.periodic.attack_length = 1000; // Takes 1 second to get max strength
- effect.periodic.fade_length = 1000; // Takes 1 second to fade away
+ effect.type = SDL_HAPTIC_SPRING;
+ effect.condition.length = 30; // 30ms long
+ effect.condition.delay = 0; // no delay
+ effect.condition.center = center;//NEED CONVERSION!!!
 
  // Upload the effect
  effect_id = SDL_HapticNewEffect( haptic, &effect );
