@@ -266,13 +266,13 @@ int _tmain(int argc, _TCHAR* argv[])
 		cout << "WriteSucceed?" << isWriteBreak << endl;
 #if defined(_MSC_VER)
 		Sleep(120);
+		system("cls");
 #elif defined (__linux__)
 		}       //If have sysevent then update joystick values
 		usleep(120000);
+		system("clear");
 #endif
-		/*system("cls");*/
 		readResult = SP->ReadData(incomingData,dataLengthin);
-
 		///*if(readResult<2*sizeof(serial_format)){
 		//	printf("No enough data received. Let's wait.\n");
 		//	Sleep(1500);continue;
@@ -287,6 +287,9 @@ int _tmain(int argc, _TCHAR* argv[])
 		printf("RecX:%d\n",ptr_to_first_valid->x);
 		printf("RecY:%d\n",ptr_to_first_valid->y);
         //However always read serial data.
+#ifdef (__linux__)
+		//int errNum = FFupdate();
+#endif
     }
     SP->~Serial();
 #ifdef __linux__
@@ -297,3 +300,45 @@ int _tmain(int argc, _TCHAR* argv[])
 	return 0;
 }
 
+int FFupdate( SDL_Joystick * joystick ) 
+{
+ SDL_Haptic *haptic;
+ SDL_HapticEffect effect;
+ int effect_id;
+
+ // Open the device
+ haptic = SDL_HapticOpenFromJoystick( joystick );
+ if (haptic == NULL) return -1; // Most likely joystick isn't haptic
+
+ // See if it can do sine waves
+ if ((SDL_HapticQuery(haptic) & SDL_HAPTIC_SINE)==0) {
+  SDL_HapticClose(haptic); // No sine effect
+  return -1;
+ }
+
+ // Create the effect
+ memset( &effect, 0, sizeof(SDL_HapticEffect) ); // 0 is safe default
+ effect.type = SDL_HAPTIC_SINE;
+ effect.periodic.direction.type = SDL_HAPTIC_POLAR; // Polar coordinates
+ effect.periodic.direction.dir[0] = 18000; // Force comes from south
+ effect.periodic.period = 1000; // 1000 ms
+ effect.periodic.magnitude = 20000; // 20000/32767 strength
+ effect.periodic.length = 5000; // 5 seconds long
+ effect.periodic.attack_length = 1000; // Takes 1 second to get max strength
+ effect.periodic.fade_length = 1000; // Takes 1 second to fade away
+
+ // Upload the effect
+ effect_id = SDL_HapticNewEffect( haptic, &effect );
+
+ // Test the effect
+ SDL_HapticRunEffect( haptic, effect_id, 1 );
+ SDL_Delay( 5000); // Wait for the effect to finish
+
+ // We destroy the effect, although closing the device also does this
+ SDL_HapticDestroyEffect( haptic, effect_id );
+
+ // Close the device
+ SDL_HapticClose(haptic);
+
+ return 0; // Success
+}
