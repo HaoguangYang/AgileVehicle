@@ -1,9 +1,9 @@
 #include <FlexiTimer2.h>
-#define PUL 51
-#define DIR 53
-#define csn 31 // yellow
-#define dat 33 // green
-#define clk 35 // blue
+#define PUL 51				//3 for nano
+#define DIR 53				//4 for nano
+#define csn 31 // yellow	//7 for nano
+#define dat 33 // green		//6 for nano
+#define clk 35 // blue		//8 for nano
 int encoder_resolution = 4096;
 String inputString = "";
 String inputAngle  = "";
@@ -93,7 +93,7 @@ void OneUp(unsigned int time, unsigned int direc) {
     digitalWrite(DIR,HIGH);
   }
   else if (direc == 2) {
-    digitalWrite(DIR, HIGH);
+    digitalWrite(DIR,LOW);
   }
   // give a pulse
   digitalWrite(PUL,HIGH);

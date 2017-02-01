@@ -2,6 +2,7 @@
 #define CONTRL      3
 #define INT         2
 #define BACK        4
+#difine BREAK		5
 #define csn        13 //yellow
 #define dat        11 //green
 #define clk         9 //blue
@@ -31,7 +32,7 @@ String inputAngle="";
 String inputBreak="";
 boolean SpeedComplete = false;
 boolean AngleComplete = false;
-boolean BreakComplete = false;
+boolean BreakInit = false;
 
 typedef struct {
   char end_1;
@@ -109,7 +110,7 @@ void encoder()
   //Serial.println(data);
   //Serial.print("Frequency:");
   //Serial.println(Freq);
-  Angle=data;
+  //Angle=data;
 }
 
 // the function to move the angle motor for once
@@ -136,8 +137,16 @@ void loop() {
         analogWrite(CONTRL,DutyCycle);
         SpeedComplete = false;
         //Serial.println(DutyCycle);
-        inputDutycycle="";  
+        inputDutycycle="";
     }
+	// Breaking---------------------------------------------------------------
+	if (BreakInit)
+	{
+		digitalWrite(BREAK,HIGH);
+		analogWrite(CONTRL,0);
+		//ADD BREAKING HYDRAULICS ENGAGE CODE HERE.
+		BreakInit = false;
+	}
     // Angle-------------------------------------------------------------------
     if(AngleComplete)
     {
@@ -149,10 +158,7 @@ void loop() {
     }
     // As the first version has only one encoder (for the angle), only the angle part has the close loop control.
     //-------------------start angle control------------------------------------
-    if(DesiredAngle < 0 || DesiredAngle >encoder_resolution) { // will be modified as -90 degree to 90 degree
-        //Serial.println("bad DesiredAngle input.");
-    }
-    else {
+    if(!(DesiredAngle < 0 || DesiredAngle >encoder_resolution)) {
         if(!(abs(DesiredAngle-Angle)<40 ||abs(DesiredAngle-Angle+encoder_resolution)<40||abs(DesiredAngle-Angle-encoder_resolution)<40)) {
             if (DesiredAngle>Angle) {
                 OneUp(PulseTime,1);
@@ -161,24 +167,25 @@ void loop() {
                 OneUp(PulseTime,2);
             }  
         }
-        //end while loop 
     }
+	//ADD BREAKING HYDRAULICS ENGAGE CODE HERE.
     //----------------end angle control---------------------------------------------  
-    
+    //end loop 
 }
+
 void serialEvent(){
     while(Serial.available()){
         char inChar = (char)Serial.read();
         if((inChar != 's') && (inChar != 'd') && (inChar != 'b') && (inChar != 'r') && (inChar != 'f')){
             inputString+=inChar;
         }
-        if(inChar == 's'){ // c是转角数据开头
+        if(inChar == 's'){ // s是转角数据开头
             AngleComplete = true;
             inputAngle=inputString;
             inputString="";
             return;
         }
-        if(inChar == 'd'){ // a是驱动数据开头
+        if(inChar == 'd'){ // d是驱动数据开头
             SpeedComplete = true;
             inputDutycycle=inputString;
             inputString="";
@@ -186,8 +193,8 @@ void serialEvent(){
             return;
         }
 		if(inChar == 'b'){ // b是刹车数据开头
-            BreakComplete = true;
-            inputBreak=inputString;
+            BreakInit = true;
+			inputBreak = inputString;
             inputString="";
             return;
         }
