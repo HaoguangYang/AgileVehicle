@@ -2,28 +2,34 @@
 #define CONTRL      3
 #define INT         2
 #define BACK        4
-#difine BREAK		5
+#define BREAK    	5 //connecting to driving motor controller.
 #define csn        13 //yellow
-#define dat        11 //green
+#define datS       11 //green
+#define datD       12 //green
 #define clk         9 //blue
 #define PUL         7
 #define DIR         6 // direction for the angle motor
+//#define VOLT
+//#define AMPD
+//#define AMPS
 // Drive
 unsigned long tep_time = 0;
 int count = 0;
 void Motorspeed(void);
 int DutyCycle=0;
-int Freq=0;
+unsigned short dataD;
+//int Freq=0;
 // Steering
-unsigned short data=0;
+unsigned short dataS=0;
 unsigned short Angle=0;
-unsigned short val=0;
+unsigned short valS=0;
+unsigned short valD=0;
 int PulseNum;
 int driver_resolution=6400;
 int encoder_resolution=4096;
-int DesiredAngle=encoder_resolution/2;// initial the first desiredangle "0degree"
+int DesiredAngle=encoder_resolution/2;  // initial the first desiredangle "0degree"
 int reduction_ratio=15;
-int AngleTime=200; //in ms
+int AngleTime=50; //in ms
 int PulseTime=100; //in ms, the cycle for angle motor
 //data input
 String inputString ="";
@@ -37,8 +43,11 @@ boolean BreakInit = false;
 typedef struct {
   char end_1;
   char end_2;
-  unsigned short x;
-  unsigned short y;
+  unsigned short Steer;
+  unsigned short Drive;
+  //float Voltage;
+  //float CurrentS;
+  //float CurrentD;
 } serial_format;
 
 void setup() {
@@ -50,11 +59,11 @@ void setup() {
  // set driving control
   pinMode(CONTRL, OUTPUT);
   pinMode(INT,    INPUT);
-  attachInterrupt(0, Motorspeed, RISING);
+ //attachInterrupt(0, Motorspeed, RISING);
   analogWrite(CONTRL, 1);
  // set steering
   pinMode(csn,OUTPUT);
-  pinMode(dat,INPUT);
+  pinMode(datS,INPUT);
   pinMode(clk,OUTPUT);
   pinMode(DIR,OUTPUT);
   pinMode(PUL,OUTPUT);
@@ -64,7 +73,8 @@ void setup() {
   FlexiTimer2::set(AngleTime,encoder);  //time in the unit of ms
   FlexiTimer2::start();
 }
-void Motorspeed()
+
+/*void Motorspeed()
 {
   if(count == 24){
     count = 0;
@@ -75,10 +85,17 @@ void Motorspeed()
   else {
     count++;
   }
+}*/
+
+void encoderDrive()
+{
+  
 }
+  
 void encoder()
 {
-  data=0;
+  dataS=0;
+  dataD=0;
   digitalWrite(csn,LOW);
   delayMicroseconds(1);
   for (int k=0;k<12;k++)
@@ -87,8 +104,10 @@ void encoder()
     delayMicroseconds(1);
     digitalWrite(clk,HIGH);
     delayMicroseconds(1);
-    val=digitalRead(dat);
-    data=(data<<1)+val;
+    valS=digitalRead(datS);
+  valD=digitalRead(datD);
+    dataS=(dataS<<1)+valS;
+  dataD=(dataD<<1)+valD;
     //delayMicroseconds(1);
   }
   for (int k=0;k<6;k++)
@@ -99,18 +118,21 @@ void encoder()
     delayMicroseconds(1);
   }
   digitalWrite(csn,HIGH);
+  Angle=dataS;
   
   serial_format to_send;
   to_send.end_1=0x3f;
   to_send.end_2=0x3f;
-  to_send.x=data;
-  to_send.y=Freq;
+  to_send.Steer=dataS;   //Steering
+  to_send.Drive=dataD;   //Motor Speed
+  //to_send.Voltage = analogRead(VOLT);
+  //to_send.CurrentD = analogRead(AMPD);
+  //to_send.CurrentS = analogRead(AMPS);
   Serial.write((const uint8_t*)&to_send,sizeof(serial_format));
   //Serial.print("Angle:");
-  //Serial.println(data);
+  //Serial.println(dataS);
   //Serial.print("Frequency:");
-  //Serial.println(Freq);
-  //Angle=data;
+  //Serial.println(dataD);
 }
 
 // the function to move the angle motor for once
@@ -139,14 +161,14 @@ void loop() {
         //Serial.println(DutyCycle);
         inputDutycycle="";
     }
-	// Breaking---------------------------------------------------------------
-	if (BreakInit)
-	{
-		digitalWrite(BREAK,HIGH);
-		analogWrite(CONTRL,0);
-		//ADD BREAKING HYDRAULICS ENGAGE CODE HERE.
-		BreakInit = false;
-	}
+  // Breaking---------------------------------------------------------------
+  if (BreakInit)
+  {
+    digitalWrite(BREAK,HIGH);
+    analogWrite(CONTRL,0);
+    //ADD BREAKING HYDRAULICS ENGAGE CODE HERE.
+    BreakInit = false;
+  }
     // Angle-------------------------------------------------------------------
     if(AngleComplete)
     {
@@ -168,7 +190,7 @@ void loop() {
             }  
         }
     }
-	//ADD BREAKING HYDRAULICS ENGAGE CODE HERE.
+  //ADD BREAKING HYDRAULICS ENGAGE CODE HERE.
     //----------------end angle control---------------------------------------------  
     //end loop 
 }
@@ -192,9 +214,9 @@ void serialEvent(){
             //Serial.println("aaa");
             return;
         }
-		if(inChar == 'b'){ // b是刹车数据开头
+    if(inChar == 'b'){ // b是刹车数据开头
             BreakInit = true;
-			inputBreak = inputString;
+      inputBreak = inputString;
             inputString="";
             return;
         }
@@ -209,4 +231,3 @@ void serialEvent(){
     }
     //END WHILE LOOP
 }
-
