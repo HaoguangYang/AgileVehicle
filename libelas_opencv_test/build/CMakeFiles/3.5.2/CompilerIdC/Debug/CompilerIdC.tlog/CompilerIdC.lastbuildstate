@@ -1,7 +1,0 @@
-<<<<<<< HEAD
-#TargetFrameworkVersion=v4.0:PlatformToolSet=v120:EnableManagedIncrementalBuild=false:VCToolArchitecture=Native32Bit
-Debug|x64|E:\Vision Program Testing\libelas\build\CMakeFiles\3.5.2\CompilerIdC\|
-=======
-#TargetFrameworkVersion=v4.0:PlatformToolSet=v120:EnableManagedIncrementalBuild=false:VCToolArchitecture=Native32Bit
-Debug|x64|E:\Vision Program Testing\libelas\build\CMakeFiles\3.5.2\CompilerIdC\|
->>>>>>> f22ec6c22c6fa5e43b341e05886f52a49472abd7
