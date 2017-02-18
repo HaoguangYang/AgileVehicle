@@ -1,6 +1,6 @@
-#include <FlexiTimer2.h>
 #include <ros.h>
-#include <std_msgs/Controller.h>
+#include <FlexiTimer2.h>
+#include <std_msgs/Empty.h>
 #define CONTRL      3
 #define INT         2
 #define PUL 		51
@@ -18,6 +18,11 @@ int angleTime = 100;
 int angle = 0;
 int desiredAngle = 0;
 bool angleComplete = false;
+bool SpeedComplete = false;
+String inputDutycycle = "";
+int DutyCycle;
+bool BreakComplete = false;
+String inputBreak = "";
 
 typedef struct {
   char end_1;
@@ -26,7 +31,7 @@ typedef struct {
   unsigned short y;
 } serial_format;
 
-void messageCb( const std_msgs::Controller& trigger_msg){
+void messageCb( const std_msgs::Empty& trigger_msg){
 	if(SpeedComplete)
     { 
         DutyCycle = inputDutycycle.toInt(); // 从string转化为数字
@@ -62,7 +67,7 @@ void messageCb( const std_msgs::Controller& trigger_msg){
     }
     //----------------end angle control---------------------------------------------  
 }
-ros::Subscriber<std_msgs::Controller> sub("trigger_control", &messageCb );
+ros::Subscriber<std_msgs::Empty> sub("trigger_control", &messageCb );
 
 void setup() {
 	Serial.begin(9600);
