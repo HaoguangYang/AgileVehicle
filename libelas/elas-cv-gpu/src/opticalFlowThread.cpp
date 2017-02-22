@@ -16,7 +16,7 @@
  * Public License for more details
  */
 
-#include "iCub/stereoVision/opticalFlowThread.h"
+#include "opticalFlowThread.h"
 
 using namespace cv;
 using namespace yarp::os;

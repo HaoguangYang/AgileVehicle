@@ -16,7 +16,7 @@
  * Public License for more details
  */
 
-#include <iCub/stereoVision/elasWrapper.h>
+#include <elasWrapper.h>
 
 int64 elasWrapper::workBegin()
 {

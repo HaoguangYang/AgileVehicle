@@ -17,7 +17,7 @@
  */
 
 #include <cstdio>
-#include "iCub/stereoVision/camera.h"
+#include "camera.h"
 
 Camera::Camera(string intrinsicFilePath) {
         FileStorage fs(intrinsicFilePath.c_str(), CV_STORAGE_READ);

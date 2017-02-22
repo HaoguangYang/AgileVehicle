@@ -16,7 +16,7 @@
  * Public License for more details
  */
 
-#include "iCub/stereoVision/disparityThread.h"
+#include "disparityThread.h"
 
 bool DisparityThread::loadExtrinsics(yarp::os::ResourceFinder& rf, Mat& Ro, Mat& To, yarp::sig::Vector& eyes)
 {
@@ -130,10 +130,6 @@ DisparityThread::DisparityThread(const string &name, yarp::os::ResourceFinder &r
     this->updateOnce=false;
     this->updateCamera=updateCamera;
 
-#ifdef USING_GPU
-    utils=new Utilities();
-    utils->initSIFT_GPU();
-#endif
 }
 
 
@@ -225,20 +221,8 @@ void DisparityThread::run()
         mutexDisp.lock();
         if (updateCamera || updateOnce)
         {
-        #ifdef USING_GPU
-            Mat leftMat=this->stereo->getImLeft();
-            Mat rightMat=this->stereo->getImRight();
-            IplImage left=leftMat;
-            IplImage right=rightMat;
-            this->stereo->setImages(&left,&right);
-            utils->extractMatch_GPU( leftMat, rightMat);
-            vector<Point2f> leftM,rightM;
-            utils->getMatches(leftM,rightM);
-            this->stereo->setMatches(leftM,rightM);
-         #else
             this->stereo->findMatch(false,15,10.0);      
-         #endif
-
+            
             this->stereo->estimateEssential();
             if (this->stereo->essentialDecomposition())
             {
@@ -421,9 +405,6 @@ void DisparityThread::threadRelease()
     if (polyTorso.isValid())
         polyTorso.close();
 
-    #ifdef USING_GPU
-        delete utils;
-    #endif
 
     printf("Disparity Thread Closed... \n");
 }

@@ -16,15 +16,13 @@
  * Public License for more details
  */
 
-#ifndef USING_GPU
-    #ifdef OPENCV_GREATER_2
-        #include <opencv2/xfeatures2d/nonfree.hpp>
-    #else
-        #include <opencv2/nonfree/nonfree.hpp>        
-    #endif
-#endif 
+#ifdef OPENCV_GREATER_2
+    #include <opencv2/xfeatures2d/nonfree.hpp>
+#else
+    #include <opencv2/nonfree/nonfree.hpp>        
+#endif
 
-#include "iCub/stereoVision/stereoCamera.h"
+#include "stereoCamera.h"
 
 Mat StereoCamera::buildRotTras(Mat &R, Mat &T) {
     Mat A = Mat::eye(4, 4, CV_64F);
@@ -65,7 +63,7 @@ StereoCamera::StereoCamera(bool rectify) {
     this->rectify=rectify;
     this->epipolarTh=0.01;
 
-#if !defined(USING_GPU) && !defined(OPENCV_GREATER_2)
+#if !defined(OPENCV_GREATER_2)
     cv::initModule_nonfree();
 #endif 
 
@@ -85,7 +83,7 @@ StereoCamera::StereoCamera(yarp::os::ResourceFinder &rf, bool rectify) {
     this->rectify=rectify;
     buildUndistortRemap();
 
-#if !defined(USING_GPU) && !defined(OPENCV_GREATER_2)
+#if !defined(OPENCV_GREATER_2)
     cv::initModule_nonfree();
 #endif 
 
@@ -104,7 +102,7 @@ StereoCamera::StereoCamera(Camera Left, Camera Right,bool rectify) {
     this->epipolarTh=0.01;
     buildUndistortRemap();
 
-#if !defined(USING_GPU) && !defined(OPENCV_GREATER_2)
+#if !defined(OPENCV_GREATER_2)
     cv::initModule_nonfree();
 #endif 
 

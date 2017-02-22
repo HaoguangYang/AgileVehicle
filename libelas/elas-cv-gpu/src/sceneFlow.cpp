@@ -16,7 +16,7 @@
  * Public License for more details
  */
 
-#include "iCub/stereoVision/sceneFlow.h"
+#include "sceneFlow.h"
 
 SceneFlow::SceneFlow(yarp::os::ResourceFinder &rf) : RateThread(10) 
 {
