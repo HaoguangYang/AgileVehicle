@@ -21,6 +21,11 @@
 int64 elasWrapper::workBegin()
 {
     return getTickCount();
+#ifdef __CUDA_ARCH__
+    cudaFree(0);            //USE CUDA
+    // Startup the GPU device
+    // https://devtalk.nvidia.com/default/topic/895513/cuda-programming-and-performance/cudamalloc-slow/post/4724457/#4724457
+#endif
 }
 
 double elasWrapper::workEnd(int64 work_begin)
