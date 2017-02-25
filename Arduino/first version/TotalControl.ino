@@ -1,17 +1,16 @@
 #include <FlexiTimer2.h>
 #define CONTRL      3
-#define INT         2
 #define BACK        4
-#define BREAK    	5 //connecting to driving motor controller.
+#define BREAK       5 //connecting to driving motor controller.
 #define csn        13 //yellow
-#define datS       11 //green
-#define datD       12 //green
+#define datS        2 //green
+#define datD        8 //green
 #define clk         9 //blue
-#define PUL         7
-#define DIR         6 // direction for the angle motor
-//#define VOLT
-//#define AMPD
-//#define AMPS
+#define PUL         6
+#define DIR         7 // direction for the angle motor
+#define VOLT        A3
+#define AMPD        A7
+#define AMPS        A6
 // Drive
 unsigned long tep_time = 0;
 int count = 0;
@@ -58,7 +57,6 @@ void setup() {
   inputAngle.reserve(100);
  // set driving control
   pinMode(CONTRL, OUTPUT);
-  pinMode(INT,    INPUT);
  //attachInterrupt(0, Motorspeed, RISING);
   analogWrite(CONTRL, 1);
  // set steering
