@@ -28,7 +28,7 @@ int driver_resolution=6400;
 int encoder_resolution=4096;
 int DesiredAngle=encoder_resolution/2;  // initial the first desiredangle "0degree"
 int reduction_ratio=15;
-int AngleTime=50; //in ms
+int AngleTime=500; //in ms
 int PulseTime=100; //in ms, the cycle for angle motor
 //data input
 String inputString ="";
@@ -38,6 +38,9 @@ String inputBreak="";
 boolean SpeedComplete = false;
 boolean AngleComplete = false;
 boolean BreakInit = false;
+float Vin = 0;
+float IDrv = 0;
+float IStr = 0;
 
 typedef struct {
   char end_1;
@@ -67,6 +70,9 @@ void setup() {
   pinMode(PUL,OUTPUT);
   digitalWrite(csn,HIGH);
   digitalWrite(clk,HIGH);
+  pinMode(VOLT,INPUT);
+  pinMode(AMPD,INPUT);
+  pinMode(AMPS,INPUT);
   encoder();
   FlexiTimer2::set(AngleTime,encoder);  //time in the unit of ms
   FlexiTimer2::start();
@@ -131,6 +137,12 @@ void encoder()
   //Serial.println(dataS);
   //Serial.print("Frequency:");
   //Serial.println(dataD);
+  Serial.print ("AmpD: ");
+  Serial.println (IDrv);
+  Serial.print ("AmpS: ");
+  Serial.println (IStr);
+  Serial.print ("VCC: ");
+  Serial.println (Vin);
 }
 
 // the function to move the angle motor for once
@@ -191,6 +203,9 @@ void loop() {
   //ADD BREAKING HYDRAULICS ENGAGE CODE HERE.
     //----------------end angle control---------------------------------------------  
     //end loop 
+  Vin = 0.02892*analogRead (VOLT)*(1+0.0008907*analogRead (VOLT))+2.99;
+  IStr = (analogRead (AMPS)-512)*30/409.6;
+  IDrv = (analogRead (AMPD)-512)*30/409.6;
 }
 
 void serialEvent(){
@@ -229,3 +244,4 @@ void serialEvent(){
     }
     //END WHILE LOOP
 }
+
