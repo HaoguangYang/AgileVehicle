@@ -41,6 +41,7 @@ boolean BreakInit = false;
 float Vin = 0;
 float IDrv = 0;
 float IStr = 0;
+float Pwr = 0;
 
 typedef struct {
   char end_1;
@@ -137,12 +138,12 @@ void encoder()
   //Serial.println(dataS);
   //Serial.print("Frequency:");
   //Serial.println(dataD);
-  Serial.print ("AmpD: ");
+  Serial.println();
+  Serial.println (" AmpD | AmpS | VCC | Pwr ");
   Serial.println (IDrv);
-  Serial.print ("AmpS: ");
   Serial.println (IStr);
-  Serial.print ("VCC: ");
   Serial.println (Vin);
+  Serial.println (Pwr);
 }
 
 // the function to move the angle motor for once
@@ -206,6 +207,7 @@ void loop() {
   Vin = 0.02892*analogRead (VOLT)*(1+0.0008907*analogRead (VOLT))+2.99;
   IStr = (analogRead (AMPS)-512)*30/409.6;
   IDrv = (analogRead (AMPD)-512)*30/409.6;
+  Pwr = Vin*(IDrv+IStr);
 }
 
 void serialEvent(){
