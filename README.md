@@ -10,19 +10,28 @@ sudo apt-get install g++ arduino libsdl2-dev joystick
 ##Directory Structure
 
 ####/SteeringWheelControl
-Controlling the suspnsion-motor assembly with Logitech G29 and Arduino.
+Controlling the suspnsion-motor assembly with Logitech G29 and Arduino. Added force feedback but not tested.
 
 ####/Arduino
 The Arduino code for the function above.
 
+####/ROS
+ROS implementation of the system.
+
 ####/joystick_utils
 Joystick API library
 
-####/libelas_opencv_test
-Integration of OpenCV in libelas, slow on progress and untested.
+####/libelas
+Integration of OpenCV in libelas, merged libelas-gpu to implement CUDA, merged robotology/stereo-vision and working on migration from yarp to ROS interface. Untested.
+> Reference:
+> https://github.com/goldbattle/libelas-gpu
+> https://github.com/robotology/stereo-vision
 
 ####/LogitechFFDrivers
 Logitech G29 drivers source and interface for force feedback.
+
+####/DynaCore
+Possible dynamic control interface. (DRAFT)
 
 ####/Motor Control
 Arduino code for motor control on Patroller, the miniaturized test platform built with Mr. Jianhui Zhao.
