@@ -27,8 +27,11 @@ using namespace std;
 typedef struct {
   char end_1;
   char end_2;
-  unsigned short x;
-  unsigned short y;
+  unsigned short Steer;
+  unsigned short Drive;
+  float Voltage;
+  float CurrentS;
+  float CurrentD;
 } serial_format;
 
 #ifdef __linux__
@@ -284,8 +287,12 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 		serial_format* ptr_to_first_valid = (serial_format*) &incomingData[ptr];
 
-		printf("RecX:%d\n",ptr_to_first_valid->x);
-		printf("RecY:%d\n",ptr_to_first_valid->y);
+		printf("Actual Steer: %d\n",ptr_to_first_valid->Steer);
+		printf("Actual Drive: %d\n",ptr_to_first_valid->Drive);
+		printf("Bus Voltage: %f\n", ptr_to_first_valid->Voltage);
+		printf("Current on Driving: %f\n", ptr_to_first_valid->CurrentD);
+		printf("Current on Steering: %f\n", ptr_to_first_valid->CurrentS);
+		printf("Power Consumed on This Unit: %f\n", (ptr_to_first_valid->Voltage)*((ptr_to_first_valid->CurrentD)+(ptr_to_first_valid->CurrentS)));
         //However always read serial data.
 #ifdef (__linux__)
 		int errNum = FFupdate(joy,ptr_to_first_valid->x);

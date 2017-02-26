@@ -38,18 +38,15 @@ String inputBreak="";
 boolean SpeedComplete = false;
 boolean AngleComplete = false;
 boolean BreakInit = false;
-float Vin = 0;
-float IDrv = 0;
-float IStr = 0;
 
 typedef struct {
   char end_1;
   char end_2;
   unsigned short Steer;
   unsigned short Drive;
-  //float Voltage;
-  //float CurrentS;
-  //float CurrentD;
+  float Voltage;
+  float CurrentS;
+  float CurrentD;
 } serial_format;
 
 void setup() {
@@ -137,12 +134,6 @@ void encoder()
   //Serial.println(dataS);
   //Serial.print("Frequency:");
   //Serial.println(dataD);
-  Serial.print ("AmpD: ");
-  Serial.println (IDrv);
-  Serial.print ("AmpS: ");
-  Serial.println (IStr);
-  Serial.print ("VCC: ");
-  Serial.println (Vin);
 }
 
 // the function to move the angle motor for once
@@ -203,9 +194,9 @@ void loop() {
   //ADD BREAKING HYDRAULICS ENGAGE CODE HERE.
     //----------------end angle control---------------------------------------------  
     //end loop 
-  Vin = 0.02892*analogRead (VOLT)*(1+0.0008907*analogRead (VOLT))+2.99;
-  IStr = (analogRead (AMPS)-512)*30/409.6;
-  IDrv = (analogRead (AMPD)-512)*30/409.6;
+  Voltage = 0.02892*analogRead (VOLT)*(1+0.0008907*analogRead (VOLT))+2.99;
+  CurrentS = (analogRead (AMPS)-512)*30/409.6;
+  CurrentD = (analogRead (AMPD)-512)*30/409.6;
 }
 
 void serialEvent(){
