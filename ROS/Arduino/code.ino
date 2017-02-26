@@ -2,61 +2,66 @@
 #include <FlexiTimer2.h>
 #include <std_msgs/Empty.h>
 #define CONTRL      3
-#define INT         2
-#define PUL 		51
-#define DIR 		53
 #define BACK        4
-#define csn 		31 // yellow
-#define dat 		33 // green
-#define clk 		35 // blue
+#define BREAK       5 //connecting to driving motor controller.
+#define csn        13 //yellow
+#define datS        2 //green
+#define datD        8 //green
+#define clk         9 //blue
+#define PUL         6
+#define DIR         7 // direction for the angle motor
+#define VOLT        A3
+#define AMPD        A7
+#define AMPS        A6
+
 ros::NodeHandle handle;
 int encoder_resolution = 4096;
 String inputString = "";
 String inputAngle  = "";
 int pulseTime = 100;
 int angleTime = 100;
-int angle = 0;
-int desiredAngle = 0;
-bool angleComplete = false;
-bool SpeedComplete = false;
-String inputDutycycle = "";
-int DutyCycle;
-bool BreakComplete = false;
-String inputBreak = "";
+int Angle = 0;
 
 typedef struct {
   char end_1;
   char end_2;
-  unsigned short x;
-  unsigned short y;
-} serial_format;
+  unsigned short StrActual;
+  unsigned short DrvActual;
+  float Voltage;
+  float CurrentS;
+  float CurrentD;
+} to_send;
+typedef struct {
+  int inputSteer;
+  int inputDrive;
+  int inputBreak;
+  bool reverse;
+} ctrl_var;
 
-void messageCb( const std_msgs::Empty& trigger_msg){
-	if(SpeedComplete)
-    { 
-        DutyCycle = inputDutycycle.toInt(); // 从string转化为数字
-        analogWrite(CONTRL,DutyCycle);
-        SpeedComplete = false;
-        //Serial.println(DutyCycle);
-        inputDutycycle="";  
-    }
-	if(angleComplete)
-    {
-        //Serial.println(inputAngle);
-        desiredAngle = inputAngle.toInt();
-        //Serial.println(desiredAngle);
-        angleComplete = false;
-        
-        inputAngle="";
+ros::Publisher assessActual("WheelActual", &to_send);
+
+void Actuate( const ctrl_var& control_msg){
+	if(control_msg.reverse){ // 倒车
+        digitalWrite(BACK,HIGH);
+	}//adjust for the switch
+    else{
+		digitalWrite(BACK,LOW);
+	}
+	if (!inputBreak>0){
+		analogWrite(CONTRL,control_msg.inputDrive);	//Normal Driving
+	}
+	else{											//Breaking
+		analogWrite(CONTRL,0);
+		digitalWrite(BREAK,HIGH);
 	}
     // As the first version has only one encoder (for the angle), only the angle part has the close loop control.
     //-------------------start angle control------------------------------------
-    if(desiredAngle < 0 || desiredAngle >encoder_resolution) { // will be modified as -90 degree to 90 degree
+    if(control_msg.inputSteer < 0 || control_msg.inputSteer >encoder_resolution) { // will be modified as -90 degree to 90 degree
         //Serial.println("bad DesiredAngle input.");
     }
     else {
-        if(!(abs(desiredAngle-angle)<40 ||abs(desiredAngle-angle+encoder_resolution)<40||abs(desiredAngle-angle-encoder_resolution)<40)) {
-            if (desiredAngle>angle) {
+        if(!(abs(control_msg.inputSteer-Angle)<40 ||abs(control_msg.inputSteer-Angle+encoder_resolution)<40||abs(control_msg.inputSteer-Angle-encoder_resolution)<40)) {
+            if (control_msg.inputSteer>Angle) {
                 OneUp(pulseTime,1);
             }
             else {
@@ -67,7 +72,7 @@ void messageCb( const std_msgs::Empty& trigger_msg){
     }
     //----------------end angle control---------------------------------------------  
 }
-ros::Subscriber<std_msgs::Empty> sub("trigger_control", &messageCb );
+ros::Subscriber<std_msgs::Empty> sub("WheelControl", &Actuate );
 
 void setup() {
 	Serial.begin(9600);
@@ -80,12 +85,14 @@ void setup() {
 	pinMode(csn, OUTPUT);
 	pinMode(dat, INPUT);
 	pinMode(clk, OUTPUT);
-	encoder();
-	FlexiTimer2::set(angleTime, encoder);
-	FlexiTimer2::start();
 	
 	handle.initNode();
 	handle.subscribe(sub);
+	handle.advertise(assessActual);
+	
+	Query();
+	FlexiTimer2::set(angleTime, Query);
+	FlexiTimer2::start();
 }
 
 int data = 0;
@@ -94,42 +101,6 @@ int counter = 0;
 void loop() {
 	handle.spinOnce();
 	delay(1);
-}
-
-void serialEvent(){
-    while(Serial.available()){
-        char inChar = (char)Serial.read();
-        if(inChar != 's' && inChar != 'd' && inChar != 'b'){
-            inputString+=inChar;
-        }
-        if(inChar == 's'){ // s是转角数据开头
-            angleComplete = true;
-            inputAngle=inputString;
-            inputString="";
-            return;
-        }
-        if(inChar == 'd'){ // d是驱动数据开头
-			SpeedComplete = true;
-			inputDutycycle = inputString;
-            inputString="";
-            return;
-        }
-		if(inChar == 'b'){ // b是刹车数据开头
-            BreakComplete = true;
-            inputBreak=inputString;
-            inputString="";
-            return;
-        }
-        if(inChar == 'r'){ // r是倒车开头
-            digitalWrite(BACK,HIGH); //adjust for the switch
-            return;
-        }
-        if(inChar == 'f'){ // 取消倒车
-            digitalWrite(BACK,LOW); //adjust for the switch
-            return;
-        }
-    }
-    //END WHILE LOOP
 }
 
 // the function to move the angle motor for once
@@ -146,13 +117,13 @@ void OneUp(unsigned int time, unsigned int direc) {
   digitalWrite(PUL,LOW);
   delayMicroseconds(time);
    //unit of time is us
-   delay(2);
+  delay(2);
 }
 
-void encoder()
-{
-  int val = 0;
-  data=0;
+void Query()
+{ 
+  dataS=0;
+  dataD=0;
   digitalWrite(csn,LOW);
   delayMicroseconds(1);
   for (int k=0;k<12;k++)
@@ -161,8 +132,10 @@ void encoder()
     delayMicroseconds(1);
     digitalWrite(clk,HIGH);
     delayMicroseconds(1);
-    val=digitalRead(dat);
-    data=(data<<1)+val;
+    valS=digitalRead(datS);
+    valD=digitalRead(datD);
+    dataS=(dataS<<1)+valS;
+    dataD=(dataD<<1)+valD;
     //delayMicroseconds(1);
   }
   for (int k=0;k<6;k++)
@@ -173,15 +146,16 @@ void encoder()
     delayMicroseconds(1);
   }
   digitalWrite(csn,HIGH);
-  angle = data;
-  //Serial.println(angle);
+  Angle=dataS;
+  
   serial_format to_send;
   to_send.end_1=0x3f;
   to_send.end_2=0x3f;
-  to_send.x=angle;
-  to_send.y=0;
-  Serial.println(to_send.x);
-  Serial.println(desiredAngle);
-  //Serial.println(sizeof(serial_format));
-  Serial.write((const uint8_t*)&to_send,sizeof(serial_format));
+  to_send.Steer=dataS;   //Steering
+  to_send.Drive=dataD;   //Motor Speed
+  to_send.Voltage = analogRead(VOLT);
+  to_send.CurrentD = analogRead(AMPD);
+  to_send.CurrentS = analogRead(AMPS);
+  assessActual.publish (&to_send);
+  //Serial.write((const uint8_t*)&to_send,sizeof(serial_format));
 }

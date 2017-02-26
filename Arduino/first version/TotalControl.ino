@@ -47,7 +47,7 @@ typedef struct {
   float Voltage;
   float CurrentS;
   float CurrentD;
-} serial_format;
+} to_send;
 
 void setup() {
   // set the COM:
