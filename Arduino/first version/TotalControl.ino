@@ -87,11 +87,6 @@ void setup() {
     count++;
   }
 }*/
-
-void encoderDrive()
-{
-  
-}
   
 void encoder()
 {
@@ -106,9 +101,9 @@ void encoder()
     digitalWrite(clk,HIGH);
     delayMicroseconds(1);
     valS=digitalRead(datS);
-  valD=digitalRead(datD);
+    valD=digitalRead(datD);
     dataS=(dataS<<1)+valS;
-  dataD=(dataD<<1)+valD;
+    dataD=(dataD<<1)+valD;
     //delayMicroseconds(1);
   }
   for (int k=0;k<6;k++)
@@ -126,9 +121,9 @@ void encoder()
   to_send.end_2=0x3f;
   to_send.Steer=dataS;   //Steering
   to_send.Drive=dataD;   //Motor Speed
-  //to_send.Voltage = analogRead(VOLT);
-  //to_send.CurrentD = analogRead(AMPD);
-  //to_send.CurrentS = analogRead(AMPS);
+  to_send.Voltage = analogRead(VOLT);
+  to_send.CurrentD = analogRead(AMPD);
+  to_send.CurrentS = analogRead(AMPS);
   Serial.write((const uint8_t*)&to_send,sizeof(serial_format));
   //Serial.print("Angle:");
   //Serial.println(dataS);
@@ -194,9 +189,16 @@ void loop() {
   //ADD BREAKING HYDRAULICS ENGAGE CODE HERE.
     //----------------end angle control---------------------------------------------  
     //end loop 
+<<<<<<< HEAD
   Voltage = 0.02892*analogRead (VOLT)*(1+0.0008907*analogRead (VOLT))+2.99;
   CurrentS = (analogRead (AMPS)-512)*30/409.6;
   CurrentD = (analogRead (AMPD)-512)*30/409.6;
+=======
+  Vin = 0.02892*analogRead (VOLT)*(1+0.0008907*analogRead (VOLT))+2.99;
+  IStr = (analogRead (AMPS)-512)*30/409.6;
+  IDrv = (analogRead (AMPD)-512)*30/409.6;
+  Pwr = Vin*(IDrv+IStr);
+>>>>>>> 593f27ce9ab02ce3109cac5836bfd2feb0e00fcd
 }
 
 void serialEvent(){
