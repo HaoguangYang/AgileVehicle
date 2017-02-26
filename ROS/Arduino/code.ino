@@ -153,9 +153,9 @@ void Query()
   to_send.end_2=0x3f;
   to_send.Steer=dataS;   //Steering
   to_send.Drive=dataD;   //Motor Speed
-  to_send.Voltage = analogRead(VOLT);
-  to_send.CurrentD = analogRead(AMPD);
-  to_send.CurrentS = analogRead(AMPS);
+  to_send.Voltage = 0.02892*analogRead (VOLT)*(1+0.0008907*analogRead (VOLT))+2.99;
+  to_send.CurrentD = (analogRead (AMPD)-512)*30/409.6;
+  to_send.CurrentS = (analogRead (AMPS)-512)*30/409.6;
   assessActual.publish (&to_send);
   //Serial.write((const uint8_t*)&to_send,sizeof(serial_format));
 }
