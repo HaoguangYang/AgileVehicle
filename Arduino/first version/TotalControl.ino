@@ -189,16 +189,11 @@ void loop() {
   //ADD BREAKING HYDRAULICS ENGAGE CODE HERE.
     //----------------end angle control---------------------------------------------  
     //end loop 
-<<<<<<< HEAD
+
   Voltage = 0.02892*analogRead (VOLT)*(1+0.0008907*analogRead (VOLT))+2.99;
   CurrentS = (analogRead (AMPS)-512)*30/409.6;
   CurrentD = (analogRead (AMPD)-512)*30/409.6;
-=======
-  Vin = 0.02892*analogRead (VOLT)*(1+0.0008907*analogRead (VOLT))+2.99;
-  IStr = (analogRead (AMPS)-512)*30/409.6;
-  IDrv = (analogRead (AMPD)-512)*30/409.6;
-  Pwr = Vin*(IDrv+IStr);
->>>>>>> 593f27ce9ab02ce3109cac5836bfd2feb0e00fcd
+
 }
 
 void serialEvent(){
