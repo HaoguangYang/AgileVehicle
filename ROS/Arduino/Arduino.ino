@@ -1,7 +1,7 @@
 #include <ros.h>
 #include <FlexiTimer2.h>
 #include <std_msgs/Empty.h>
-#include "struct.h"
+
 #define CONTRL      3
 #define BACK        4
 #define BREAK       5 //connecting to driving motor controller.
@@ -151,7 +151,7 @@ void Query()
   digitalWrite(csn,HIGH);
   Angle=dataActuator[0];
   
-  dataPower[0] = 0.02892*analogRead (VOLT)*(1+0.0008907*analogRead (VOLT))+2.99;
+  dataPower[0] = analogRead (VOLT)*(0.02892+0.00002576*analogRead (VOLT))+2.99;
   dataPower[1] = (analogRead (AMPS)-512)*30/409.6;
   dataPower[2] = (analogRead (AMPD)-512)*30/409.6;
   ActuatorStatus.data = dataActuator;
