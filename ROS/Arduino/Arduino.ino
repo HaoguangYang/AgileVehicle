@@ -19,7 +19,7 @@
 ros::NodeHandle handle;
 int encoder_resolution = 4096;
 int pulseTime = 100;
-int updateTime = 10000;
+int updateTime = 100;
 int Angle = 0;
 
 std_msgs::UInt16MultiArray ActuatorStatus;
@@ -91,22 +91,22 @@ void setup() {
 	handle.initNode();
 	handle.subscribe(sub);
 	
-    PowerStatus.layout.dim_length = 1;
+    //PowerStatus.layout.dim_length = 1;
     malloc(sizeof(std_msgs::MultiArrayDimension) * 3);
     PowerStatus.layout.dim[0].label = "UnitPower";
     PowerStatus.layout.dim[0].size = 3;
     PowerStatus.layout.dim[0].stride = 1*3;
-    PowerStatus.layout.data_offset = 0;
+    //PowerStatus.layout.data_offset = 0;
     PowerStatus.data = (float *)malloc(sizeof(float)*3);
     PowerStatus.data_length = 3;
     handle.advertise(assessPower);
     
-    ActuatorStatus.layout.dim_length = 1;
+    //ActuatorStatus.layout.dim_length = 1;
     malloc(sizeof(std_msgs::MultiArrayDimension) * 2);
     ActuatorStatus.layout.dim[0].label = "WheelActual";
     ActuatorStatus.layout.dim[0].size = 2;
     ActuatorStatus.layout.dim[0].stride = 1*2;
-    ActuatorStatus.layout.data_offset = 0;
+    //ActuatorStatus.layout.data_offset = 0;
     ActuatorStatus.data = (uint16_t *)malloc(sizeof(uint16_t)*2);
     ActuatorStatus.data_length = 2;
     handle.advertise(assessActual);
@@ -139,8 +139,8 @@ void OneUp(unsigned int time, bool direc) {
 }
 
 void Query()
-{ 
-  uint16_t dataActuator[2];
+{
+  uint16_t dataActuator[2] = {0};
   float dataPower[3];
   digitalWrite(csn,LOW);
   delayMicroseconds(1);
