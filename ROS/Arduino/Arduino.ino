@@ -1,6 +1,7 @@
 #include <ros.h>
 #include <FlexiTimer2.h>
 #include <std_msgs/Empty.h>
+#include "struct.h"
 #define CONTRL      3
 #define BACK        4
 #define BREAK       5 //connecting to driving motor controller.
@@ -22,23 +23,27 @@ int pulseTime = 100;
 int angleTime = 100;
 int Angle = 0;
 
-typedef struct {
-  char end_1;
-  char end_2;
-  unsigned short StrActual;
-  unsigned short DrvActual;
-  float Voltage;
-  float CurrentS;
-  float CurrentD;
-} to_send;
-typedef struct {
-  int inputSteer;
-  int inputDrive;
-  int inputBreak;
-  bool reverse;
-} ctrl_var;
+std_msgs::UInt8MultiArray ActuatorStatus[2];
+/************
+    unsigned short StrActual;
+    unsigned short DrvActual;
+************/
+float PowerStatus[3];
+/************
+    float Voltage;
+    float CurrentS;
+    float CurrentD;
+************/
+int ctrl_var[4];
+/************
+    int inputSteer;
+    int inputDrive;
+    int inputBreak;
+    int reverse;
+************/
 
-ros::Publisher assessActual("WheelActual", &to_send);
+ros::Publisher assessActual("WheelActual", &ActuatorStatus);
+ros::Publisher assessPower("UnitPower", &PowerStatus);
 
 void Actuate( const ctrl_var& control_msg){
 	if(control_msg.reverse){ // 倒车
@@ -47,7 +52,7 @@ void Actuate( const ctrl_var& control_msg){
     else{
 		digitalWrite(BACK,LOW);
 	}
-	if (!inputBreak>0){
+	if (!control_msg.inputBreak>0){
 		analogWrite(CONTRL,control_msg.inputDrive);	//Normal Driving
 	}
 	else{											//Breaking
@@ -72,7 +77,7 @@ void Actuate( const ctrl_var& control_msg){
     }
     //----------------end angle control---------------------------------------------  
 }
-ros::Subscriber<std_msgs::Empty> sub("WheelControl", &Actuate );
+ros::Subscriber<std_msgs::Empty> sub("WheelControl", &ctrl_var);
 
 void setup() {
 	Serial.begin(9600);
@@ -148,9 +153,6 @@ void Query()
   digitalWrite(csn,HIGH);
   Angle=dataS;
   
-  serial_format to_send;
-  to_send.end_1=0x3f;
-  to_send.end_2=0x3f;
   to_send.Steer=dataS;   //Steering
   to_send.Drive=dataD;   //Motor Speed
   to_send.Voltage = 0.02892*analogRead (VOLT)*(1+0.0008907*analogRead (VOLT))+2.99;
