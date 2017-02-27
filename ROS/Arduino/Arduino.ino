@@ -1,5 +1,4 @@
 #include <ros.h>
-#include <FlexiTimer2.h>
 #include <std_msgs/UInt16MultiArray.h>
 #include <std_msgs/Float32MultiArray.h>
 #include <std_msgs/Int32MultiArray.h>
@@ -19,10 +18,8 @@
 
 ros::NodeHandle handle;
 int encoder_resolution = 4096;
-String inputString = "";
-String inputAngle  = "";
 int pulseTime = 100;
-int angleTime = 100;
+int updateTime = 10000;
 int Angle = 0;
 
 std_msgs::UInt16MultiArray ActuatorStatus;
@@ -82,9 +79,6 @@ void Actuate( const std_msgs::Int32MultiArray& ctrl_var){
 ros::Subscriber<std_msgs::Int32MultiArray> sub("WheelControl", &Actuate);
 
 void setup() {
-	Serial.begin(9600);
-	inputString.reserve(100);
-	inputAngle.reserve(100);
 	// set driving control
 	pinMode(DIR, OUTPUT);
 	pinMode(PUL, OUTPUT);
@@ -96,25 +90,35 @@ void setup() {
 	
 	handle.initNode();
 	handle.subscribe(sub);
-	handle.advertise(assessActual);
 	
-	Query();
-	FlexiTimer2::set(angleTime, Query);
-	FlexiTimer2::start();
-	
-	ActuatorStatus.layout.dim_length = 1;
-        ActuatorStatus.data_length = 2;
-        
-        PowerStatus.layout.dim_length = 1;
-        PowerStatus.data_length = 3;
+    PowerStatus.layout.dim_length = 1;
+    malloc(sizeof(std_msgs::MultiArrayDimension) * 3);
+    PowerStatus.layout.dim[0].label = "UnitPower";
+    PowerStatus.layout.dim[0].size = 3;
+    PowerStatus.layout.dim[0].stride = 1*3;
+    PowerStatus.layout.data_offset = 0;
+    PowerStatus.data = (float *)malloc(sizeof(float)*3);
+    PowerStatus.data_length = 3;
+    handle.advertise(assessPower);
+    
+    ActuatorStatus.layout.dim_length = 1;
+    malloc(sizeof(std_msgs::MultiArrayDimension) * 2);
+    ActuatorStatus.layout.dim[0].label = "WheelActual";
+    ActuatorStatus.layout.dim[0].size = 2;
+    ActuatorStatus.layout.dim[0].stride = 1*2;
+    ActuatorStatus.layout.data_offset = 0;
+    ActuatorStatus.data = (uint16_t *)malloc(sizeof(uint16_t)*2);
+    ActuatorStatus.data_length = 2;
+    handle.advertise(assessActual);
 }
 
 int data = 0;
 int counter = 0;
 
 void loop() {
+    Query();
 	handle.spinOnce();
-	delay(1);
+	delay(updateTime);
 }
 
 // the function to move the angle motor for once
