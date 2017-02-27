@@ -1,6 +1,8 @@
 #include <ros.h>
 #include <FlexiTimer2.h>
-#include <std_msgs/Empty.h>
+#include <std_msgs/UInt16MultiArray.h>
+#include <std_msgs/Float32MultiArray.h>
+#include <std_msgs/Int32MultiArray.h>
 
 #define CONTRL      3
 #define BACK        4
@@ -77,7 +79,7 @@ void Actuate( const std_msgs::Int32MultiArray& ctrl_var){
     }
     //----------------end angle control---------------------------------------------  
 }
-ros::Subscriber<std_msgs::Int32MultiArray> sub("WheelControl", &ctrl_var);
+ros::Subscriber<std_msgs::Int32MultiArray> sub("WheelControl", &Actuate);
 
 void setup() {
 	Serial.begin(9600);
@@ -88,7 +90,8 @@ void setup() {
 	pinMode(PUL, OUTPUT);
 	// set angle encoder
 	pinMode(csn, OUTPUT);
-	pinMode(dat, INPUT);
+	pinMode(datS, INPUT);
+	pinMode(datD, INPUT);
 	pinMode(clk, OUTPUT);
 	
 	handle.initNode();
@@ -98,6 +101,12 @@ void setup() {
 	Query();
 	FlexiTimer2::set(angleTime, Query);
 	FlexiTimer2::start();
+	
+	ActuatorStatus.layout.dim_length = 1;
+        ActuatorStatus.data_length = 2;
+        
+        PowerStatus.layout.dim_length = 1;
+        PowerStatus.data_length = 3;
 }
 
 int data = 0;
@@ -127,7 +136,7 @@ void OneUp(unsigned int time, bool direc) {
 
 void Query()
 { 
-  unsigned short dataActuator[2];
+  uint16_t dataActuator[2];
   float dataPower[3];
   digitalWrite(csn,LOW);
   delayMicroseconds(1);
