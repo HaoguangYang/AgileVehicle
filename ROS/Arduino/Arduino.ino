@@ -23,19 +23,19 @@ int pulseTime = 100;
 int angleTime = 100;
 int Angle = 0;
 
-std_msgs::UInt8MultiArray ActuatorStatus[2];
+std_msgs::UInt16MultiArray ActuatorStatus;
 /************
     unsigned short StrActual;
     unsigned short DrvActual;
 ************/
-float PowerStatus[3];
+std_msgs::Float32MultiArray PowerStatus;
 /************
     float Voltage;
     float CurrentS;
     float CurrentD;
 ************/
-int ctrl_var[4];
 /************
+std_msgs::UInt16MultiArray ctrl_var;
     int inputSteer;
     int inputDrive;
     int inputBreak;
@@ -45,15 +45,15 @@ int ctrl_var[4];
 ros::Publisher assessActual("WheelActual", &ActuatorStatus);
 ros::Publisher assessPower("UnitPower", &PowerStatus);
 
-void Actuate( const ctrl_var& control_msg){
-	if(control_msg.reverse){ // 倒车
+void Actuate( const std_msgs::Int32MultiArray& ctrl_var){
+	if(ctrl_var.data[4]>0){ // 倒车
         digitalWrite(BACK,HIGH);
 	}//adjust for the switch
     else{
 		digitalWrite(BACK,LOW);
 	}
-	if (!control_msg.inputBreak>0){
-		analogWrite(CONTRL,control_msg.inputDrive);	//Normal Driving
+	if (ctrl_var.data[3]==0){
+		analogWrite(CONTRL,ctrl_var.data[2]);	//Normal Driving
 	}
 	else{											//Breaking
 		analogWrite(CONTRL,0);
@@ -61,23 +61,23 @@ void Actuate( const ctrl_var& control_msg){
 	}
     // As the first version has only one encoder (for the angle), only the angle part has the close loop control.
     //-------------------start angle control------------------------------------
-    if(control_msg.inputSteer < 0 || control_msg.inputSteer >encoder_resolution) { // will be modified as -90 degree to 90 degree
+    if(ctrl_var.data[1] < 0 || ctrl_var.data[1] >encoder_resolution) { // will be modified as -90 degree to 90 degree
         //Serial.println("bad DesiredAngle input.");
     }
     else {
-        if(!(abs(control_msg.inputSteer-Angle)<40 ||abs(control_msg.inputSteer-Angle+encoder_resolution)<40||abs(control_msg.inputSteer-Angle-encoder_resolution)<40)) {
-            if (control_msg.inputSteer>Angle) {
-                OneUp(pulseTime,1);
+        if(!(abs(ctrl_var.data[1]-Angle)<40 ||abs(ctrl_var.data[1]-Angle+encoder_resolution)<40||abs(ctrl_var.data[1]-Angle-encoder_resolution)<40)) {
+            if (ctrl_var.data[1]>Angle) {
+                OneUp(pulseTime,0);
             }
             else {
-                OneUp(pulseTime,2);
+                OneUp(pulseTime,1);
             }  
         }
         //end while loop 
     }
     //----------------end angle control---------------------------------------------  
 }
-ros::Subscriber<std_msgs::Empty> sub("WheelControl", &ctrl_var);
+ros::Subscriber<std_msgs::Int32MultiArray> sub("WheelControl", &ctrl_var);
 
 void setup() {
 	Serial.begin(9600);
@@ -109,11 +109,11 @@ void loop() {
 }
 
 // the function to move the angle motor for once
-void OneUp(unsigned int time, unsigned int direc) {
-  if (direc == 1){
+void OneUp(unsigned int time, bool direc) {
+  if (direc == 0){
     digitalWrite(DIR,HIGH);
   }
-  else if (direc == 2) {
+  else if (direc == 1) {
     digitalWrite(DIR, HIGH);
   }
   // give a pulse
@@ -127,8 +127,8 @@ void OneUp(unsigned int time, unsigned int direc) {
 
 void Query()
 { 
-  dataS=0;
-  dataD=0;
+  unsigned short dataActuator[2];
+  float dataPower[3];
   digitalWrite(csn,LOW);
   delayMicroseconds(1);
   for (int k=0;k<12;k++)
@@ -137,10 +137,8 @@ void Query()
     delayMicroseconds(1);
     digitalWrite(clk,HIGH);
     delayMicroseconds(1);
-    valS=digitalRead(datS);
-    valD=digitalRead(datD);
-    dataS=(dataS<<1)+valS;
-    dataD=(dataD<<1)+valD;
+    dataActuator[0]=(dataActuator[0]<<1)+digitalRead(datS);		//Steering
+    dataActuator[1]=(dataActuator[1]<<1)+digitalRead(datD);		//Driving
     //delayMicroseconds(1);
   }
   for (int k=0;k<6;k++)
@@ -151,13 +149,14 @@ void Query()
     delayMicroseconds(1);
   }
   digitalWrite(csn,HIGH);
-  Angle=dataS;
+  Angle=dataActuator[0];
   
-  to_send.Steer=dataS;   //Steering
-  to_send.Drive=dataD;   //Motor Speed
-  to_send.Voltage = 0.02892*analogRead (VOLT)*(1+0.0008907*analogRead (VOLT))+2.99;
-  to_send.CurrentD = (analogRead (AMPD)-512)*30/409.6;
-  to_send.CurrentS = (analogRead (AMPS)-512)*30/409.6;
-  assessActual.publish (&to_send);
+  dataPower[0] = 0.02892*analogRead (VOLT)*(1+0.0008907*analogRead (VOLT))+2.99;
+  dataPower[1] = (analogRead (AMPS)-512)*30/409.6;
+  dataPower[2] = (analogRead (AMPD)-512)*30/409.6;
+  ActuatorStatus.data = dataActuator;
+  PowerStatus.data = dataPower;
+  assessActual.publish (&ActuatorStatus);
+  assessPower.publish (&PowerStatus);
   //Serial.write((const uint8_t*)&to_send,sizeof(serial_format));
 }
