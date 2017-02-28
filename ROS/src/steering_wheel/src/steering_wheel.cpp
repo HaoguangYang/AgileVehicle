@@ -5,6 +5,8 @@
 #include <iostream>
 #include <stdlib.h>
 #include <bitset>
+#include "ros/ros.h"
+//#include <std_msgs/
 
 #include <SDL2/SDL.h>
 #include <sys/time.h>
@@ -76,7 +78,6 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	joyinfoex_tag joyinfo;
 
-#ifdef __linux__
     if (SDL_Init(SDL_INIT_JOYSTICK) < 0){
         cout << "Error initializing SDL!" << endl;
         return 1;
@@ -106,7 +107,6 @@ int _tmain(int argc, _TCHAR* argv[])
         printf("Couldn't open Joystick %d\n", JOYSTICKID1);
         return -1*JOYSTICKID1;
     }
-#endif
 
 //button status
 	bool is_in_situ=false;
