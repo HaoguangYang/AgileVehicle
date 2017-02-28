@@ -2,6 +2,7 @@
 #include "auto_tchar.h"
 #include <string>
 #include <cstring>
+#include <sstream>
 #include <iostream>
 #include <stdlib.h>
 #include <bitset>
