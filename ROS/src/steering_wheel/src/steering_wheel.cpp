@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include "include/auto_tchar.h"
+#include "../include/auto_tchar.h"
 #include <string>
 #include <cstring>
 #include <iostream>
@@ -7,7 +7,8 @@
 #include <bitset>
 #include "ros/ros.h"
 #include "steering_wheel/joyinfoex.h"
-//#include <std_msgs/
+#include "std_msgs/UInt16MultiArray.h"
+//#include "std_msgs/Int32MultiArray.h"
 
 #include <SDL2/SDL.h>
 #include <sys/time.h>
@@ -32,56 +33,26 @@ using namespace std;
 steering_wheel::joyinfoex joyinfo;
 
 // application reads from the specified serial port and reports the collected data
-int _tmain(int argc, _TCHAR* argv[])
+
+int setup(void)
 {
-// connect the COM
-	ros::init(argc, argv, "steering_whel");
-	ros::NodeHandle handle;
-	ros::publisher steering_wheel_pub = handle.advertise<steering_wheel::joyinfoex>("SteeringWheel",10);
-	
-	bool isOneWheelDebug = true;
-	if isOneWheelDebug
-		ros::publisher wheel_pub = handle.advertise<std_msgs::Int32MultiArray>("WheelControl",10);
-	
-	printf("Welcome to AgileV Steering Wheel Control Utilities!\n\n");
+    printf("Welcome to AgileV Steering Wheel Control Utilities!\n\n");
 
     string PORTNAMEIN;
     cout << "Input Serial Port (e.g. /dev/ttyUSB0): " << endl;
     cin >> PORTNAMEIN;
-	string COMMANDCAST = "rosrun rosserial_python serial_node.py "
+	string COMMANDCAST = "rosrun rosserial_python serial_node.py ";
     COMMANDCAST = COMMANDCAST+PORTNAMEIN;
 	char *COMMAND = new char [COMMANDCAST.length() + 1];
     std::strcpy(COMMAND, COMMANDCAST.c_str());
     system(COMMAND);			//Open Arduino port for ROS interface.
 	
-	//Serial* SP = new Serial(PORTNAME);
 	unsigned int JOYSTICKID1;
-
-	if (SP->IsConnected())
-		printf("We're connected!\n");
-
-//data communication
-	/*char incomingData[256] = "";			// don't forget to pre-
-	int dataLengthin = 127;
-	int readResult = 0;
-	char outSteer[6]="2048s";
-	int driveDutycycle=0;
-	char outDrive[5]="001d";
-	char outBreak[5]="100b"*/
-
-	int steer=2048;
-	const int encoder_resolution=4096;
-	const int fullDutycycle=255;
-
-//joystick initialize***********************
-
-	joyinfoex_tag joyinfo;
-
-    if (SDL_Init(SDL_INIT_JOYSTICK) < 0){
+	if (SDL_Init(SDL_INIT_JOYSTICK) < 0){
         cout << "Error initializing SDL!" << endl;
-        return 1;
+        return -1;
     }
-	SDL_Joystick *joy;
+    SDL_Joystick *joy;
     int CtrlNum = SDL_NumJoysticks();
     if (CtrlNum == 1)
         JOYSTICKID1 = 0;
@@ -95,6 +66,47 @@ int _tmain(int argc, _TCHAR* argv[])
         cout << "Choose the one you wish to use: " << endl;
         cin >> JOYSTICKID1;
     }
+    return JOYSTICKID1;
+}
+
+
+int main(int argc, _TCHAR* argv[])
+{
+// connect the COM
+	ros::init(argc, argv, "steering_whel");
+	ros::NodeHandle handle;
+	ros::Publisher steering_wheel_pub = handle.advertise<steering_wheel::joyinfoex>("SteeringWheel",10);
+	
+	int JOYSTICKID1 = setup();
+	
+	bool isOneWheelDebug = true;
+	//if (isOneWheelDebug)
+	ros::Publisher wheel_pub = handle.advertise<std_msgs::UInt16MultiArray>("WheelControl",10);
+	std_msgs::UInt16MultiArray WheelCtrl;
+	uint16_t driveDutycycle=0;
+	uint16_t breaking = 255;
+	uint16_t steer=2048;
+    const int encoder_resolution=4096;
+    const int fullDutycycle=255;	
+	
+    //Serial* SP = new Serial(PORTNAME);
+	//if (SP->IsConnected())
+	//	printf("We're connected!\n");
+
+//data communication
+	/*char incomingData[256] = "";			// don't forget to pre-
+	int dataLengthin = 127;
+	int readResult = 0;
+	char outSteer[6]="2048s";
+	int driveDutycycle=0;
+	char outDrive[5]="001d";
+	char outBreak[5]="100b"*/
+
+	
+
+//joystick initialize***********************
+
+    SDL_Joystick *joy;
     joy=SDL_JoystickOpen(JOYSTICKID1);
     if (joy) {
         printf("Opened Joystick %d\n",JOYSTICKID1);
@@ -123,7 +135,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	bool action = 1;
     SDL_Event SysEvent;
     bool NoQuit = true;
-    while(SP->IsConnected() && NoQuit && ros::ok())
+    while(NoQuit && ros::ok())
     {
     	if (SDL_PollEvent(&SysEvent))
         {
@@ -147,102 +159,60 @@ int _tmain(int argc, _TCHAR* argv[])
 	    	    }
 	    	}
             SDL_FlushEvents(SDL_APP_TERMINATING, SDL_LASTEVENT); //Flush Old Events
-			cout << "X Steering Wheel:" << joyinfo.dwXpos << endl;
 			if(joyinfo.dwZpos != 32767)
 				action = 0;
-			if(action)
+			/*if(action)
 			{
 				cout << "Z Throttle:" << 65536 << endl; //The original value of the inactivated throttle is 32767, should be modified to 65535 so that throttle is 0		
 				cout << "R Break:" << 0.9*65536 << endl;
 			}
 			else
 			{
-				cout << "Z Throttle:" << joyinfo.dwZpos << endl; //If activated (moved), output real value.
-				cout << "R Break:" << joyinfo.dwRpos << endl; //The same for breaks.
+			cout << "Z Throttle:" << joyinfo.dwZpos << endl; //If activated (moved), output real value.
+			cout << "R Break:" << joyinfo.dwRpos << endl; //The same for breaks.
 			}
-			cout << "buttonNumber" << joyinfo.dwButtonNumber << endl;
+			cout << "buttonNumber" << joyinfo.dwButtonNumber << endl;*/
 			cout << "buttonStatus" << bitset<64>(joyinfo.dwButtons) << endl; //Output button status
-			//Buttons:
-			/*now_in_situ=bitset<64>(joyinfo.dwButtons)[0];
-			now_any_direction=bitset<64>(joyinfo.dwButtons)[3];
-			now_tradition=bitset<64>(joyinfo.dwButtons)[1];
-			cout << "is_in_situ:" << is_in_situ << endl;
-			cout << "is_any_direction:" << is_any_direction << endl;
-			cout << "is_tradition:" << is_tradition << endl;
-		
-			if(now_in_situ== true && last_in_situ ==false)
+			
+			if (isOneWheelDebug)
 			{
-				is_in_situ =true;
-				is_any_direction =false;
-				is_tradition =false;
-
-				SP->WriteData("b",1);
-			}
-
-			if(now_any_direction== true && last_any_direction ==false)
-			{
-				is_in_situ =false;
-				is_any_direction =true;
-				is_tradition =false;
-
-				SP->WriteData("f",1);
-
-			}
-
-		if(now_tradition== true && last_tradition ==false)
-		{
-			is_in_situ =false;
-			is_any_direction =false;
-			is_tradition =true;
-			SP->WriteData("f",1);
-
-		}
-
-		last_in_situ =now_in_situ;
-		last_any_direction =now_any_direction;
-		last_tradition =now_tradition;*/
-		
-			if(action)//Double-check that the inactivated throttle value is set to 0.
-			{
-				driveDutycycle = 0;
-				breaking = 225;
-			}
-			else
-			{
-				breaking = (int)((1-joyinfo.dwRpos/65535.0)*fullDutycycle);			//Modify as necessary.
-				if (braking=0)
-					driveDutycycle = (int)((1-joyinfo.dwZpos/65535.0)*fullDutycycle);
-				else
-					driveDutycycle = 0;
-			}
-			if(driveDutycycle>=0 && driveDutycycle<=255)
-			{
-				/*for (int k=0;k<3;k++)
-				{
-					outDrive[2-k]=char(driveDutycycle%10 + '0');
-					driveDutycycle=driveDutycycle/10;
-				}*/
-			}
-			if(breaking>=0 && breaking<=255)
-			{
-				/*for (int k=0;k<3;k++)
-				{
-					outBreak[2-k]=char(breaking%10 + '0');
-					breaking=breaking/10;
-				}*/
-			}
-			steer=(int)(joyinfo.dwXpos/65535.0*encoder_resolution);
-			if(steer>=0 && steer<=encoder_resolution)
-			{
-				/*for (int k=0;k<4;k++)
-				{
-					outSteer[3-k]=char(steer%10 + '0');
-					steer=steer/10;
-				}*/
-			}
-			if isOneWheelDebug
-			{
-				//Publish steering wheel data to one wheel for debugging
+			    //preprocessing data
+				if(action)//Double-check that the inactivated throttle value is set to 0.
+			    {
+				    driveDutycycle = 0;
+				    breaking = 225;
+			    }
+			    else
+			    {
+				    breaking = (uint16_t)((1-joyinfo.dwRpos/65535.0)*fullDutycycle);			//Modify as necessary.
+				    if (breaking==0)
+					    driveDutycycle = (uint16_t)((1-joyinfo.dwZpos/65535.0)*fullDutycycle);
+				    else
+					    driveDutycycle = 0;
+			    }
+			    steer=(uint16_t)(joyinfo.dwXpos/65535.0*encoder_resolution);
+			    //Output monitoring
+			    cout << "X Steering Wheel:" << steer << endl;
+			    cout << "Z Throttle:" << driveDutycycle << endl;
+				cout << "R Break:" << breaking << endl;
+				
+				//Verifying data and publishing
+			    if(driveDutycycle>=0 && driveDutycycle<=255 && breaking>=0 && breaking<=255 && steer>=0 && steer<=encoder_resolution)
+			    {
+			        /***REFER TO ARDUINO PROGRAM***
+                    std_msgs::UInt16MultiArray ctrl_var;
+                    uint16 inputSteer;
+                    uint16 inputDrive;
+                    uint16 inputBreak;
+                    uint16 reverse;
+                    ************/
+				    WheelCtrl.data[0] = steer;
+				    WheelCtrl.data[1] = driveDutycycle;
+				    WheelCtrl.data[2] = breaking;
+				    WheelCtrl.data[4] = 0;
+			    }
+			    wheel_pub.publish(WheelCtrl);
+			//Publish steering wheel data to one wheel for debugging
 			}
 			/*printf("outDrive:%s\n",outDrive);
 			bool isWriteDrive = SP->WriteData((char*)&outDrive, strlen(outDrive));
@@ -254,10 +224,10 @@ int _tmain(int argc, _TCHAR* argv[])
 			bool isWriteBreak = SP->WriteData((char*)&outBreak, strlen(outBreak));
 			cout << "WriteSucceed?" << isWriteBreak << endl;*/
 		}       //If have sysevent then update joystick values
-		usleep(120000);
+		//usleep(120000);
 		system("clear");
 		
-		readResult = SP->ReadData(incomingData,dataLengthin);
+		//readResult = SP->ReadData(incomingData,dataLengthin);
 		///*if(readResult<2*sizeof(serial_format)){
 		//	printf("No enough data received. Let's wait.\n");
 		//	Sleep(1500);continue;
@@ -308,7 +278,7 @@ int FFupdate( SDL_Joystick * joystick , unsigned short center)
  effect.type = SDL_HAPTIC_SPRING;
  effect.condition.length = 30; // 30ms long
  effect.condition.delay = 0; // no delay
- effect.condition.center = center;//NEED CONVERSION!!!
+ effect.condition.center[1] = (int16_t)(center-32768);//NEED CONVERSION!!!
 
  // Upload the effect
  effect_id = SDL_HapticNewEffect( haptic, &effect );
