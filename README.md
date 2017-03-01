@@ -19,9 +19,7 @@ The Arduino code for the function above.
 ROS implementation of the system. Catkin workspace.
 
 **IMPORTANT** Please properly setup ROS (version: kinetic kame), please refer to official documents and tutorials at:
-
 [中文](http://wiki.ros.org/cn/ROS/Tutorials)
-
 [English](http://wiki.ros.org/ROS/Tutorials)
 
 
