@@ -49,7 +49,3 @@ Integration of OpenCV in libelas, merged libelas-gpu to implement CUDA, merged r
 ####/LogitechFFDrivers
 Logitech G29 drivers source and interface for force feedback.
 
-
-####/Motor Control
-Arduino code for motor control on Patroller, the miniaturized test platform built for Mr. Jianhui Zhao.
-
