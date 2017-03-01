@@ -1,12 +1,12 @@
 #include <stdio.h>
-#include "auto_tchar.h"
+#include "include/auto_tchar.h"
 #include <string>
 #include <cstring>
-#include <sstream>
 #include <iostream>
 #include <stdlib.h>
 #include <bitset>
 #include "ros/ros.h"
+#include "steering_wheel/joyinfoex.h"
 //#include <std_msgs/
 
 #include <SDL2/SDL.h>
@@ -29,22 +29,20 @@ using namespace std;
   float CurrentD;
 } serial_format;*/
 
-  typedef struct joyinfoex_tag {
-    unsigned int dwXpos;
-    unsigned int dwYpos;
-    unsigned int dwZpos;
-    unsigned int dwRpos;
-    unsigned int dwUpos;
-    unsigned int dwVpos;
-    unsigned long dwButtons;
-    unsigned int dwButtonNumber;
-    unsigned long dwPOV;
-    } JOYINFOEX;
+steering_wheel::joyinfoex joyinfo;
 
 // application reads from the specified serial port and reports the collected data
 int _tmain(int argc, _TCHAR* argv[])
 {
 // connect the COM
+	ros::init(argc, argv, "steering_whel");
+	ros::NodeHandle handle;
+	ros::publisher steering_wheel_pub = handle.advertise<steering_wheel::joyinfoex>("SteeringWheel",10);
+	
+	bool isOneWheelDebug = true;
+	if isOneWheelDebug
+		ros::publisher wheel_pub = handle.advertise<std_msgs::Int32MultiArray>("WheelControl",10);
+	
 	printf("Welcome to AgileV Steering Wheel Control Utilities!\n\n");
 
     string PORTNAMEIN;
@@ -54,7 +52,7 @@ int _tmain(int argc, _TCHAR* argv[])
     COMMANDCAST = COMMANDCAST+PORTNAMEIN;
 	char *COMMAND = new char [COMMANDCAST.length() + 1];
     std::strcpy(COMMAND, COMMANDCAST.c_str());
-    system(CAMMAND);			//Open Arduino port for ROS interface.
+    system(COMMAND);			//Open Arduino port for ROS interface.
 	
 	//Serial* SP = new Serial(PORTNAME);
 	unsigned int JOYSTICKID1;
@@ -125,7 +123,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	bool action = 1;
     SDL_Event SysEvent;
     bool NoQuit = true;
-    while(SP->IsConnected() && NoQuit)
+    while(SP->IsConnected() && NoQuit && ros::ok())
     {
     	if (SDL_PollEvent(&SysEvent))
         {
@@ -242,7 +240,10 @@ int _tmain(int argc, _TCHAR* argv[])
 					steer=steer/10;
 				}*/
 			}
-		
+			if isOneWheelDebug
+			{
+				//Publish steering wheel data to one wheel for debugging
+			}
 			/*printf("outDrive:%s\n",outDrive);
 			bool isWriteDrive = SP->WriteData((char*)&outDrive, strlen(outDrive));
 			cout << "WriteSucceed?" << isWriteDrive << endl;
