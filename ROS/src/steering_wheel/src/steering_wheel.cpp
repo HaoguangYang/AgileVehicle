@@ -137,6 +137,12 @@ int main(int argc, _TCHAR* argv[])
 	ros::Subscriber actuator_feedback = handle.subscribe("WheelActual-1", 10, ActuaterFeedback);
 	ros::Publisher wheel_pub = handle.advertise<std_msgs::UInt16MultiArray>("WheelControl-1",10);
 	std_msgs::UInt16MultiArray WheelCtrl;
+	
+	malloc(sizeof(std_msgs::MultiArrayDimension) * 4);
+	WheelCtrl.layout.dim[0].label = "UnitPower";
+    WheelCtrl.layout.dim[0].size = 4;
+    WheelCtrl.layout.dim[0].stride = 1*4;
+    
 	uint16_t driveDutycycle=0;
 	uint16_t breaking = 255;
 	uint16_t steer=2048;
@@ -262,7 +268,7 @@ int main(int argc, _TCHAR* argv[])
 				    WheelCtrl.data[0] = steer;
 				    WheelCtrl.data[1] = driveDutycycle;
 				    WheelCtrl.data[2] = breaking;
-				    WheelCtrl.data[4] = 0;
+				    WheelCtrl.data[3] = 0;
 			    }
 			    wheel_pub.publish(WheelCtrl);
 			//Publish steering wheel data to one wheel for debugging
