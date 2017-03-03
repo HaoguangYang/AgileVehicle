@@ -1,6 +1,67 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(steering_wheel)
 
+#SDL2
+SET(SDL2_SEARCH_PATHS
+	~/Library/Frameworks
+	/Library/Frameworks
+	/usr/local
+	/usr
+	/sw # Fink
+	/opt/local # DarwinPorts
+	/opt/csw # Blastwave
+	/opt
+)
+
+FIND_PATH(SDL2_INCLUDE_DIR SDL.h
+	HINTS
+	$ENV{SDL2DIR}
+	PATH_SUFFIXES include/SDL2 include
+	PATHS ${SDL2_SEARCH_PATHS}
+)
+
+FIND_LIBRARY(SDL2_LIBRARY_TEMP
+	NAMES SDL2
+	HINTS
+	$ENV{SDL2DIR}
+	PATH_SUFFIXES lib64 lib
+	PATHS ${SDL2_SEARCH_PATHS}
+)
+
+IF(NOT SDL2_BUILDING_LIBRARY)
+	IF(NOT ${SDL2_INCLUDE_DIR} MATCHES ".framework")
+		# Non-OS X framework versions expect you to also dynamically link to
+		# SDL2main. This is mainly for Windows and OS X. Other (Unix) platforms
+		# seem to provide SDL2main for compatibility even though they don't
+		# necessarily need it.
+		FIND_LIBRARY(SDL2MAIN_LIBRARY
+			NAMES SDL2main
+			HINTS
+			$ENV{SDL2DIR}
+			PATH_SUFFIXES lib64 lib
+			PATHS ${SDL2_SEARCH_PATHS}
+		)
+	ENDIF(NOT ${SDL2_INCLUDE_DIR} MATCHES ".framework")
+ENDIF(NOT SDL2_BUILDING_LIBRARY)
+FIND_PACKAGE(Threads)
+IF(SDL2_LIBRARY_TEMP)
+	# For SDL2main
+	IF(NOT SDL2_BUILDING_LIBRARY)
+		IF(SDL2MAIN_LIBRARY)
+			SET(SDL2_LIBRARY_TEMP ${SDL2MAIN_LIBRARY} ${SDL2_LIBRARY_TEMP})
+		ENDIF(SDL2MAIN_LIBRARY)
+	ENDIF(NOT SDL2_BUILDING_LIBRARY)
+	SET(SDL2_LIBRARY_TEMP ${SDL2_LIBRARY_TEMP} ${CMAKE_THREAD_LIBS_INIT})
+	# Set the final string here so the GUI reflects the final state.
+	SET(SDL2_LIBRARY ${SDL2_LIBRARY_TEMP} CACHE STRING "Where the SDL2 Library can be found")
+	# Set the temp variable to INTERNAL so it is not seen in the CMake GUI
+	SET(SDL2_LIBRARY_TEMP "${SDL2_LIBRARY_TEMP}" CACHE INTERNAL "")
+ENDIF(SDL2_LIBRARY_TEMP)
+
+INCLUDE(FindPackageHandleStandardArgs)
+
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(SDL2 REQUIRED_VARS SDL2_LIBRARY SDL2_INCLUDE_DIR)
+
 ## Add support for C++11, supported in ROS Kinetic and newer
 # add_definitions(-std=c++11)
 
@@ -13,6 +74,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   message_generation
 )
+find_package(SDL2 REQUIRED)
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -107,7 +169,7 @@ catkin_package(
   INCLUDE_DIRS include
   LIBRARIES steering_wheel
   CATKIN_DEPENDS roscpp rospy std_msgs message_runtime
-  DEPENDS libsdl2-dev
+  DEPENDS SDL2
 )
 
 ###########
@@ -119,6 +181,7 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  ${SDL2_INCLUDE_DIR}
 )
 
 ## Declare a C++ library
@@ -148,8 +211,8 @@ include_directories(
 
 ## Specify libraries to link a library or executable target against
  target_link_libraries(${PROJECT_NAME}_node
+   ${SDL2_LIBRARY}
    ${catkin_LIBRARIES}
-   ${sdl2}
  )
 
 #############

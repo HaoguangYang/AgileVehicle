@@ -31,6 +31,7 @@ using namespace std;
 } serial_format;*/
 
 steering_wheel::joyinfoex joyinfo;
+SDL_Joystick *joy;
 bool isOneWheelDebug = true;
 
 // application reads from the specified serial port and reports the collected data
@@ -53,7 +54,7 @@ int setup(void)
         cout << "Error initializing SDL!" << endl;
         return -1;
     }
-    SDL_Joystick *joy;
+    
     int CtrlNum = SDL_NumJoysticks();
     if (CtrlNum == 1)
         JOYSTICKID1 = 0;
@@ -68,6 +69,58 @@ int setup(void)
         cin >> JOYSTICKID1;
     }
     return JOYSTICKID1;
+}
+
+
+int FFupdate(SDL_Joystick * joystick , unsigned short center) 
+{
+ SDL_Haptic *haptic;
+ SDL_HapticEffect effect;
+ int effect_id;
+
+ // Open the device
+ haptic = SDL_HapticOpenFromJoystick( joystick );
+ if (haptic == NULL) return -1; // Most likely joystick isn't haptic
+
+ // See if it can do sine waves
+ if ((SDL_HapticQuery(haptic) & SDL_HAPTIC_SPRING)==0) {
+  SDL_HapticClose(haptic); // No sine effect
+  return -1;
+ }
+
+ // Create the effect
+ memset( &effect, 0, sizeof(SDL_HapticEffect) ); // 0 is safe default
+ effect.type = SDL_HAPTIC_SPRING;
+ effect.condition.length = 30; // 30ms long
+ effect.condition.delay = 0; // no delay
+ effect.condition.center[0] = (int16_t)(center-32768);//NEED CONVERSION!!!
+
+ // Upload the effect
+ effect_id = SDL_HapticNewEffect( haptic, &effect );
+
+ // Test the effect
+ SDL_HapticRunEffect( haptic, effect_id, 1 );
+ SDL_Delay( 5000); // Wait for the effect to finish
+
+ // We destroy the effect, although closing the device also does this
+ SDL_HapticDestroyEffect( haptic, effect_id );
+
+ // Close the device
+ SDL_HapticClose(haptic);
+
+ return 0; // Success
+}
+
+
+void ActuaterFeedback(const std_msgs::UInt16MultiArray& ActuatorStatus)
+{
+	if (isOneWheelDebug)
+	{
+		int errNum = FFupdate(joy,ActuatorStatus.data[0]);
+		cout << "ActualSteer: " << ActuatorStatus.data[0];
+		cout << "ActualDrive: " << ActuatorStatus.data[1];
+	}
+	return;
 }
 
 
@@ -107,7 +160,6 @@ int main(int argc, _TCHAR* argv[])
 
 //joystick initialize***********************
 
-    SDL_Joystick *joy;
     joy=SDL_JoystickOpen(JOYSTICKID1);
     if (joy) {
         printf("Opened Joystick %d\n",JOYSTICKID1);
@@ -256,56 +308,4 @@ int main(int argc, _TCHAR* argv[])
     
 	system("pause");
 	return 0;
-}
-
-
-void ActuaterFeedback(const std_msgs::UInt16MultiArray& ActuatorStatus)
-{
-	if (isOneWheelDebug)
-	{
-		int errNum = FFupdate(joy,ActuatorStatus.data[0]);
-		cout << "ActualSteer: " << ActuatorStatus.data[0];
-		cout << "ActualDrive: " << ActuatorStatus.data[1];
-	}
-	return;
-}
-
-
-int FFupdate( SDL_Joystick * joystick , unsigned short center) 
-{
- SDL_Haptic *haptic;
- SDL_HapticEffect effect;
- int effect_id;
-
- // Open the device
- haptic = SDL_HapticOpenFromJoystick( joystick );
- if (haptic == NULL) return -1; // Most likely joystick isn't haptic
-
- // See if it can do sine waves
- if ((SDL_HapticQuery(haptic) & SDL_HAPTIC_SPRING)==0) {
-  SDL_HapticClose(haptic); // No sine effect
-  return -1;
- }
-
- // Create the effect
- memset( &effect, 0, sizeof(SDL_HapticEffect) ); // 0 is safe default
- effect.type = SDL_HAPTIC_SPRING;
- effect.condition.length = 30; // 30ms long
- effect.condition.delay = 0; // no delay
- effect.condition.center[1] = (int16_t)(center-32768);//NEED CONVERSION!!!
-
- // Upload the effect
- effect_id = SDL_HapticNewEffect( haptic, &effect );
-
- // Test the effect
- SDL_HapticRunEffect( haptic, effect_id, 1 );
- SDL_Delay( 5000); // Wait for the effect to finish
-
- // We destroy the effect, although closing the device also does this
- SDL_HapticDestroyEffect( haptic, effect_id );
-
- // Close the device
- SDL_HapticClose(haptic);
-
- return 0; // Success
 }
