@@ -19,7 +19,7 @@
 ros::NodeHandle handle;
 int encoder_resolution = 4096;
 int pulseTime = 100;
-int updateTime = 100;
+int updateTime = 33;
 int Angle = 0;
 
 std_msgs::UInt16MultiArray ActuatorStatus;
