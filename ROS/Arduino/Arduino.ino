@@ -41,8 +41,9 @@ std_msgs::UInt16MultiArray ctrl_var;
     int reverse;
 ************/
 
-ros::Publisher assessActual("WheelActual", &ActuatorStatus);
-ros::Publisher assessPower("UnitPower", &PowerStatus);
+//***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
+ros::Publisher assessActual("WheelActual-1", &ActuatorStatus);
+ros::Publisher assessPower("UnitPower-1", &PowerStatus);
 
 void Actuate( const std_msgs::Int32MultiArray& ctrl_var){
 	if(ctrl_var.data[4]>0){ // 倒车
@@ -52,11 +53,13 @@ void Actuate( const std_msgs::Int32MultiArray& ctrl_var){
 		digitalWrite(BACK,LOW);
 	}
 	if (ctrl_var.data[3]==0){
+		ctrl_var.data[2] = ctrl_var.data[2]*175/255+80;	//Calibration of controller to elliminate dead zone
 		analogWrite(CONTRL,ctrl_var.data[2]);	//Normal Driving
+		analogWrite(BREAK,0);
 	}
 	else{											//Breaking
 		analogWrite(CONTRL,0);
-		digitalWrite(BREAK,HIGH);
+		analogWrite(BREAK,ctrl_var.data[3]);
 	}
     // As the first version has only one encoder (for the angle), only the angle part has the close loop control.
     //-------------------start angle control------------------------------------
@@ -64,7 +67,9 @@ void Actuate( const std_msgs::Int32MultiArray& ctrl_var){
         //Serial.println("bad DesiredAngle input.");
     }
     else {
-        if(!(abs(ctrl_var.data[1]-Angle)<40 ||abs(ctrl_var.data[1]-Angle+encoder_resolution)<40||abs(ctrl_var.data[1]-Angle-encoder_resolution)<40)) {
+		int err = min(min(abs(ctrl_var.data[1]-Angle),abs(ctrl_var.data[1]-Angle+encoder_resolution)),abs(ctrl_var.data[1]-Angle-encoder_resolution));
+        if(!(err<40)) {
+			pulseTime = 55000/(err+500);	//Need Modification
             if (ctrl_var.data[1]>Angle) {
                 OneUp(pulseTime,0);
             }
@@ -76,7 +81,9 @@ void Actuate( const std_msgs::Int32MultiArray& ctrl_var){
     }
     //----------------end angle control---------------------------------------------  
 }
-ros::Subscriber<std_msgs::Int32MultiArray> sub("WheelControl", &Actuate);
+
+//***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
+ros::Subscriber<std_msgs::Int32MultiArray> sub("WheelControl-1", &Actuate);
 
 void setup() {
 	// set driving control
@@ -173,3 +180,4 @@ void Query()
   assessPower.publish (&PowerStatus);
   //Serial.write((const uint8_t*)&to_send,sizeof(serial_format));
 }
+

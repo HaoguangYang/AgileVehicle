@@ -48,6 +48,47 @@ typedef struct {
     } JOYINFOEX;
 #endif
 
+
+int FFupdate( SDL_Joystick * joystick , unsigned short center) 
+{
+ SDL_Haptic *haptic;
+ SDL_HapticEffect effect;
+ int effect_id;
+
+ // Open the device
+ haptic = SDL_HapticOpenFromJoystick( joystick );
+ if (haptic == NULL) return -1; // Most likely joystick isn't haptic
+
+ // See if it can do sine waves
+ if ((SDL_HapticQuery(haptic) & SDL_HAPTIC_SPRING)==0) {
+  SDL_HapticClose(haptic); // No sine effect
+  return -1;
+ }
+
+ // Create the effect
+ memset( &effect, 0, sizeof(SDL_HapticEffect) ); // 0 is safe default
+ effect.type = SDL_HAPTIC_SPRING;
+ effect.condition.length = 30; // 30ms long
+ effect.condition.delay = 0; // no delay
+ effect.condition.center[0] = (int16_t)(center-32768);//NEED CONVERSION!!!
+
+ // Upload the effect
+ effect_id = SDL_HapticNewEffect( haptic, &effect );
+
+ // Test the effect
+ SDL_HapticRunEffect( haptic, effect_id, 1 );
+ SDL_Delay( 5000); // Wait for the effect to finish
+
+ // We destroy the effect, although closing the device also does this
+ SDL_HapticDestroyEffect( haptic, effect_id );
+
+ // Close the device
+ SDL_HapticClose(haptic);
+
+ return 0; // Success
+}
+
+
 // application reads from the specified serial port and reports the collected data
 int _tmain(int argc, _TCHAR* argv[])
 {
@@ -74,12 +115,13 @@ int _tmain(int argc, _TCHAR* argv[])
 	int readResult = 0;
 
 	int steer=2048;
+	int breaking = 255;
 	const int encoder_resolution=4096;
 	char outSteer[6]="2048s";
 	int driveDutycycle=0;
 	const int fullDutycycle=255;
 	char outDrive[5]="001d";
-	char outBreak[5]="100b"
+	char outBreak[5]="100b";
 
 //joystick initialize***********************
 
@@ -227,7 +269,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		else
 		{
 			breaking = (int)((1-joyinfo.dwRpos/65535.0)*fullDutycycle);			//Modify as necessary.
-			if (braking=0)
+			if (breaking=0)
 				driveDutycycle = (int)((1-joyinfo.dwZpos/65535.0)*fullDutycycle);
 			else
 				driveDutycycle = 0;
@@ -294,8 +336,8 @@ int _tmain(int argc, _TCHAR* argv[])
 		printf("Current on Steering: %f\n", ptr_to_first_valid->CurrentS);
 		printf("Power Consumed on This Unit: %f\n", (ptr_to_first_valid->Voltage)*((ptr_to_first_valid->CurrentD)+(ptr_to_first_valid->CurrentS)));
         //However always read serial data.
-#ifdef (__linux__)
-		int errNum = FFupdate(joy,ptr_to_first_valid->x);
+#ifdef __linux__
+		int errNum = FFupdate(joy,ptr_to_first_valid->Steer);
 #endif
     }
     SP->~Serial();
@@ -307,41 +349,3 @@ int _tmain(int argc, _TCHAR* argv[])
 	return 0;
 }
 
-int FFupdate( SDL_Joystick * joystick , unsigned short center) 
-{
- SDL_Haptic *haptic;
- SDL_HapticEffect effect;
- int effect_id;
-
- // Open the device
- haptic = SDL_HapticOpenFromJoystick( joystick );
- if (haptic == NULL) return -1; // Most likely joystick isn't haptic
-
- // See if it can do sine waves
- if ((SDL_HapticQuery(haptic) & SDL_HAPTIC_SPRING)==0) {
-  SDL_HapticClose(haptic); // No sine effect
-  return -1;
- }
-
- // Create the effect
- memset( &effect, 0, sizeof(SDL_HapticEffect) ); // 0 is safe default
- effect.type = SDL_HAPTIC_SPRING;
- effect.condition.length = 30; // 30ms long
- effect.condition.delay = 0; // no delay
- effect.condition.center = center;//NEED CONVERSION!!!
-
- // Upload the effect
- effect_id = SDL_HapticNewEffect( haptic, &effect );
-
- // Test the effect
- SDL_HapticRunEffect( haptic, effect_id, 1 );
- SDL_Delay( 5000); // Wait for the effect to finish
-
- // We destroy the effect, although closing the device also does this
- SDL_HapticDestroyEffect( haptic, effect_id );
-
- // Close the device
- SDL_HapticClose(haptic);
-
- return 0; // Success
-}
