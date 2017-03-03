@@ -138,11 +138,11 @@ int main(int argc, _TCHAR* argv[])
 	ros::Publisher wheel_pub = handle.advertise<std_msgs::UInt16MultiArray>("WheelControl-1",10);
 	std_msgs::UInt16MultiArray WheelCtrl;
 	
-	malloc(sizeof(std_msgs::MultiArrayDimension) * 4);
-	WheelCtrl.layout.dim[0].label = "UnitPower";
+	WheelCtrl.layout.dim.push_back(std_msgs::MultiArrayDimension());
+	WheelCtrl.layout.dim[0].label = "WheelControl";
     WheelCtrl.layout.dim[0].size = 4;
     WheelCtrl.layout.dim[0].stride = 1*4;
-    
+	
 	uint16_t driveDutycycle=0;
 	uint16_t breaking = 255;
 	uint16_t steer=2048;
