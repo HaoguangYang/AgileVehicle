@@ -41,8 +41,10 @@ std_msgs::UInt16MultiArray ctrl_var;
     int reverse;
 ************/
 
-ros::Publisher assessActual("WheelActual", &ActuatorStatus);
-ros::Publisher assessPower("UnitPower", &PowerStatus);
+//***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
+ros::Publisher assessActual("WheelActual-1", &ActuatorStatus);
+ros::Publisher assessPower("UnitPower-1", &PowerStatus);
+ros::Subscriber<std_msgs::Int32MultiArray> sub("WheelControl-1", &Actuate);
 
 void Actuate( const std_msgs::Int32MultiArray& ctrl_var){
 	if(ctrl_var.data[4]>0){ // 倒车
@@ -80,7 +82,6 @@ void Actuate( const std_msgs::Int32MultiArray& ctrl_var){
     }
     //----------------end angle control---------------------------------------------  
 }
-ros::Subscriber<std_msgs::Int32MultiArray> sub("WheelControl", &Actuate);
 
 void setup() {
 	// set driving control

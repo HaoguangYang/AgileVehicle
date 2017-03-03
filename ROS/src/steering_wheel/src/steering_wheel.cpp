@@ -31,6 +31,7 @@ using namespace std;
 } serial_format;*/
 
 steering_wheel::joyinfoex joyinfo;
+bool isOneWheelDebug = true;
 
 // application reads from the specified serial port and reports the collected data
 
@@ -79,9 +80,9 @@ int main(int argc, _TCHAR* argv[])
 	
 	int JOYSTICKID1 = setup();
 	
-	bool isOneWheelDebug = true;
 	//if (isOneWheelDebug)
-	ros::Publisher wheel_pub = handle.advertise<std_msgs::UInt16MultiArray>("WheelControl",10);
+	ros::Subscriber actuator_feedback = handle.subscribe("WheelActual-1", 10, ActuaterFeedback);
+	ros::Publisher wheel_pub = handle.advertise<std_msgs::UInt16MultiArray>("WheelControl-1",10);
 	std_msgs::UInt16MultiArray WheelCtrl;
 	uint16_t driveDutycycle=0;
 	uint16_t breaking = 255;
@@ -226,7 +227,7 @@ int main(int argc, _TCHAR* argv[])
 		}       //If have sysevent then update joystick values
 		//usleep(120000);
 		system("clear");
-		
+		ros::spin();
 		//readResult = SP->ReadData(incomingData,dataLengthin);
 		///*if(readResult<2*sizeof(serial_format)){
 		//	printf("No enough data received. Let's wait.\n");
@@ -247,7 +248,7 @@ int main(int argc, _TCHAR* argv[])
 		printf("Power Consumed on This Unit: %f\n", (ptr_to_first_valid->Voltage)*((ptr_to_first_valid->CurrentD)+(ptr_to_first_valid->CurrentS)));*/
         //However always read serial data.
 
-		int errNum = FFupdate(joy,ptr_to_first_valid->x);
+		
     }
     //SP->~Serial();
 
@@ -256,6 +257,19 @@ int main(int argc, _TCHAR* argv[])
 	system("pause");
 	return 0;
 }
+
+
+void ActuaterFeedback(const std_msgs::UInt16MultiArray& ActuatorStatus)
+{
+	if (isOneWheelDebug)
+	{
+		int errNum = FFupdate(joy,ActuatorStatus.data[0]);
+		cout << "ActualSteer: " << ActuatorStatus.data[0];
+		cout << "ActualDrive: " << ActuatorStatus.data[1];
+	}
+	return;
+}
+
 
 int FFupdate( SDL_Joystick * joystick , unsigned short center) 
 {
