@@ -19,7 +19,7 @@
 ros::NodeHandle handle;
 int encoder_resolution = 4096;
 int pulseTime = 100;
-int updateTime = 33;
+int updateTime = 40;
 int Angle = 0;
 
 std_msgs::UInt16MultiArray ActuatorStatus;
@@ -42,32 +42,32 @@ std_msgs::UInt16MultiArray ctrl_var;
 ************/
 
 //***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
-ros::Publisher assessActual("WheelActual-1", &ActuatorStatus);
-ros::Publisher assessPower("UnitPower-1", &PowerStatus);
+ros::Publisher assessActual("WheelActual01", &ActuatorStatus);
+ros::Publisher assessPower("UnitPower01", &PowerStatus);
 
-void Actuate( const std_msgs::Int32MultiArray& ctrl_var){
-	if(ctrl_var.data[4]>0){ // 倒车
+void Actuate( const std_msgs::UInt16MultiArray& ctrl_var){
+	if(ctrl_var.data[3]>0){ // 倒车
         digitalWrite(BACK,HIGH);
 	}//adjust for the switch
     else{
 		digitalWrite(BACK,LOW);
 	}
-	if (ctrl_var.data[3]==0){
-		ctrl_var.data[2] = ctrl_var.data[2]*175/255+80;	//Calibration of controller to elliminate dead zone
-		analogWrite(CONTRL,ctrl_var.data[2]);	//Normal Driving
+	if (ctrl_var.data[2]==0){
+		ctrl_var.data[1] = ctrl_var.data[1]*175/255+80;	//Calibration of controller to elliminate dead zone
+		analogWrite(CONTRL,ctrl_var.data[1]);	//Normal Driving
 		analogWrite(BREAK,0);
 	}
 	else{											//Breaking
 		analogWrite(CONTRL,0);
-		analogWrite(BREAK,ctrl_var.data[3]);
+		analogWrite(BREAK,ctrl_var.data[2]);
 	}
     // As the first version has only one encoder (for the angle), only the angle part has the close loop control.
     //-------------------start angle control------------------------------------
-    if(ctrl_var.data[1] < 0 || ctrl_var.data[1] >encoder_resolution) { // will be modified as -90 degree to 90 degree
+    if(ctrl_var.data[0] < 0 || ctrl_var.data[0] >encoder_resolution) { // will be modified as -90 degree to 90 degree
         //Serial.println("bad DesiredAngle input.");
     }
     else {
-		int err = min(min(abs(ctrl_var.data[1]-Angle),abs(ctrl_var.data[1]-Angle+encoder_resolution)),abs(ctrl_var.data[1]-Angle-encoder_resolution));
+		int err = min(min(abs(ctrl_var.data[0]-Angle),abs(ctrl_var.data[0]-Angle+encoder_resolution)),abs(ctrl_var.data[0]-Angle-encoder_resolution));
         if(!(err<40)) {
 			pulseTime = 55000/(err+500);	//Need Modification
             if (ctrl_var.data[1]>Angle) {
@@ -83,7 +83,7 @@ void Actuate( const std_msgs::Int32MultiArray& ctrl_var){
 }
 
 //***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
-ros::Subscriber<std_msgs::Int32MultiArray> sub("WheelControl-1", &Actuate);
+ros::Subscriber<std_msgs::UInt16MultiArray> sub("WheelControl01", &Actuate);
 
 void setup() {
 	// set driving control

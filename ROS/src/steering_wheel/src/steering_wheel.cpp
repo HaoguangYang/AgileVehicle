@@ -47,7 +47,7 @@ int setup(void)
     COMMANDCAST = COMMANDCAST+PORTNAMEIN;
 	char *COMMAND = new char [COMMANDCAST.length() + 1];
     std::strcpy(COMMAND, COMMANDCAST.c_str());
-    system(COMMAND);			//Open Arduino port for ROS interface.
+    //system(COMMAND);			//Open Arduino port for ROS interface.
 	
 	unsigned int JOYSTICKID1;
 	if (SDL_Init(SDL_INIT_JOYSTICK) < 0){
@@ -116,9 +116,12 @@ void ActuaterFeedback(const std_msgs::UInt16MultiArray& ActuatorStatus)
 {
 	if (isOneWheelDebug)
 	{
+		system("clear");
 		int errNum = FFupdate(joy,ActuatorStatus.data[0]);
-		cout << "ActualSteer: " << ActuatorStatus.data[0];
-		cout << "ActualDrive: " << ActuatorStatus.data[1];
+		cout << "ActualSteer: " << ActuatorStatus.data[0] << endl;
+		cout << "ActualDrive: " << ActuatorStatus.data[1] << endl;
+		cout << "HapticsUpdateStatus: " << errNum << endl;
+		cout << "Joystick: " << joyinfo.dwXpos << endl;
 	}
 	return;
 }
@@ -134,14 +137,17 @@ int main(int argc, _TCHAR* argv[])
 	int JOYSTICKID1 = setup();
 	
 	//if (isOneWheelDebug)
-	ros::Subscriber actuator_feedback = handle.subscribe("WheelActual-1", 10, ActuaterFeedback);
-	ros::Publisher wheel_pub = handle.advertise<std_msgs::UInt16MultiArray>("WheelControl-1",10);
+	ros::Subscriber actuator_feedback = handle.subscribe("WheelActual01", 10, ActuaterFeedback);
+	ros::Publisher wheel_pub = handle.advertise<std_msgs::UInt16MultiArray>("WheelControl01",2);
 	std_msgs::UInt16MultiArray WheelCtrl;
 	
 	WheelCtrl.layout.dim.push_back(std_msgs::MultiArrayDimension());
 	WheelCtrl.layout.dim[0].label = "WheelControl";
     WheelCtrl.layout.dim[0].size = 4;
     WheelCtrl.layout.dim[0].stride = 1*4;
+    for (int i = 0; i < 4; i++){
+        WheelCtrl.data.push_back(0);                //Initialize the Array
+    }
 	
 	uint16_t driveDutycycle=0;
 	uint16_t breaking = 255;
@@ -232,6 +238,7 @@ int main(int argc, _TCHAR* argv[])
 			}
 			cout << "buttonNumber" << joyinfo.dwButtonNumber << endl;*/
 			cout << "buttonStatus" << bitset<64>(joyinfo.dwButtons) << endl; //Output button status
+			steering_wheel_pub.publish(joyinfo);
 			
 			if (isOneWheelDebug)
 			{
@@ -270,7 +277,9 @@ int main(int argc, _TCHAR* argv[])
 				    WheelCtrl.data[2] = breaking;
 				    WheelCtrl.data[3] = 0;
 			    }
+			    
 			    wheel_pub.publish(WheelCtrl);
+			    usleep(25000);
 			//Publish steering wheel data to one wheel for debugging
 			}
 			/*printf("outDrive:%s\n",outDrive);
@@ -283,9 +292,8 @@ int main(int argc, _TCHAR* argv[])
 			bool isWriteBreak = SP->WriteData((char*)&outBreak, strlen(outBreak));
 			cout << "WriteSucceed?" << isWriteBreak << endl;*/
 		}       //If have sysevent then update joystick values
-		//usleep(120000);
-		system("clear");
-		ros::spin();
+		
+		ros::spinOnce();
 		//readResult = SP->ReadData(incomingData,dataLengthin);
 		///*if(readResult<2*sizeof(serial_format)){
 		//	printf("No enough data received. Let's wait.\n");
@@ -312,6 +320,6 @@ int main(int argc, _TCHAR* argv[])
 
 	SDL_JoystickClose(joy);
     
-	system("pause");
+	//system("pause");
 	return 0;
 }
