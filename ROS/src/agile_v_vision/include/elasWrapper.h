@@ -52,7 +52,7 @@ public:
     double workEnd(int64 work_begin);
 
     elasWrapper();
-    elasWrapper(double scaling_factor, string elas_setting);
+    elasWrapper(double scaling_factor, bool noScaling, bool postprocess_both);
 
     bool compute_disparity(cv::Mat &imL, cv::Mat &imR, cv::Mat &dispL, int num_disparities);
 

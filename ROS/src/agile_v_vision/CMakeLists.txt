@@ -14,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   sensor_msgs
   std_msgs
+  ecl_ipc
 )
 
 find_package( CUDA )
@@ -159,8 +160,8 @@ include_directories(
 #   src/${PROJECT_NAME}/agile_v_vision.cpp
 # )
 # cuda_add_library( ${PROJECT_NAME}
-#   src/lib_cuda_code.cu
-#   src/libe_none_cuda_code.cpp
+#   src/elas/elas_gpu.cu
+#   src/elas/*.cpp
 # )
 
 ## Add cmake target dependencies of the library

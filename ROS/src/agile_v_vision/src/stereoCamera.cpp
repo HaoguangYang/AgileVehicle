@@ -23,6 +23,8 @@
 #endif
 
 #include "stereoCamera.h"
+using ecl::Semaphore;
+using ecl::SharedMemory;
 
 Mat StereoCamera::buildRotTras(Mat &R, Mat &T) {
     Mat A = Mat::eye(4, 4, CV_64F);
@@ -59,7 +61,7 @@ const vector<Point2f>& StereoCamera::getMatchRight() const {
 }
 
 StereoCamera::StereoCamera(bool rectify) {
-    this->mutex=new Semaphore(1);
+    this->mutex=new Semaphore("thread_locker");
     this->rectify=rectify;
     this->epipolarTh=0.01;
 
@@ -70,10 +72,10 @@ StereoCamera::StereoCamera(bool rectify) {
     use_elas = false;
 }
 
-StereoCamera::StereoCamera(yarp::os::ResourceFinder &rf, bool rectify) {
+StereoCamera::StereoCamera(const string& stereoParamFile, bool rectify) {
     Mat KL, KR, DistL, DistR, R, T;
-    loadStereoParameters(rf,KL,KR,DistL,DistR,R,T);
-    this->mutex= new Semaphore(1);
+    loadStereoParameters(stereoParamFile,KL,KR,DistL,DistR,R,T);
+    this->mutex= new Semaphore("thread_locker");
     this->setIntrinsics(KL,KR,DistL,DistR);
     this->setRotation(R,0);
     this->setTranslation(T,0);
@@ -96,7 +98,7 @@ StereoCamera::StereoCamera(Camera Left, Camera Right,bool rectify) {
 
     this->Kright=Right.getCameraMatrix();
     this->DistR=Right.getDistVector();
-    this->mutex=new Semaphore(1);
+    this->mutex=new Semaphore("thread_locker");
     this->cameraChanged=true;
     this->rectify=rectify;
     this->epipolarTh=0.01;
@@ -109,16 +111,21 @@ StereoCamera::StereoCamera(Camera Left, Camera Right,bool rectify) {
     use_elas = false;
 }
 
-void StereoCamera::initELAS(yarp::os::ResourceFinder &rf)
+
+void StereoCamera::initELAS(const string& filename)
 {
     use_elas = true;
-
-    string elas_string = rf.check("elas_setting",Value("ROBOTICS")).asString().c_str();
-
+    
+    std::ifstream configFile;
+    configFile.open(filename, std::ios::app); 
+    
+    //READ ELAS CONFIGURATION FILE HERE
+    
+    /*
     double disp_scaling_factor = rf.check("disp_scaling_factor",Value(1.0)).asDouble();
-
-    elaswrap = new elasWrapper(disp_scaling_factor, elas_string);
-
+    bool ifScaling = ;
+    bool processBoth = ;
+    elaswrap = new elasWrapper(disp_scaling_factor, ifScaling, processBoth);
 
     if (rf.check("elas_subsampling"))
         elaswrap->set_subsampling(true);
@@ -173,6 +180,7 @@ void StereoCamera::initELAS(yarp::os::ResourceFinder &rf)
     cout << "filter_adaptive_mean: " << elaswrap->get_filter_adaptive_mean() << endl;
 
     cout << endl;
+    */
 }
 
 void StereoCamera::setImages(IplImage * left, IplImage * right) {
@@ -495,10 +503,10 @@ void StereoCamera::rectifyImages()
 
     if(cameraChanged)
     {
-        mutex->wait();
+        mutex->lock();
         stereoRectify(this->Kleft, this->DistL, this->Kright, this->DistR, img_size, this->R, this->T, this->RLrect, this->RRrect, this->PLrect, this->PRrect, this->Q, -1);
 
-        mutex->post();
+        mutex->unlock();
     }
 
     if(cameraChanged)
@@ -537,7 +545,7 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
 
     if (cameraChanged)
     {
-        mutex->wait();
+        mutex->lock();
         stereoRectify(this->Kleft, this->DistL, this->Kright, this->DistR, img_size,
                 this->R, this->T, this->RLrect, this->RRrect, this->PLrect,
                 this->PRrect, this->Q, -1);
@@ -549,7 +557,7 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
             this->PLrect=this->Kleft;
             this->PRrect=this->Kright;
         }
-        mutex->post();
+        mutex->unlock();
     }
 
     if (cameraChanged)
@@ -618,7 +626,7 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
     {
         if (cameraChanged)
         {
-            this->mutex->wait();
+            this->mutex->lock();
 
             Mat inverseMapL(map.rows*map.cols,1,CV_32FC2);
             Mat inverseMapR(map.rows*map.cols,1,CV_32FC2);
@@ -642,7 +650,7 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
             this->MapperL=mapperL;
             this->MapperR=mapperR;
 
-            this->mutex->post();
+            this->mutex->unlock();
 
             cameraChanged = false;
         }
@@ -655,12 +663,12 @@ void StereoCamera::computeDisparity(bool best, int uniquenessRatio, int speckleW
             disp.convertTo(disp, CV_16SC1, 16.0);
     }
 
-    this->mutex->wait();
+    this->mutex->lock();
 
     this->Disparity = disp8;
     this->Disparity16 = disp;
 
-    this->mutex->post();
+    this->mutex->unlock();
 
 }
 
@@ -1104,12 +1112,12 @@ bool StereoCamera::essentialDecomposition()
     if (fabs(diff_angles.at<double>(0,0))<0.15 && fabs(diff_angles.at<double>(1,0))<0.15 && fabs(diff_angles.at<double>(2,0))<0.15 &&
             fabs(diff_tran.at<double>(0,0))<0.01 && fabs(diff_tran.at<double>(1,0))<0.01  && fabs(diff_tran.at<double>(2,0))<0.01)
     {
-        this->mutex->wait();
+        this->mutex->lock();
         this->R=Rnew;
         this->T=t_est;
         this->updatePMatrix();
         this->cameraChanged=true;
-        this->mutex->post();
+        this->mutex->unlock();
         return true;
     }
     else
@@ -1478,7 +1486,7 @@ const Mat& StereoCamera::getImRightUnd() const {
 }
 
 void StereoCamera::setRotation(Mat& Rot, int mul) {
-    this->mutex->wait();
+    this->mutex->lock();
     if(mul==0)
         this->R=Rot;
     if(mul==1)
@@ -1490,11 +1498,11 @@ void StereoCamera::setRotation(Mat& Rot, int mul) {
         R_exp=R;
     this->updatePMatrix();
     this->cameraChanged=true;
-    this->mutex->post();
+    this->mutex->unlock();
 }
 
 void StereoCamera::setTranslation(Mat& Tras, int mul) {
-    this->mutex->wait();
+    this->mutex->lock();
     if(mul==0)
         this->T=Tras;
     if(mul==1)
@@ -1508,7 +1516,7 @@ void StereoCamera::setTranslation(Mat& Tras, int mul) {
     if(!this->Kleft.empty() && !this->Kright.empty())
         this->updatePMatrix();
     this->cameraChanged=true;
-    this->mutex->post();
+    this->mutex->unlock();
 }
 
 void StereoCamera::printExtrinsic() {
@@ -1903,7 +1911,7 @@ void StereoCamera::printMatrix(Mat &matrix) {
 
 
 void StereoCamera::setIntrinsics(Mat& KL, Mat& KR, Mat& DistL, Mat& DistR) {
-    this->mutex->wait();
+    this->mutex->lock();
     this->Kleft=KL;
     this->Kright=KR;
     this->DistL=DistL;
@@ -1913,11 +1921,11 @@ void StereoCamera::setIntrinsics(Mat& KL, Mat& KR, Mat& DistL, Mat& DistR) {
         updatePMatrix();
     this->cameraChanged=true;
     buildUndistortRemap();
-    this->mutex->post();
+    this->mutex->unlock();
 }
 
 Point3f StereoCamera::metricTriangulation(Point2f &point1, double thMeters) {
-    mutex->wait();
+    mutex->lock();
 
     if(Q.empty() || Disparity16.empty()) {
         cout << "Run computeDisparity() method first!" << endl;
@@ -1926,7 +1934,7 @@ Point3f StereoCamera::metricTriangulation(Point2f &point1, double thMeters) {
         point.y=0.0;
         point.z=0.0;
 
-        mutex->post();
+        mutex->unlock();
         return point;
     }
 
@@ -1943,7 +1951,7 @@ Point3f StereoCamera::metricTriangulation(Point2f &point1, double thMeters) {
         point.y=0.0;
         point.z=0.0;
 
-        mutex->post();
+        mutex->unlock();
         return point;
     }
 
@@ -1961,7 +1969,7 @@ Point3f StereoCamera::metricTriangulation(Point2f &point1, double thMeters) {
         point.x=0.0;
         point.y=0.0;
         point.z=0.0;
-        mutex->post();
+        mutex->unlock();
         return point;
     }
 
@@ -1996,7 +2004,7 @@ Point3f StereoCamera::metricTriangulation(Point2f &point1, double thMeters) {
         point.z=(float) P.at<double>(2,0);
     }
 
-    mutex->post();
+    mutex->unlock();
     return point;
 
 }
@@ -2004,7 +2012,7 @@ Point3f StereoCamera::metricTriangulation(Point2f &point1, double thMeters) {
 
 
 Point3f StereoCamera::metricTriangulation(Point2f &point1, Mat &H, double thMeters) {
-    mutex->wait();
+    mutex->lock();
 
     if(H.empty())
         H=H.eye(4,4,CV_64FC1);
@@ -2015,7 +2023,7 @@ Point3f StereoCamera::metricTriangulation(Point2f &point1, Mat &H, double thMete
         point.x=0.0;
         point.y=0.0;
         point.z=0.0;
-        mutex->post();
+        mutex->unlock();
         return point;
     }
 
@@ -2032,7 +2040,7 @@ Point3f StereoCamera::metricTriangulation(Point2f &point1, Mat &H, double thMete
         point.y=0.0;
         point.z=0.0;
 
-        mutex->post();
+        mutex->unlock();
         return point;
     }
 
@@ -2050,7 +2058,7 @@ Point3f StereoCamera::metricTriangulation(Point2f &point1, Mat &H, double thMete
         point.x=0.0;
         point.y=0.0;
         point.z=0.0;
-        mutex->post();
+        mutex->unlock();
         return point;
     }
 
@@ -2070,7 +2078,7 @@ Point3f StereoCamera::metricTriangulation(Point2f &point1, Mat &H, double thMete
         point.x=0.0;
         point.y=0.0;
         point.z=0.0;
-        mutex->post();
+        mutex->unlock();
         return point;
     }
 
@@ -2089,7 +2097,7 @@ Point3f StereoCamera::metricTriangulation(Point2f &point1, Mat &H, double thMete
     point.y=(float) ((float) P.at<double>(1,0)/P.at<double>(3,0));
     point.z=(float) ((float) P.at<double>(2,0)/P.at<double>(3,0));
 
-    mutex->post();
+    mutex->unlock();
     return point;
 
 }
@@ -2097,7 +2105,7 @@ Point3f StereoCamera::metricTriangulation(Point2f &point1, Mat &H, double thMete
 
 Point3f StereoCamera::triangulateKnownDisparity(float u, float v, float d, Mat &H)
 {
-    mutex->wait();
+    mutex->lock();
     if(Q.empty())
     {
         cout << "Run rectifyImages() method first!" << endl;
@@ -2105,7 +2113,7 @@ Point3f StereoCamera::triangulateKnownDisparity(float u, float v, float d, Mat &
         point.x=0.0;
         point.y=0.0;
         point.z=0.0;
-        mutex->post();
+        mutex->unlock();
         return point;
     }
 
@@ -2140,7 +2148,7 @@ Point3f StereoCamera::triangulateKnownDisparity(float u, float v, float d, Mat &
     point.y=(float) ((float) P.at<double>(1,0)/P.at<double>(3,0));
     point.z=(float) ((float) P.at<double>(2,0)/P.at<double>(3,0));
 
-    mutex->post();
+    mutex->unlock();
     return point;
 }
 
@@ -2166,7 +2174,7 @@ vector<Point2f> StereoCamera::projectPoints3D(string camera, vector<Point3f> &po
     if(H.empty())
         H=H.eye(4,4,CV_64FC1);
 
-    mutex->wait();
+    mutex->lock();
 
     for (int i=0; i<points3D.size(); i++)
     {
@@ -2209,7 +2217,7 @@ vector<Point2f> StereoCamera::projectPoints3D(string camera, vector<Point3f> &po
 
     Mat points3Mat(points3D);
     projectPoints(points3Mat,rvec,tvec,cameraMatrix,distCoeff,points2D);
-    mutex->post();
+    mutex->unlock();
 
     return points2D;
 }
@@ -2306,10 +2314,14 @@ Point2f StereoCamera::getDistortedPixel(int u, int v, int cam)
 
     return distortedPixel;
 }
-bool StereoCamera::loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL, Mat &KR, Mat &DistL, Mat &DistR, Mat &Ro, Mat &T)
+
+
+//READ STEREO CALIBRATION CONFIG FILE HERE BASED ON FORMAT IN StereoCamera::saveCalibration
+
+bool StereoCamera::loadStereoParameters(const string& stereoParamFile, Mat &KL, Mat &KR, Mat &DistL, Mat &DistR, Mat &Ro, Mat &T)
 {
 
-    Bottle left=rf.findGroup("CAMERA_CALIBRATION_LEFT");
+/*    Bottle left=rf.findGroup("CAMERA_CALIBRATION_LEFT");
     if(!left.check("fx") || !left.check("fy") || !left.check("cx") || !left.check("cy"))
         return false;
 
@@ -2381,9 +2393,10 @@ bool StereoCamera::loadStereoParameters(yarp::os::ResourceFinder &rf, Mat &KL, M
     }
     else
         return false;
-
+*/
     return true;
 }
+
 
 void StereoCamera::setMatches(std::vector<cv::Point2f> & pointsL, std::vector<cv::Point2f> & pointsR)
 {
