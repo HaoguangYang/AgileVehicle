@@ -16,6 +16,37 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
 )
 
+find_package( CUDA )
+
+if (CUDA_FOUND)
+  message(STATUS "CUDA FOUND")
+  include(CheckCXXCompilerFlag)
+  CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
+  CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
+  if(COMPILER_SUPPORTS_CXX11)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+  elseif(COMPILER_SUPPORTS_CXX0X)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
+  else()
+    message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
+  endif()
+ # set CUDA_NVCC_FLAGS as you would do with CXX/C FLAGS                        
+  set(CUDA_NVCC_FLAGS "${CUDA_NVCC_FLAGS} -arch sm_50 -gencode arch=compute_50,code=sm_50 -DMY_DEF=1")
+  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DMY_DEF=1" )
+  set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DMY_DEF=1" )
+
+ # only necessary if you wish to create a lib
+  set(CUDA_ATTACH_VS_BUILD_RULE_TO_CUDA_FILE OFF)
+  set(BUILD_SHARED_LIBS ON)
+
+# cuda compile GPU_CODE for executable
+#  cuda_compile(  ELAS_CU_O src/elas/elas_gpu.cu )
+
+endif()
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse -msse2 -msse3")
+
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -127,6 +158,10 @@ include_directories(
 # add_library(${PROJECT_NAME}
 #   src/${PROJECT_NAME}/agile_v_vision.cpp
 # )
+# cuda_add_library( ${PROJECT_NAME}
+#   src/lib_cuda_code.cu
+#   src/libe_none_cuda_code.cpp
+# )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -137,6 +172,7 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/agile_v_vision_node.cpp)
+# cuda_add_executable (${PROJECT_NAME}_node ${LINE_PROFILER_CU_O})
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -146,7 +182,7 @@ include_directories(
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} ${LINE_PROFILER_CU_O})
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(${PROJECT_NAME}_node

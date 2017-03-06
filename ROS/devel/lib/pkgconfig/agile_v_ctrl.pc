@@ -1,0 +1,8 @@
+prefix=/mnt/Data/AgileV_Dev/ROS/devel
+
+Name: agile_v_ctrl
+Description: Description of agile_v_ctrl
+Version: 0.0.0
+Cflags: 
+Libs: -L/mnt/Data/AgileV_Dev/ROS/devel/lib 
+Requires: 
