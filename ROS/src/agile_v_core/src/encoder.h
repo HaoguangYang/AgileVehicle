@@ -84,5 +84,11 @@ public:
         mark();
         
     }
+    
+    double extractAngleDelta(char *unit)
+    {
+        double pi = 3.1415926535897932384626433832795028841971693993751058209749445923078164062862;
+        return (2*pi*value/_resolution);                            //Return angle in RAD.
+    }
 };
 
