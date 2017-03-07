@@ -12,9 +12,3 @@ void Arduino_setup(void)
 	return;
 }
 
-uint16_t EncoderRectify(uint16_t Encoder_in, uint16_t Zero)
-{
-	uint16_t Encoder_out = (((Encoder_in - Zero)<<4)>>4);		//Convert to 0~4095 loop
-	return Encoder_out;
-}
-
