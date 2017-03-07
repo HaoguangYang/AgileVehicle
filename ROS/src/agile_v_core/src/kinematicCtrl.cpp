@@ -1,4 +1,5 @@
 //#include <limits.h>
+#include "encoder.h"
 
 typedef struct VehiclePhysicalParams {
 	double TrackWidth;
@@ -19,10 +20,10 @@ typedef struct Kinematic{
 VehiclePhysicalParams Vehicle;
 Kinematic Actual;
 
-/*void GetVehicleData(VehiclePhysicalParams Vehicle)
+VehiclePhysicalParams GetVehicleData()
 {
 	
-}*/
+}
 
 double SteeringWheel2Radius (int SteeringWheelVal, int mode)
 {
@@ -88,4 +89,23 @@ int pidController(Kinematic Target, double* steerActual, double* driveActual, do
 	Error.omega = Actual.omega - Target.omega;
 	//DESIGN FEEDBACKS HERE...
 	return 0;
+}
+
+Kinematic assessActual()
+{
+	//rebuild kinematic status
+}
+
+int feedback_Call_back()
+{
+	//control val calc
+}
+
+int main()
+{
+	Vehicle = GetVehicleData();
+	while (ros::ok())
+	{
+		//publish control message
+	}
 }
