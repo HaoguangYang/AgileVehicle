@@ -1,5 +1,6 @@
 #include <string>
 using namespace std;
+double pi = 3.1415926535897932384626433832795028841971693993751058209749445923078164062862;
 
 class Encoder {
 
@@ -71,7 +72,19 @@ public:
     void mark(){
         last_mark = value;
     }
-    
+	
+	double extractDiff(uint16_t Encoder_in)
+	{
+		int8_t flag = value>>(16-_symbol-1);
+        if (((Encoder_in)<<4)>>14==0 && ((last_mark)<<4)>>14==3)    //From 11*** to 00***, flag + 1
+            flag = flag + 1;
+        if (((Encoder_in)<<4)>>14==3 && ((last_mark)<<4)>>14==0)
+            flag = flag - 1;
+        
+        int16_t tmp_value = rectify(Encoder_in) + ((int16_t)(flag)>>7)<<15 + (((int16_t)flag)<<(16-_symbol))>>1;
+		return (2*pi*(tmp_value-last_mark)/_resolution);
+	}
+	
     void update(uint16_t Encoder_in)
     {
         int8_t flag = value>>(16-_symbol-1);
@@ -82,12 +95,10 @@ public:
         
         value = rectify(Encoder_in) + ((int16_t)(flag)>>7)<<15 + (((int16_t)flag)<<(16-_symbol))>>1;
         mark();
-        
     }
     
-    double extractAngleDelta(char *unit)
+    double extractAngle()
     {
-        double pi = 3.1415926535897932384626433832795028841971693993751058209749445923078164062862;
         return (2*pi*value/_resolution);                            //Return angle in RAD.
     }
 };
