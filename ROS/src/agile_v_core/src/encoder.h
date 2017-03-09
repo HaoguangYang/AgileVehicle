@@ -76,9 +76,9 @@ public:
     {
         int8_t flag = value>>(16-_symbol-1);
         if (((Encoder_in)<<4)>>14==0 && ((last_mark)<<4)>>14==3)    //From 11*** to 00***, flag + 1
-            flag = flag + 1;
+            ++flag;
         if (((Encoder_in)<<4)>>14==3 && ((last_mark)<<4)>>14==0)
-            flag = flag - 1;
+            ++flag;
         
         value = rectify(Encoder_in) + ((int16_t)(flag)>>7)<<15 + (((int16_t)flag)<<(16-_symbol))>>1;
         mark();
