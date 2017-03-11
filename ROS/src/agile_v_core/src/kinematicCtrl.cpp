@@ -43,6 +43,11 @@ double SteeringWheel2Radius (int SteeringWheelVal, int mode)
 	}
 }
 
+uint16_t reverse_MotorPerformance(double Speed, double Torque)
+{
+    
+}
+
 void KinematicCentralizedSteering(double radius, double speed, double* steerVal, double* driveVal)
 {
 	if (fabs(radius)>=100000)				//filtering out excessively large turns
@@ -55,8 +60,8 @@ void KinematicCentralizedSteering(double radius, double speed, double* steerVal,
 	{
 		double leftBase = radius-Vehicle.TrackWidth/2;
 		double rightBase = radius+Vehicle.TrackWidth/2;
-		steerVal[0] = atan(Vehicle.WheelBase/2/leftBase);
-		steerVal[1] = atan(Vehicle.WheelBase/2/rightBase);
+		steerVal[0] = Encoder::reverseAngleLookup(atan(Vehicle.WheelBase/2/leftBase));
+		steerVal[1] = Encoder::reverseAngleLookup(atan(Vehicle.WheelBase/2/rightBase));
 		steerVal[2] = -steerVal[0];
 		steerVal[3] = -steerVal[1];
 		double omega = speed/radius;

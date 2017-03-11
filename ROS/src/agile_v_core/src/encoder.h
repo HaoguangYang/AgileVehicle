@@ -76,30 +76,40 @@ public:
 	double extractDiff(uint16_t Encoder_in)
 	{
 		int8_t flag = value>>(16-_symbol-1);
-        if (((Encoder_in)<<4)>>14==0 && ((last_mark)<<4)>>14==3)    //From 11*** to 00***, flag + 1
-            flag = flag + 1;
-        if (((Encoder_in)<<4)>>14==3 && ((last_mark)<<4)>>14==0)
-            flag = flag - 1;
-        
-        int16_t tmp_value = rectify(Encoder_in) + ((int16_t)(flag)>>7)<<15 + (((int16_t)flag)<<(16-_symbol))>>1;
-		return (2*pi*(tmp_value-last_mark)/_resolution);
-	}
-	
-    void update(uint16_t Encoder_in)
-    {
-        int8_t flag = value>>(16-_symbol-1);
-        if (((Encoder_in)<<4)>>14==0 && ((last_mark)<<4)>>14==3)    //From 11*** to 00***, flag + 1
+        if (((Encoder_in)<<(_symbol+1))>>(16-_symbol+1)==0 && ((last_mark)<<(_symbol+1))>>(16-_symbol+1)==3)    //From 11*** to 00***, flag + 1
             ++flag;
-        if (((Encoder_in)<<4)>>14==3 && ((last_mark)<<4)>>14==0)
-            ++flag;
+        if (((Encoder_in)<<(_symbol+1))>>(16-_symbol+1)==3 && ((last_mark)<<(_symbol+1))>>(16-_symbol+1)==0)
+            --flag;
         
-        value = rectify(Encoder_in) + ((int16_t)(flag)>>7)<<15 + (((int16_t)flag)<<(16-_symbol))>>1;
+        value = (int16_t)(rectify(Encoder_in) + ((uint16_t)((flag)>>7))<<15 + (((uint16_t)flag)<<(16-_symbol))>>1);
+        int16_t tmp_value = value - last_mark;
         mark();
-    }
+		return (2*pi*(tmp_value)/_resolution);
+	}
     
     double extractAngle()
     {
         return (2*pi*value/_resolution);                            //Return angle in RAD.
+    }
+    
+    double extractAngle_OneCycle()
+    {
+        return (2*pi*(((uint16_t)value<<(_symbol+1))>>(_symbol+1))/_resolution);
+    }
+    
+    double extractAngle_TwoCycle()
+    {
+        return (2*pi*(((uint16_t)value<<(_symbol))>>(_symbol))/_resolution);
+    }
+    
+    double extractAngle_FourCycle()
+    {
+        return (2*pi*(((uint16_t)value<<(_symbol-1))>>(_symbol-1))/_resolution);
+    }
+    
+    uint16_t reverseAngleLookup(double angle_in)
+    {
+        return ((((uint16_t)(angle_in*_resolution/(2*pi)))<<(_symbol+1))>>(_symbol+1));
     }
 };
 
