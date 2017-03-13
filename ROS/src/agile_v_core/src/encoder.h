@@ -73,8 +73,9 @@ public:
         last_mark = value;
     }
 	
-	double extractDiff(uint16_t Encoder_in)
+	void update(uint16_t NewData)
 	{
+		Encoder_in = rectify(NewData);
 		int8_t flag = value>>(16-_symbol-1);
         if (((Encoder_in)<<(_symbol+1))>>(16-_symbol+1)==0 && ((last_mark)<<(_symbol+1))>>(16-_symbol+1)==3)    //From 11*** to 00***, flag + 1
             ++flag;
@@ -82,6 +83,20 @@ public:
             --flag;
         
         value = (int16_t)(rectify(Encoder_in) + ((uint16_t)((flag)>>7))<<15 + (((uint16_t)flag)<<(16-_symbol))>>1);
+        mark();
+		return;
+	}
+	
+	double extractDiff(uint16_t NewData)
+	{
+		Encoder_in = rectify(NewData);
+		int8_t flag = value>>(16-_symbol-1);
+        if (((Encoder_in)<<(_symbol+1))>>(16-_symbol+1)==0 && ((last_mark)<<(_symbol+1))>>(16-_symbol+1)==3)    //From 11*** to 00***, flag + 1
+            ++flag;
+        if (((Encoder_in)<<(_symbol+1))>>(16-_symbol+1)==3 && ((last_mark)<<(_symbol+1))>>(16-_symbol+1)==0)
+            --flag;
+        
+        value = (int16_t)(rectify(Encoder_in) + ((uint16_t)((flag)>>7))<<15 + (((uint16_t)flag)<<(16-_symbol))>>1);	//Reading + Sign + Flag
         int16_t tmp_value = value - last_mark;
         mark();
 		return (2*pi*(tmp_value)/_resolution);
