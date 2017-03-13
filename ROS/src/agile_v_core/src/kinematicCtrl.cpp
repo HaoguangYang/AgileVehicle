@@ -48,9 +48,10 @@ uint16_t reverse_MotorPerformance(double Speed, double Torque)
     
 }
 
-void KinematicCentralizedSteering(double radius, double speed, double* steerVal, double* driveVal)
+void KOLCSteering(double radius, double speed, double* steerVal, double* driveVal)
 {
-	if (fabs(radius)>=100000)				//filtering out excessively large turns
+    //Kinematic Open-Loop Centralized Steering Controller
+	if (fabs(radius)>=100000 && fabs(speed/radius)<=0.0001)				//filtering out excessively slow turns
 	{
 		for (int i=0;i<4;i++)
 			steerVal[i] = 0;
@@ -77,22 +78,66 @@ void KinematicCentralizedSteering(double radius, double speed, double* steerVal,
 	return;
 }
 
-int pidController(Kinematic Target, double* steerActual, double* driveActual, double* steerValCorrection, double* driveValCorrection)
+void KCLCSteering(double radius, double speed, double* steerVal, double* driveVal)
 {
-	double u[4];
-	double v[4];
+    //Kinematic Closed-Loop Centralized Steering Controller
+    Kinematic Target;
+    Target.speed [1] = 0;
+    Target.speed [0] = speed;
+	if (fabs(radius)>=100000 && fabs(speed/radius)<=0.0001)				//filtering out excessively slow turns
+	{
+		Target.omega = 0;
+	}
+	else
+	{
+		Target.omega = speed/radius;
+	}
+	int errnum = Controller(Target, steerActual, driveActual, steerVal, driveVal);
+	//steerVal NEEDS CONVERSION!!!
+	//driveVal NEEDS CONVERSION!!!
+	return;
+}
+
+int Controller(Kinematic Target, double* steerActual, double* driveActual, double* steerVal, double* driveVal)
+{
+	double u[2][4];
+	//double v[4];
 	Kinematic Error;
 	for (int i=0;i<4;i++)
 	{
-		u[i] = driveActual[i]*cos(steerActual[i]);
-		v[i] = driveActual[i]*sin(steerActual[i]);
+		u[0][i] = driveActual[i]*cos(steerActual[i]);
+		u[1][i] = driveActual[i]*sin(steerActual[i]);
 	}
-	Actual.speed[0] = (u(1)+u(2)+u(3)+u(4))/4;
-	Actual.speed[1] = (v(1)+v(2)+v(3)+v(4))/4;
-	Actual.omega = ((u[2]-u[1]+u[4]-u[3])/Vehicle.TrackWidth+(v[1]-v[3]+v[2]-v[4])/Vehicle.WheelBase)/4;
+	Actual.speed[0] = (u[0][0]+u[0][1]+u[0][2]+u[0][3])/4;
+	Actual.speed[1] = (u[1][0]+u[1][1]+u[1][2]+u[1][3])/4;
+	Actual.omega = ((u[0][1]-u[0][0]+u[0][3]-u[0][2])/Vehicle.TrackWidth+(u[1][0]-u[1][2]+u[1][1]-u[1][3])/Vehicle.WheelBase)/4;
 	Error.speed = Actual.speed - Target.speed;
 	Error.omega = Actual.omega - Target.omega;
 	//DESIGN FEEDBACKS HERE...
+	double r[2][4]
+	r[0][0] = -Vehicle.TrackWidth/2;
+	r[1][0] =  Vehicle.WheelBase/2;
+	r[0][1] =  Vehicle.TrackWidth/2;
+	r[1][1] =  Vehicle.WheelBase/2;
+	r[0][2] = -Vehicle.TrackWidth/2;
+	r[1][2] = -Vehicle.WheelBase/2;
+	r[0][3] =  Vehicle.TrackWidth/2;
+	r[1][3] = -Vehicle.WheelBase/2;
+	
+	double Correction[2][4];
+	for (int i=0; i<2; i++){
+	    for (int j = 0; j<4; j++){
+	        Correction[i][j] = -( Error.speed[i]+Error.omega*r[i][j] );
+	    }
+	}
+	double AfterCorrection[2][4];
+	AfterCorrection = u + Correction;
+	
+	for (int i = 0; i<4; i++){
+	    steerVal[i] = atan(AfterCorrection[1][i]/AfterCorrection[0][i]);
+	    driveVal[i] = sqrt(AfterCorrection[1][i]*AfterCorrection[1][i]+AfterCorrection[0][i]*AfterCorrection[0][i]);
+	}
+	
 	return 0;
 }
 
@@ -106,11 +151,3 @@ int feedback_Call_back()
 	//control val calc
 }
 
-int main()
-{
-	Vehicle = GetVehicleData();
-	while (ros::ok())
-	{
-		//publish control message
-	}
-}
