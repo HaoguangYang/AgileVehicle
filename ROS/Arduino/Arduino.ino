@@ -17,7 +17,7 @@
 #define AMPS        A6
 
 ros::NodeHandle handle;
-int encoder_resolution = 4096;
+int encoder_resolution = 4095;
 int pulseTime = 100;
 int updateTime = 40;
 int Angle = 0;
@@ -67,7 +67,7 @@ void Actuate( const std_msgs::UInt16MultiArray& ctrl_var){
         //Serial.println("bad DesiredAngle input.");
     }
     else {
-		int err = min(min(abs(ctrl_var.data[0]-Angle),abs(ctrl_var.data[0]-Angle+encoder_resolution)),abs(ctrl_var.data[0]-Angle-encoder_resolution));
+		int err = min(min(abs(ctrl_var.data[0]-Angle),abs(ctrl_var.data[0]-Angle+encoder_resolution+1)),abs(ctrl_var.data[0]-Angle-encoder_resolution-1));
         if(!(err<40)) {
 			pulseTime = 55000/(err+500);	//Need Modification
             if (ctrl_var.data[1]>Angle) {

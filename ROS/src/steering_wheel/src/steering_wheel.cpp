@@ -20,16 +20,6 @@
 
 using namespace std;
 
-/*typedef struct {
-  char end_1;
-  char end_2;
-  unsigned short Steer;
-  unsigned short Drive;
-  float Voltage;
-  float CurrentS;
-  float CurrentD;
-} serial_format;*/
-
 steering_wheel::joyinfoex joyinfo;
 SDL_Joystick *joy;
 bool isOneWheelDebug = true;
@@ -38,16 +28,8 @@ bool isOneWheelDebug = true;
 
 int setup(void)
 {
-    printf("Welcome to AgileV Steering Wheel Control Utilities!\n\n");
-
-    string PORTNAMEIN;
-    cout << "Input Serial Port (e.g. /dev/ttyUSB0): " << endl;
-    cin >> PORTNAMEIN;
-	string COMMANDCAST = "rosrun rosserial_python serial_node.py ";
-    COMMANDCAST = COMMANDCAST+PORTNAMEIN;
-	char *COMMAND = new char [COMMANDCAST.length() + 1];
-    std::strcpy(COMMAND, COMMANDCAST.c_str());
-    //system(COMMAND);			//Open Arduino port for ROS interface.
+    system("clear");
+	printf("Welcome to AgileV Steering Wheel Control Utilities!\n\n");
 	
 	unsigned int JOYSTICKID1;
 	if (SDL_Init(SDL_INIT_JOYSTICK) < 0){
@@ -84,8 +66,8 @@ int FFupdate(SDL_Joystick * joystick , unsigned short center)
 
  // See if it can do sine waves
  if ((SDL_HapticQuery(haptic) & SDL_HAPTIC_SPRING)==0) {
-  SDL_HapticClose(haptic); // No sine effect
-  return -1;
+  SDL_HapticClose(haptic); // No spring effect
+  return -2;
  }
 
  // Create the effect
@@ -122,6 +104,8 @@ void ActuaterFeedback(const std_msgs::UInt16MultiArray& ActuatorStatus)
 		cout << "ActualDrive: " << ActuatorStatus.data[1] << endl;
 		cout << "HapticsUpdateStatus: " << errNum << endl;
 		cout << "Joystick: " << joyinfo.dwXpos << endl;
+		cout << "          " << joyinfo.dwYpos << endl;
+		cout << "Buffer:" <<endl;
 	}
 	return;
 }
@@ -138,7 +122,6 @@ int main(int argc, _TCHAR* argv[])
 	
 	//if (isOneWheelDebug)
 	ros::Subscriber actuator_feedback = handle.subscribe("WheelActual01", 10, ActuaterFeedback);
-	ros::Publisher wheel_pub = handle.advertise<std_msgs::UInt16MultiArray>("WheelControl01",2);
 	std_msgs::UInt16MultiArray WheelCtrl;
 	
 	WheelCtrl.layout.dim.push_back(std_msgs::MultiArrayDimension());
@@ -150,25 +133,10 @@ int main(int argc, _TCHAR* argv[])
     }
 	
 	uint16_t driveDutycycle=0;
-	uint16_t breaking = 255;
+	uint16_t brake = 255;
 	uint16_t steer=2048;
-    const int encoder_resolution=4096;
-    const int fullDutycycle=255;	
-	
-    //Serial* SP = new Serial(PORTNAME);
-	//if (SP->IsConnected())
-	//	printf("We're connected!\n");
-
-//data communication
-	/*char incomingData[256] = "";			// don't forget to pre-
-	int dataLengthin = 127;
-	int readResult = 0;
-	char outSteer[6]="2048s";
-	int driveDutycycle=0;
-	char outDrive[5]="001d";
-	char outBreak[5]="100b"*/
-
-	
+    const int encoder_resolution=4095;
+    const int fullDutycycle=255;
 
 //joystick initialize***********************
 
@@ -185,6 +153,7 @@ int main(int argc, _TCHAR* argv[])
     }
 
 //button status
+/*
 	bool is_in_situ=false;
 	bool is_any_direction=false;
 	bool is_tradition=true;
@@ -194,10 +163,11 @@ int main(int argc, _TCHAR* argv[])
 	bool last_in_situ=false;
 	bool last_any_direction=false;
 	bool last_tradition=false;
+*/
 
 	//int count = 0;
 //start control
-	bool action = 1;
+	bool noAction = 1;
     SDL_Event SysEvent;
     bool NoQuit = true;
     while(NoQuit && ros::ok())
@@ -208,10 +178,10 @@ int main(int argc, _TCHAR* argv[])
             {
                 case SDL_JOYAXISMOTION:
                 {
-                    joyinfo.dwXpos = SDL_JoystickGetAxis(joy,0) + 32767 + 1 ;
-	    	        joyinfo.dwYpos = SDL_JoystickGetAxis(joy,1) + 32767 + 1 ;
-	    	        joyinfo.dwZpos = SDL_JoystickGetAxis(joy,2) + 32767 + 1 ;
-	    	        joyinfo.dwRpos = SDL_JoystickGetAxis(joy,3) + 32767 + 1 ;
+                    joyinfo.dwXpos = SDL_JoystickGetAxis(joy,0) + 32768 ;
+	    	        joyinfo.dwYpos = SDL_JoystickGetAxis(joy,1) + 32768 ;
+	    	        joyinfo.dwZpos = SDL_JoystickGetAxis(joy,2) + 32768 ;
+	    	        joyinfo.dwRpos = SDL_JoystickGetAxis(joy,3) + 32768 ;
 	    	        //Only 4 axis.
 		            //joyinfo.dwUpos = SDL_JoystickGetAxis(joy,4);
 		            //joyinfo.dwVpos = SDL_JoystickGetAxis(joy,5);
@@ -225,56 +195,43 @@ int main(int argc, _TCHAR* argv[])
 	    	}
             SDL_FlushEvents(SDL_APP_TERMINATING, SDL_LASTEVENT); //Flush Old Events
 			if(joyinfo.dwZpos != 32767)
-				action = 0;
-			/*if(action)
+				noAction = 0;
+			if(noAction)//Double-check that the inactivated throttle value is set to 0.
 			{
-				cout << "Z Throttle:" << 65536 << endl; //The original value of the inactivated throttle is 32767, should be modified to 65535 so that throttle is 0		
-				cout << "R Break:" << 0.9*65536 << endl;
+			    joyinfo.dwRpos = 0;				//Full Brake
+			    joyinfo.dwZpos = 65535;			//Zero Power
 			}
-			else
-			{
-			cout << "Z Throttle:" << joyinfo.dwZpos << endl; //If activated (moved), output real value.
-			cout << "R Break:" << joyinfo.dwRpos << endl; //The same for breaks.
-			}
-			cout << "buttonNumber" << joyinfo.dwButtonNumber << endl;*/
-			cout << "buttonStatus" << bitset<64>(joyinfo.dwButtons) << endl; //Output button status
 			steering_wheel_pub.publish(joyinfo);
 			
 			if (isOneWheelDebug)
 			{
+			    ros::Publisher wheel_pub = handle.advertise<std_msgs::UInt16MultiArray>("WheelControl01",2);
 			    //preprocessing data
-				if(action)//Double-check that the inactivated throttle value is set to 0.
-			    {
-				    driveDutycycle = 0;
-				    breaking = 225;
-			    }
+			    brake = (uint16_t)((1-joyinfo.dwRpos/65535.0)*fullDutycycle);			//Modify as necessary.
+			    if (brake==0)
+				    driveDutycycle = (uint16_t)((1-joyinfo.dwZpos/65535.0)*fullDutycycle);
 			    else
-			    {
-				    breaking = (uint16_t)((1-joyinfo.dwRpos/65535.0)*fullDutycycle);			//Modify as necessary.
-				    if (breaking==0)
-					    driveDutycycle = (uint16_t)((1-joyinfo.dwZpos/65535.0)*fullDutycycle);
-				    else
-					    driveDutycycle = 0;
-			    }
+				    driveDutycycle = 0;
 			    steer=(uint16_t)(joyinfo.dwXpos/65535.0*encoder_resolution);
 			    //Output monitoring
+				cout << "buttonStatus" << bitset<64>(joyinfo.dwButtons) << endl; //Output button status
 			    cout << "X Steering Wheel:" << steer << endl;
 			    cout << "Z Throttle:" << driveDutycycle << endl;
-				cout << "R Break:" << breaking << endl;
+				cout << "R Brake:" << brake << endl;
 				
 				//Verifying data and publishing
-			    if(driveDutycycle>=0 && driveDutycycle<=255 && breaking>=0 && breaking<=255 && steer>=0 && steer<=encoder_resolution)
+			    if(driveDutycycle>=0 && driveDutycycle<=255 && brake>=0 && brake<=255 && steer>=0 && steer<=encoder_resolution) //Double check
 			    {
-			        /***REFER TO ARDUINO PROGRAM***
+			    /***REFER TO ARDUINO PROGRAM***
                     std_msgs::UInt16MultiArray ctrl_var;
                     uint16 inputSteer;
                     uint16 inputDrive;
-                    uint16 inputBreak;
+                    uint16 inputBrake;
                     uint16 reverse;
                     ************/
 				    WheelCtrl.data[0] = steer;
 				    WheelCtrl.data[1] = driveDutycycle;
-				    WheelCtrl.data[2] = breaking;
+				    WheelCtrl.data[2] = brake;
 				    WheelCtrl.data[3] = 0;
 			    }
 			    
@@ -282,44 +239,13 @@ int main(int argc, _TCHAR* argv[])
 			    usleep(25000);
 			//Publish steering wheel data to one wheel for debugging
 			}
-			/*printf("outDrive:%s\n",outDrive);
-			bool isWriteDrive = SP->WriteData((char*)&outDrive, strlen(outDrive));
-			cout << "WriteSucceed?" << isWriteDrive << endl;
-			printf("outSteer:%s\n",outSteer);
-			bool isWriteSteer = SP->WriteData((char*)&outSteer, strlen(outSteer));
-			cout << "WriteSucceed?" << isWriteSteer << endl;
-			printf("outBreak:%s\n",outBreak);
-			bool isWriteBreak = SP->WriteData((char*)&outBreak, strlen(outBreak));
-			cout << "WriteSucceed?" << isWriteBreak << endl;*/
 		}       //If have sysevent then update joystick values
 		
 		ros::spinOnce();
-		//readResult = SP->ReadData(incomingData,dataLengthin);
-		///*if(readResult<2*sizeof(serial_format)){
-		//	printf("No enough data received. Let's wait.\n");
-		//	Sleep(1500);continue;
-		//}*/
 
-		/*int ptr=0;
-		while(!(incomingData[ptr]=='?' && incomingData[ptr+1]=='?') && ptr<readResult-sizeof(serial_format)) {
-			ptr++;
-		}
-		serial_format* ptr_to_first_valid = (serial_format*) &incomingData[ptr];
-
-		printf("Actual Steer: %d\n",ptr_to_first_valid->Steer);
-		printf("Actual Drive: %d\n",ptr_to_first_valid->Drive);
-		printf("Bus Voltage: %f\n", ptr_to_first_valid->Voltage);
-		printf("Current on Driving: %f\n", ptr_to_first_valid->CurrentD);
-		printf("Current on Steering: %f\n", ptr_to_first_valid->CurrentS);
-		printf("Power Consumed on This Unit: %f\n", (ptr_to_first_valid->Voltage)*((ptr_to_first_valid->CurrentD)+(ptr_to_first_valid->CurrentS)));*/
-        //However always read serial data.
-
-		
     }
-    //SP->~Serial();
 
 	SDL_JoystickClose(joy);
-    
 	//system("pause");
 	return 0;
 }

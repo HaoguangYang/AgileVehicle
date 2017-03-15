@@ -25,6 +25,11 @@ ROS implementation of the system. Catkin workspace.
 [中文](http://wiki.ros.org/cn/ROS/Tutorials)
 [English](http://wiki.ros.org/ROS/Tutorials)
 
+Additional dependencies:
+
+```sh
+sudo apt-get install ros-kinetic-ecl-ipc ros-kinetic-rosserial-arduino ros-kinetic-rosserial
+```
 
 ##### /ROS/Arduino
 ROS based Arduino code able to transmit data at 30Hz. Run `./bootstrap` to prepare the system.

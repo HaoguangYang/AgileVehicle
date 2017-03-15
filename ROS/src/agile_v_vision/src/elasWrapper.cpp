@@ -36,18 +36,16 @@ double elasWrapper::workEnd(int64 work_begin)
     return work_time;
 }
 
-elasWrapper::elasWrapper(double _io_scaling_factor, string elas_setting) : Elas(parameters(( elas_setting == "MIDDLEBURY") ? MIDDLEBURY : ROBOTICS))
+elasWrapper::elasWrapper(double _io_scaling_factor, bool noScaling, bool postprocess_both)
 {
-    param.postprocess_only_left = true;
-
-    io_scaling_factor = _io_scaling_factor;
-}
-
-elasWrapper::elasWrapper() : Elas(parameters(ROBOTICS))
-{
-    param.postprocess_only_left = true;
-
-    io_scaling_factor = 1.0;
+    if (postprocess_both)
+        param.postprocess_only_left = false;
+    else
+        param.postprocess_only_left = true;
+    if (noScaling)
+        io_scaling_factor = 1.0;
+    else
+        io_scaling_factor = _io_scaling_factor;
 }
 
 bool elasWrapper::compute_disparity(cv::Mat &imL, cv::Mat &imR, cv::Mat &dispL, int num_disparities)
