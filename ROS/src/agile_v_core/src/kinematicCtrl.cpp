@@ -98,11 +98,25 @@ void KCLCSteering(double radius, double speed, double* steerVal, double* driveVa
 	return;
 }
 
+void KCLHSteering(int16_t steering_wheel_input, double speed, double* steerVal, double* driveVal)
+{
+    //Kinematic Closed-Loop Heading-locked Steering
+    Kinematic Target;
+    Target.speed [1] = speed*sin(steering_wheel_input/32767*pi/2);
+    Target.speed [0] = speed*cos(steering_wheel_input/32767*pi/2);
+    Target.omega = 0;
+    
+    int errnum = Controller(Target, steerActual, driveActual, steerVal, driveVal);
+    return;
+}
+
 int Controller(Kinematic Target, double* steerActual, double* driveActual, double* steerVal, double* driveVal)
 {
 	double u[2][4];
 	//double v[4];
 	Kinematic Error;
+	
+	#pragma omp parallel for num_threads(4)
 	for (int i=0;i<4;i++)
 	{
 		u[0][i] = driveActual[i]*cos(steerActual[i]);
@@ -133,6 +147,7 @@ int Controller(Kinematic Target, double* steerActual, double* driveActual, doubl
 	double AfterCorrection[2][4];
 	AfterCorrection = u + Correction;
 	
+	#pragma omp parallel for num_threads(4)
 	for (int i = 0; i<4; i++){
 	    steerVal[i] = atan(AfterCorrection[1][i]/AfterCorrection[0][i]);
 	    driveVal[i] = sqrt(AfterCorrection[1][i]*AfterCorrection[1][i]+AfterCorrection[0][i]*AfterCorrection[0][i]);

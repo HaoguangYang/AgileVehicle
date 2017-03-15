@@ -122,7 +122,6 @@ int main(int argc, _TCHAR* argv[])
 	
 	//if (isOneWheelDebug)
 	ros::Subscriber actuator_feedback = handle.subscribe("WheelActual01", 10, ActuaterFeedback);
-	ros::Publisher wheel_pub = handle.advertise<std_msgs::UInt16MultiArray>("WheelControl01",2);
 	std_msgs::UInt16MultiArray WheelCtrl;
 	
 	WheelCtrl.layout.dim.push_back(std_msgs::MultiArrayDimension());
@@ -134,7 +133,7 @@ int main(int argc, _TCHAR* argv[])
     }
 	
 	uint16_t driveDutycycle=0;
-	uint16_t breaking = 255;
+	uint16_t brake = 255;
 	uint16_t steer=2048;
     const int encoder_resolution=4095;
     const int fullDutycycle=255;
@@ -199,16 +198,17 @@ int main(int argc, _TCHAR* argv[])
 				noAction = 0;
 			if(noAction)//Double-check that the inactivated throttle value is set to 0.
 			{
-			    joyinfo.dwRpos = 0;				//Full Break
+			    joyinfo.dwRpos = 0;				//Full Brake
 			    joyinfo.dwZpos = 65535;			//Zero Power
 			}
 			steering_wheel_pub.publish(joyinfo);
 			
 			if (isOneWheelDebug)
 			{
+			    ros::Publisher wheel_pub = handle.advertise<std_msgs::UInt16MultiArray>("WheelControl01",2);
 			    //preprocessing data
-			    breaking = (uint16_t)((1-joyinfo.dwRpos/65535.0)*fullDutycycle);			//Modify as necessary.
-			    if (breaking==0)
+			    brake = (uint16_t)((1-joyinfo.dwRpos/65535.0)*fullDutycycle);			//Modify as necessary.
+			    if (brake==0)
 				    driveDutycycle = (uint16_t)((1-joyinfo.dwZpos/65535.0)*fullDutycycle);
 			    else
 				    driveDutycycle = 0;
@@ -217,21 +217,21 @@ int main(int argc, _TCHAR* argv[])
 				cout << "buttonStatus" << bitset<64>(joyinfo.dwButtons) << endl; //Output button status
 			    cout << "X Steering Wheel:" << steer << endl;
 			    cout << "Z Throttle:" << driveDutycycle << endl;
-				cout << "R Break:" << breaking << endl;
+				cout << "R Brake:" << brake << endl;
 				
 				//Verifying data and publishing
-			    if(driveDutycycle>=0 && driveDutycycle<=255 && breaking>=0 && breaking<=255 && steer>=0 && steer<=encoder_resolution) //Double check
+			    if(driveDutycycle>=0 && driveDutycycle<=255 && brake>=0 && brake<=255 && steer>=0 && steer<=encoder_resolution) //Double check
 			    {
 			    /***REFER TO ARDUINO PROGRAM***
                     std_msgs::UInt16MultiArray ctrl_var;
                     uint16 inputSteer;
                     uint16 inputDrive;
-                    uint16 inputBreak;
+                    uint16 inputBrake;
                     uint16 reverse;
                     ************/
 				    WheelCtrl.data[0] = steer;
 				    WheelCtrl.data[1] = driveDutycycle;
-				    WheelCtrl.data[2] = breaking;
+				    WheelCtrl.data[2] = brake;
 				    WheelCtrl.data[3] = 0;
 			    }
 			    

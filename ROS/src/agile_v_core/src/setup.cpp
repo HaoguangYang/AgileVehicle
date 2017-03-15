@@ -9,6 +9,7 @@ void Arduino_setup(void)
     std::strcpy(COMMAND, COMMANDCAST.c_str());
     //system(COMMAND);			//Open Arduino port for ROS interface.
 	//This line would not work and should be set with a launch file.
+	Vehicle = GetVehicleData();
 	return;
 }
 
