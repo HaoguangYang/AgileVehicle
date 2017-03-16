@@ -9,7 +9,7 @@ uint16_t reverse_MotorPerformance(double Speed, double Torque)
 	return (v_input*51);	//*255/5
 }
 
-int main(double* steerVal, double* driveVal, double* Torque)
+int publishToWheels(double* steerVal, double* driveVal, double* Torque)
 {
     uint16_t steer[4];
     uint16_t drive[4];

@@ -1,6 +1,7 @@
 #ifndef KINEMATICCTRL_H
 #define KINEMATICCTRL_H
 
+#include <stdlib.h>
 #include "encoder.h"
 
 typedef struct VehiclePhysicalParams {
@@ -21,6 +22,10 @@ typedef struct Kinematic{
 };
 VehiclePhysicalParams Vehicle;
 Kinematic Actual;
+
+double steerVal[4]={0};
+double driveVal[4]={0};
+double Torque[4]={0};
 
 VehiclePhysicalParams GetVehicleData(void);
 

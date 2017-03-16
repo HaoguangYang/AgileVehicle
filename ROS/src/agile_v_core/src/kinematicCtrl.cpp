@@ -1,13 +1,29 @@
 //#include <limits.h>
 #include "kinematicCtrl.h"
+#include "steering_wheel/joyinfoex.h"
 
-VehiclePhysicalParams GetVehicleData()
+void GetVehicleData(int argc, _TCHAR* argv[])
 {
-	Vehicle.TrackWidth = 1.315;
-	Vehicle.WheelBase = 1.520;
-	Vehicle.Mass = 450.0;
-	Vehicle.WheelRadius = 0.6114*0.5;
-	//Modify as necessary
+	if (argc==1){
+		Vehicle.TrackWidth = 1.315;
+		Vehicle.WheelBase = 1.520;
+		Vehicle.Mass = 450.0;
+		Vehicle.WheelRadius = 0.6114*0.5;
+		//defaults
+	}
+	else{
+		for (int i=0;i<argc;i++){
+			if (strcmp(argv[i],"-TW") == 0)
+				Vehicle.TrackWidth = atof(argv[i+1]);
+			if (strcmp(argv[i],"-WB") == 0)
+				Vehicle.WheelBase = atof(argv[i+1]);
+			if (strcmp(argv[i],"-M") == 0)
+				Vehicle.Mass = atof(argv[i+1]);
+			if (strcmp(argv[i],"-WR") == 0)
+				Vehicle.WheelRadius = atof(argv[i+1]);
+		}
+	}
+	return;
 }
 
 double SteeringWheel2Radius (int SteeringWheelVal, int mode)
@@ -136,13 +152,23 @@ int Controller(Kinematic Target, double* steerActual, double* driveActual, doubl
 	return 0;
 }
 
-Kinematic assessActual()
+void Call_back(const steering_wheel::joyinfoex& controlInput)
 {
-	//rebuild kinematic status
-}
-
-int feedback_Call_back()
-{
+	int16_t steeringIn = controlInput.dwXpos;
+	double speed = controlInput.dwZpos/32767*10;
+	double radius = SteeringWheel2Radius(steeringIn, 1);
+	KCLCSteering(radius, speed, steerVal, driveVal);
 	//control val calc
 }
 
+int main(int argc, _TCHAR* argv[])
+{
+	ros::init(argc, argv, "dynamic_core");
+	ros::NodeHandle handle;
+	GetVehicleData(argc, argv);
+	ros::Subscriber joystick_input = handle.subscribe("WheelActual01", 10, Call_back);
+	
+	while (ros::ok){
+		publishToWheels(steerVal, driveVal, Torque);
+	}
+}

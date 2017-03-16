@@ -1,8 +1,9 @@
 #!/bin/bash
+source "../../devel/setup.bash"
+
+#modifying old launch files based on input of USB port names.
 configFile="./AgileVehicle.launch"
-
 oldpattern="<param name='~port' value='"
-
 sed -i.old "/${oldpattern}/d" $configFile
 
 read -p "Input Serial Port for Wheel-00 (e.g. /dev/ttyUSB0): " -e port
@@ -25,3 +26,5 @@ match='<node pkg="rosserial_python" type="serial_node.py" name="wheel03" output=
 insert="<param name='~port' value='$port' />"
 sed -i "/${match}/a${insert}" $configFile
 
+#launch tht nodes
+roslaunch ./AgileVehicle.launch

@@ -113,7 +113,7 @@ void ActuaterFeedback(const std_msgs::UInt16MultiArray& ActuatorStatus)
 int main(int argc, _TCHAR* argv[])
 {
 // connect the COM
-	ros::init(argc, argv, "steering_whel");
+	ros::init(argc, argv, "steering_wheel");
 	ros::NodeHandle handle;
 	ros::Publisher steering_wheel_pub = handle.advertise<steering_wheel::joyinfoex>("SteeringWheel",10);
 	
