@@ -95,9 +95,9 @@ int FFupdate(SDL_Joystick * joystick , unsigned short center)
 
 void ActuaterFeedback(const std_msgs::UInt16MultiArray& ActuatorStatus)
 {
+    system("clear");
 	if (isOneWheelDebug)
 	{
-		system("clear");
 		int errNum = FFupdate(joy,ActuatorStatus.data[0]);
 		cout << "ActualSteer: " << ActuatorStatus.data[0] << endl;
 		cout << "ActualDrive: " << ActuatorStatus.data[1] << endl;
@@ -121,6 +121,7 @@ int main(int argc, _TCHAR* argv[])
 	
 	//if (isOneWheelDebug)
 	ros::Subscriber actuator_feedback = handle.subscribe("WheelActual01", 10, ActuaterFeedback);
+	ros::Publisher wheel_pub = handle.advertise<std_msgs::UInt16MultiArray>("WheelControl01",2);
 	std_msgs::UInt16MultiArray WheelCtrl;
 	
 	WheelCtrl.layout.dim.push_back(std_msgs::MultiArrayDimension());
@@ -152,8 +153,8 @@ int main(int argc, _TCHAR* argv[])
     }
 
 //button status
-/*
-	bool is_in_situ=false;
+
+/*	bool is_in_situ=false;
 	bool is_any_direction=false;
 	bool is_tradition=true;
 	bool now_in_situ=false;
@@ -204,7 +205,6 @@ int main(int argc, _TCHAR* argv[])
 			
 			if (isOneWheelDebug)
 			{
-			    ros::Publisher wheel_pub = handle.advertise<std_msgs::UInt16MultiArray>("WheelControl01",2);
 			    //preprocessing data
 			    brake = (uint16_t)((1-joyinfo.dwRpos/65535.0)*fullDutycycle);			//Modify as necessary.
 			    if (brake==0)
