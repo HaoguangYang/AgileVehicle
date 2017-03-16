@@ -1,28 +1,13 @@
 //#include <limits.h>
-#include "encoder.h"
-
-typedef struct VehiclePhysicalParams {
-	double TrackWidth;
-	double WheelBase;
-	double Mass;
-	double WheelRadius;
-};
-typedef struct SensorParams{
-	int encoderRes;
-	//bla bla bla...
-};
-typedef struct Kinematic{
-	double speed[2];
-	double omega;
-	double accel[2];
-	double angularAccel;
-};
-VehiclePhysicalParams Vehicle;
-Kinematic Actual;
+#include "kinematicCtrl.h"
 
 VehiclePhysicalParams GetVehicleData()
 {
-	
+	Vehicle.TrackWidth = 1.315;
+	Vehicle.WheelBase = 1.520;
+	Vehicle.Mass = 450.0;
+	Vehicle.WheelRadius = 0.6114*0.5;
+	//Modify as necessary
 }
 
 double SteeringWheel2Radius (int SteeringWheelVal, int mode)

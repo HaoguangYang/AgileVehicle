@@ -103,7 +103,7 @@ void ActuaterFeedback(const std_msgs::UInt16MultiArray& ActuatorStatus)
 		cout << "ActualDrive: " << ActuatorStatus.data[1] << endl;
 		cout << "HapticsUpdateStatus: " << errNum << endl;
 		cout << "Joystick: " << joyinfo.dwXpos << endl;
-		cout << "          " << joyinfo.dwYpos << endl;
+		cout << "          " << joyinfo.dwZpos << endl;
 		cout << "Buffer:" <<endl;
 	}
 	return;

@@ -1,12 +1,12 @@
 <launch>
-  <group name="agv">
-	<node pkg="steering_wheel" type="steering_wheel_node" name="LogitechG29" />
+  <group name="agv-utils">
+    <!--Steering Wheel-->
+    <node pkg="steering_wheel" type="steering_wheel_node" name="LogitechG29" />
+    
     <!-- The navigation stack and associated parameters -->
     
-  </group>
-  <group name="arduino">
+    <!--Arduino-->
 	<!--If problems occur, refer to http://answers.ros.org/question/38786/problem-adding-rosserial-node-to-turtlebot-bringup/-->
-	
 	<node pkg="rosserial_python" type="serial_node.py" name="wheel00" output="screen">
 <param name='~port' value='/dev/ttyUSB0' />
 	  <param name="~baud" value="57600" />
