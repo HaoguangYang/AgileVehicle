@@ -6,7 +6,16 @@ wheel_pub[1] = handle.advertise<std_msgs::UInt16MultiArray>("WheelControl01",2);
 wheel_pub[2] = handle.advertise<std_msgs::UInt16MultiArray>("WheelControl02",2);
 wheel_pub[3] = handle.advertise<std_msgs::UInt16MultiArray>("WheelControl03",2);
 
-int main(double* steerVal, double* driveVal)
+uint16_t reverse_MotorPerformance(double Speed, double Torque)
+{
+	const double gain1 = 0.09549296586;
+	const double gain2 = 10.33;		//N.m/V
+	const double gain3 = 0.6;		//Friction-induced Torque
+    double v_input = (Torque + gain3 + gain1*Speed)/gain2 + 1.2;
+	return (v_input*51);	//*255/5
+}
+
+int main(double* steerVal, double* driveVal, double* Torque)
 {
     uint16_t steer[4];
     uint16_t drive[4];
@@ -23,7 +32,7 @@ int main(double* steerVal, double* driveVal)
     	if (IsBrake)
     	{
     	    for (i = 0; i<4; i++){
-    	        brake[i] = -driveVal[i]*ratio;
+    	        brake[i] = reverse_MotorPerformance(-driveVal[i], -Torque[i]) * ratio;
     	        drive[i] = 0;
     	    }
     	}
@@ -31,7 +40,7 @@ int main(double* steerVal, double* driveVal)
     	{
     	    for (i = 0; i<4; i++){
     	        brake[i] = 0;
-    	        drive[i] = driveVal[i]*ratio;
+    	        drive[i] = reverse_MotorPerformance(driveVal[i], Torque[i]) * ratio;
     	    }
     	}
     	

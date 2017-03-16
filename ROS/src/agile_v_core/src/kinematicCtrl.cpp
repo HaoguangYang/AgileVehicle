@@ -43,11 +43,6 @@ double SteeringWheel2Radius (int SteeringWheelVal, int mode)
 	}
 }
 
-uint16_t reverse_MotorPerformance(double Speed, double Torque)
-{
-    
-}
-
 void KOLCSteering(double radius, double speed, double* steerVal, double* driveVal)
 {
     //Kinematic Open-Loop Centralized Steering Controller
@@ -110,7 +105,7 @@ void KCLHSteering(int16_t steering_wheel_input, double speed, double* steerVal, 
     return;
 }
 
-int Controller(Kinematic Target, double* steerActual, double* driveActual, double* steerVal, double* driveVal)
+int Controller(Kinematic Target, double* steerActual, double* driveActual, double* steerVal, double* driveVal, double* Correction)
 {
 	double u[2][4];
 	//double v[4];
@@ -138,7 +133,7 @@ int Controller(Kinematic Target, double* steerActual, double* driveActual, doubl
 	r[0][3] =  Vehicle.TrackWidth/2;
 	r[1][3] = -Vehicle.WheelBase/2;
 	
-	double Correction[2][4];
+	//double Correction[2][4];
 	for (int i=0; i<2; i++){
 	    for (int j = 0; j<4; j++){
 	        Correction[i][j] = -( Error.speed[i]+Error.omega*r[i][j] );
