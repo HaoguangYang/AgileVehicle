@@ -15,7 +15,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/ioctl.h>
-#include <linux/joystick.h>
 #include <errno.h>
 
 using namespace std;
