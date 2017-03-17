@@ -5,17 +5,17 @@
 #include "encoder.h"
 
 typedef struct VehiclePhysicalParams {
-	double TrackWidth;
-	double WheelBase;
-	double Mass;
-	double WheelRadius;
+	double TrackWidth; // 左右轮间距
+	double WheelBase;  // 前后轴距
+	double Mass;       // 质量
+	double WheelRadius; // 轮子半径
 };
 typedef struct SensorParams{
 	int encoderRes;
 	//bla bla bla...
 };
 typedef struct Kinematic{
-	double speed[2];
+	double speed[2]; // 固连车辆坐标系，xy
 	double omega;
 	double accel[2];
 	double angularAccel;
@@ -23,9 +23,10 @@ typedef struct Kinematic{
 VehiclePhysicalParams Vehicle;
 Kinematic Actual;
 
-double steerVal[4]={0};
-double driveVal[4]={0};
-double Torque[4]={0};
+// 左前，右前，左后，右后
+double steerVal[4]={0}; // 四个轮子转弯角度
+double driveVal[4]={0}; // 四个轮子线速度
+double Torque[4]={0}; // 四个轮子扭矩
 
 VehiclePhysicalParams GetVehicleData(void);
 

@@ -1,9 +1,9 @@
 //#include <limits.h>
 #include "kinematicCtrl.h"
-
+// 输入车辆物理参数
 void GetVehicleData(int argc, _TCHAR* argv[])
 {
-	if (argc==1){
+	if (argc==1){ // 默认值
 		Vehicle.TrackWidth = 1.315;
 		Vehicle.WheelBase = 1.520;
 		Vehicle.Mass = 450.0;
@@ -25,6 +25,7 @@ void GetVehicleData(int argc, _TCHAR* argv[])
 	return;
 }
 
+// 方向盘转向角变成转弯半径
 double SteeringWheel2Radius (int SteeringWheelVal, int mode)
 {
 	switch (mode)
@@ -46,22 +47,22 @@ double SteeringWheel2Radius (int SteeringWheelVal, int mode)
 void KOLCSteering(double radius, double speed, double* steerVal, double* driveVal)
 {
     //Kinematic Open-Loop Centralized Steering Controller
-	if (fabs(radius)>=100000 && fabs(speed/radius)<=0.0001)				//filtering out excessively slow turns
-	{
+	if (fabs(radius)>=100000 && fabs(speed/radius)<=0.0001)	//filtering out excessively slow turns
+	{ // 认为是直线走
 		for (int i=0;i<4;i++)
 			steerVal[i] = 0;
 			driveVal[i] = speed;
 	}
 	else
 	{
-		double leftBase = radius-Vehicle.TrackWidth/2;
-		double rightBase = radius+Vehicle.TrackWidth/2;
+		double leftBase = radius-Vehicle.TrackWidth/2; // 车辆左边到转弯中心的直线距离
+		double rightBase = radius+Vehicle.TrackWidth/2; // 右边
 		steerVal[0] = Encoder::reverseAngleLookup(atan(Vehicle.WheelBase/2/leftBase));
 		steerVal[1] = Encoder::reverseAngleLookup(atan(Vehicle.WheelBase/2/rightBase));
 		steerVal[2] = -steerVal[0];
 		steerVal[3] = -steerVal[1];
 		double omega = speed/radius;
-		double Rleft = sqrt(leftBase*leftBase+Vehicle.WheelBase*Vehicle.WheelBase/4);
+		double Rleft = sqrt(leftBase*leftBase+Vehicle.WheelBase*Vehicle.WheelBase/4); // 左轮的转弯半径
 		double Rright = sqrt(rightBase*rightBase+Vehicle.WheelBase*Vehicle.WheelBase/4);
 		driveVal[0] = omega*Rleft;
 		driveVal[1] = omega*Rright;
@@ -93,6 +94,7 @@ void KCLCSteering(double radius, double speed, double* steerVal, double* driveVa
 	return;
 }
 
+// 指向恒定
 void KCLHSteering(int16_t steering_wheel_input, double speed, double* steerVal, double* driveVal)
 {
     //Kinematic Closed-Loop Heading-locked Steering
@@ -105,9 +107,10 @@ void KCLHSteering(int16_t steering_wheel_input, double speed, double* steerVal, 
     return;
 }
 
+// 给Target，输出需要的steerVal和driveVal，以及和实际值的偏差
 int Controller(Kinematic Target, double* steerActual, double* driveActual, double* steerVal, double* driveVal, double* Correction)
 {
-	double u[2][4];
+	double u[2][4]; // 第一个是x方向，第二个是y方向，固连车辆坐标系，四个轮子的速度
 	//double v[4];
 	Kinematic Error;
 	

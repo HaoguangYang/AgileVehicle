@@ -1,130 +1,48 @@
-#include <string>
-using namespace std;
-const double pi = 3.1415926535897932384626433832795028841971693993751058209749445923078164062862;
+#ifndef ENCODER_H
+#define ENCODER_H
 
-class Encoder {
-
-private:
-    string          _label;
-    unsigned short  _resolution;
-    unsigned short  _symbol;
-    unsigned short  _zero;
-    
+#include <iostream>
+#include <math.h>
+class Encoder{
 public:
-    int16_t last_mark;
-    int16_t value;
-    
-    Encoder(){
-        _label = "newEncoder";
-        _resolution = 4096;
-        _symbol = 4;                            //Bits not taken for encoder data stored in int16_t
-        value = 0;
-    }
-    
-    Encoder(const char *label, unsigned short res){
-        _label = label;
-        _resolution = res;
-        unsigned int i = 0;
-        do {
-            ++i;
-        } while ((res >> i));
-        _symbol = 16-i;
-        value = 0;
-    }
-    
-    Encoder(string& label, unsigned short res){
-        _label = label;
-        _resolution = res;
-        unsigned int i = 0;
-        do {
-            ++i;
-        } while ((res >> i));
-        _symbol = 16-i;
-        value = 0;
-    }
-    
-    void setLabel(const char *label){
-        _label = label;
-    }
-    
-    void setLabel(string& label){
-        _label = label;
-    }
-    
-    void setRes(unsigned short res){
-        _resolution = res;
-        unsigned int i = 0;
-        do {
-            ++i;
-        } while ((res >> i));
-        _symbol = 16-i;
-    }
-    
-    void setZero(unsigned short zero){
-        _zero = zero;
-    }
-    
-    uint16_t rectify(uint16_t Encoder_in)
-    {
-	    return (((Encoder_in - _zero)<<(_symbol+1))>>(_symbol+1));		//Convert to 0~4095 loop
-    }
-    
-    void mark(){
-        last_mark = value;
-    }
-	
-	void update(uint16_t NewData)
-	{
-		Encoder_in = rectify(NewData);
-		int8_t flag = value>>(16-_symbol-1);
-        if (((Encoder_in)<<(_symbol+1))>>(16-_symbol+1)==0 && ((last_mark)<<(_symbol+1))>>(16-_symbol+1)==3)    //From 11*** to 00***, flag + 1
-            ++flag;
-        if (((Encoder_in)<<(_symbol+1))>>(16-_symbol+1)==3 && ((last_mark)<<(_symbol+1))>>(16-_symbol+1)==0)
-            --flag;
-        
-        value = (int16_t)(rectify(Encoder_in) + ((uint16_t)((flag)>>7))<<15 + (((uint16_t)flag)<<(16-_symbol))>>1);
-        mark();
-		return;
+	// 构造函数
+	Encoder(int zero, int resolution=4096):_zero(zero), _resolution{};
+	// 成员函数
+    // get 函数
+    const int getResolution(){ return _resolution;}
+	const int getZero() {return _zero;}
+	int getAngleInt() {return _angle_int;}
+	double getAngleRad() { return _angle_rad;}
+	int getDiff(){ return (_angle_int - _angle_int_old)%_resolutioin;}  // 返回两次的差值
+	// 90度提醒
+	void update(uint16_t raw_input) {
+		_angle_int_old = _angle_int; // 把旧值赋回去
+
+		_angle_int = ((int)raw_input - _zero + _resolution)%_resolution;
+		// 解决转向圈数
+		if(getDiff() > _resolution/2)
+		    if(!_round)
+			    std::cout << "CAUTION!!!!!Error steering angle!!!";
+			else
+			    _round = false;
+		
+		if(getDiff() < -_resolution/2)
+		    if(_round)
+			    std::cout << "CAUTION!!!!!Error steering angle!!!";
+			else
+			    _round = true;
+	    _angle_rad = M_PI*_angle_int/_resolution;
 	}
 	
-	double extractDiff(uint16_t NewData)
-	{
-		Encoder_in = rectify(NewData);
-		int8_t flag = value>>(16-_symbol-1);
-        if (((Encoder_in)<<(_symbol+1))>>(16-_symbol+1)==0 && ((last_mark)<<(_symbol+1))>>(16-_symbol+1)==3)    //From 11*** to 00***, flag + 1
-            ++flag;
-        if (((Encoder_in)<<(_symbol+1))>>(16-_symbol+1)==3 && ((last_mark)<<(_symbol+1))>>(16-_symbol+1)==0)
-            --flag;
-        
-        value = (int16_t)(rectify(Encoder_in) + ((uint16_t)((flag)>>7))<<15 + (((uint16_t)flag)<<(16-_symbol))>>1);	//Reading + Sign + Flag
-        int16_t tmp_value = value - last_mark;
-        mark();
-		return (2*pi*(tmp_value)/_resolution);
-	}
-    
-    double extractAngle()
-    {
-        return (2*pi*value/_resolution);                            //Return angle in RAD.
-    }
-    
-    double extractAngle_OneCycle()
-    {
-        return (2*pi*(((uint16_t)value<<(_symbol+1))>>(_symbol+1))/_resolution);
-    }
-    
-    double extractAngle_TwoCycle()
-    {
-        return (2*pi*(((uint16_t)value<<(_symbol))>>(_symbol))/_resolution);
-    }
-    
-    double extractAngle_FourCycle()
-    {
-        return (2*pi*(((uint16_t)value<<(_symbol-1))>>(_symbol-1))/_resolution);
-    }
-    
-    uint16_t reverseAngleLookup(double angle_in)
-    {
-        return ((((uint16_t)(angle_in*_resolution/(2*pi)))<<(_symbol+1))>>(_symbol+1));
-    }
+private:
+    // const value
+    const int _resolution;
+    const int _zero; //零点
+	bool _round; // if true 正转一圈的范围内, if false 反转一圈的范围内
+	int _angle_int;
+	double _angle_rad;   // 0~pi
+	
+	int _angle_int_old; // 上一次的角度
 };
 
+#endif
