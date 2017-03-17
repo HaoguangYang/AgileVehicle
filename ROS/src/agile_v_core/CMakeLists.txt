@@ -51,7 +51,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate messages in the 'msg' folder
  add_message_files(
    FILES
-   steering_wheel/joyinfoex.msg
+   joyinfoex.msg
 #   Message2.msg
  )
 
@@ -109,7 +109,7 @@ catkin_package(
   INCLUDE_DIRS include
   LIBRARIES agile_v_core
   CATKIN_DEPENDS roscpp rospy sensor_msgs std_msgs message_runtime
-  DEPENDS system_lib
+#  DEPENDS system_lib
 )
 
 ###########
@@ -121,6 +121,8 @@ catkin_package(
 # include_directories(include)
 include_directories(
   ${catkin_INCLUDE_DIRS}
+  ./include/agile_v_core
+  ./include
 )
 
 ## Declare a C++ library

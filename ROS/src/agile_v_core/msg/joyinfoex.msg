@@ -1,0 +1,10 @@
+uint32 dwXpos
+uint32 dwYpos
+uint32 dwZpos
+uint32 dwRpos
+uint32 dwUpos
+uint32 dwVpos
+uint64 dwButtons
+uint32 dwButtonNumber
+uint64 dwPOV
+
