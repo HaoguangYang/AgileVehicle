@@ -7,4 +7,3 @@ uint32 dwVpos
 uint64 dwButtons
 uint32 dwButtonNumber
 uint64 dwPOV
-

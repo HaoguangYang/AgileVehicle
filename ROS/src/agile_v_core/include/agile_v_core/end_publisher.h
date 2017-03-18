@@ -6,8 +6,10 @@
 #include "kinematicCtrl.h"
 #include "std_msgs/UInt16MultiArray.h"
 
-extern uint16_t reverse_MotorPerformance(double Speed, double Torque);
+uint16_t reverse_MotorPerformance(double Speed, double Torque);
 
-extern int publishToWheels(double* steerVal, double* driveVal, double* Torque);
+void publishToWheels(double* steerVal, double* driveVal, double* Torque);
+
+void publishToUser();
 
 #endif

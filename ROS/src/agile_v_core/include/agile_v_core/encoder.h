@@ -21,7 +21,7 @@ public:
     int32_t _cycle;
     
     // 构造函数
-    Encoder(unsigned short resolution=4096, int32_t _cycle=0){};
+    Encoder(unsigned short resolution=4096, int32_t cycle=0):_resolution(resolution),_cycle(cycle){};
     
     Encoder(unsigned short res){
         _resolution = res;

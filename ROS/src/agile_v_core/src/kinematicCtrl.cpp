@@ -2,7 +2,6 @@
 #include "kinematicCtrl.h"
 
 double step_time;
-double Torque[4];
 VehiclePhysicalParams Vehicle;
 Kinematic Actual;
 

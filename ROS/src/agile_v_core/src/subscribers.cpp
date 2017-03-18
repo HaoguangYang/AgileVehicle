@@ -1,5 +1,7 @@
 #include "subscribers.h" 
 
+ElectricStat ElectricMon[4];
+
 void readFromWheelsDrv00(const std_msgs::UInt16MultiArray& wheelData)
 {
     Enc[0][0].update(wheelData.data[0]);
@@ -30,21 +32,33 @@ void readFromWheelsDrv03(const std_msgs::UInt16MultiArray& wheelData)
 
 void readFromWheelsPwr00(const std_msgs::Float32MultiArray& powerData)
 {
-    
+    ElectricMon[0]._volt = powerData.data[0];
+	ElectricMon[0]._ampS = powerData.data[1];
+	ElectricMon[0]._ampD = powerData.data[2];
+	return;
 }
 
 void readFromWheelsPwr01(const std_msgs::Float32MultiArray& powerData)
 {
-    
+    ElectricMon[1]._volt = powerData.data[0];
+	ElectricMon[1]._ampS = powerData.data[1];
+	ElectricMon[1]._ampD = powerData.data[2];
+	return;
 }
 
 void readFromWheelsPwr02(const std_msgs::Float32MultiArray& powerData)
 {
-    
+    ElectricMon[2]._volt = powerData.data[0];
+	ElectricMon[2]._ampS = powerData.data[1];
+	ElectricMon[2]._ampD = powerData.data[2];
+	return;
 }
 
 void readFromWheelsPwr03(const std_msgs::Float32MultiArray& powerData)
 {
-    
+    ElectricMon[3]._volt = powerData.data[0];
+	ElectricMon[3]._ampS = powerData.data[1];
+	ElectricMon[3]._ampD = powerData.data[2];
+	return;
 }
 

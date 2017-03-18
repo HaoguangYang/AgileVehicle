@@ -34,7 +34,7 @@ extern double Torque[4];            // 四个轮子扭矩
 
 void GetVehicleData(int argc, char* argv[]);
 
-extern double SteeringWheel2Radius (int SteeringWheelVal, int mode);
+double SteeringWheel2Radius (int SteeringWheelVal, int mode);
 
 void KOLCSteering(double radius, double speed, double* steerVal, double* driveVal);
 
@@ -42,6 +42,6 @@ void KCLCSteering(double radius, double speed, double* steerVal, double* driveVa
 
 void KCLHSteering(int16_t steering_wheel_input, double speed, double* steerVal, double* driveVal);
 
-extern int Controller(Kinematic Target, double* steerActual, double* driveActual, double* steerVal, double* driveVal);
+int Controller(Kinematic Target, double* steerActual, double* driveActual, double* steerVal, double* driveVal);
 
 #endif
