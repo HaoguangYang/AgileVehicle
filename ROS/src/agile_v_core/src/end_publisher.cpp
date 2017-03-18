@@ -19,27 +19,27 @@ int publishToWheels(double* steerVal, double* driveVal, double* Torque)
 	{
 	    double ratio = PowerMizer();
 	    bool IsBrake = true;
-	    for (i=0; i<4; i++){
+	    for (int i=0; i<4; i++){
     		steer[i] = Encoder::reverseAngleLookup(steerVal[i]);
     		IsBrake = IsBrake && (driveVal[i]<=0);
     	}
     	if (IsBrake)
     	{
-    	    for (i = 0; i<4; i++){
+    	    for (int i = 0; i<4; i++){
     	        brake[i] = reverse_MotorPerformance(-driveVal[i], -Torque[i]) * ratio;
     	        drive[i] = 0;
     	    }
     	}
     	else
     	{
-    	    for (i = 0; i<4; i++){
+    	    for (int i = 0; i<4; i++){
     	        brake[i] = 0;
     	        drive[i] = reverse_MotorPerformance(driveVal[i], Torque[i]) * ratio;
     	    }
     	}
     	
     	#pragma omp parallel for num_threads(4)
-    	for (i = 0; i<4; i++){
+    	for (int i = 0; i<4; i++){
         	WheelCtrl[i].data[0] = steer[i];
 	    	WheelCtrl[i].data[1] = drive[i];
 	    	WheelCtrl[i].data[2] = brake[i];
@@ -48,7 +48,7 @@ int publishToWheels(double* steerVal, double* driveVal, double* Torque)
     	//publish control message
     	
         #pragma omp parallel for num_threads(4)
-    	for (i = 0; i<4; i++){
+    	for (int i = 0; i<4; i++){
         	wheel_pub[i].publish(WheelCtrl[i]);
 	    }
 	    

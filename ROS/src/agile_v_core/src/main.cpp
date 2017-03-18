@@ -3,6 +3,8 @@
 #include "end_publisher.h"
 #include "agile_v_core/joyinfoex.h"
 
+ros::Subscriber wheel_status[4];
+
 void Call_back(const steering_wheel::joyinfoex& controlInput)
 {
 	int16_t steeringIn = controlInput.dwXpos;
@@ -12,14 +14,20 @@ void Call_back(const steering_wheel::joyinfoex& controlInput)
 	//control val calc
 }
 
-int main(int argc, _TCHAR* argv[])
+void readFromWheels()
+{
+    
+}
+
+int main(int argc, char argv[])
 {
 	ros::init(argc, argv, "dynamic_core");
 	ros::NodeHandle handle;
 	GetVehicleData(argc, argv);
-	ros::Subscriber joystick_input = handle.subscribe("WheelActual01", 10, Call_back);
+	ros::Subscriber joystick_input = handle.subscribe("SteeringWheel", 10, Call_back);
 	
 	while (ros::ok){
 		publishToWheels(steerVal, driveVal, Torque);
+		readFromWheels();
 	}
 }

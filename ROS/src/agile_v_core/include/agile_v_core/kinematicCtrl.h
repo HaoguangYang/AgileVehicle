@@ -2,6 +2,8 @@
 #define KINEMATICCTRL_H
 
 #include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 #include "encoder.h"
 
 typedef struct VehiclePhysicalParams {
@@ -20,8 +22,10 @@ typedef struct Kinematic{
 	double accel[2];
 	double angularAccel;
 };
+double step_time = 0.04;    //Arduino update time
 VehiclePhysicalParams Vehicle;
 Kinematic Actual;
+Encoder Enc[2][4];          //[0][*] - Steering; [1][*] - Driving
 
 double steerVal[4]={0};
 double driveVal[4]={0};

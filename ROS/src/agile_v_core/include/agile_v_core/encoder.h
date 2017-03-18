@@ -4,6 +4,7 @@
 #include <iostream>
 #include <math.h>
 #include <string>
+#include <stdint.h>
 using namespace std;
 
 class Encoder {
@@ -78,13 +79,14 @@ public:
 	double extractDiff(uint16_t NewData)
 	{
 		_value = rectify(NewData);
+		int16_t tmpValue;
         if (_value-_lastMark<-_resolution/2){    //From 11*** to 00***, cycle + 1
             ++_cycle;
-            int16_t tmpValue = _value - _lastMark + _resolution;
+            tmpValue = _value - _lastMark + _resolution;
         }
         if (_value-_lastMark>_resolution/2){
             --_cycle;
-            int16_t tmpValue = _value - _lastMark - _resolution;
+            tmpValue = _value - _lastMark - _resolution;
         }
         mark();
 		return (2*M_PI*(tmpValue)/_resolution);

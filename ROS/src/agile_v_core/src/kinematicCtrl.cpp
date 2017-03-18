@@ -1,7 +1,7 @@
 //#include <limits.h>
 #include "kinematicCtrl.h"
 
-void GetVehicleData(int argc, _TCHAR* argv[])
+void GetVehicleData(int argc, char* argv[])
 {
 	if (argc==1){
 		Vehicle.TrackWidth = 1.315;
@@ -27,20 +27,21 @@ void GetVehicleData(int argc, _TCHAR* argv[])
 
 double SteeringWheel2Radius (int SteeringWheelVal, int mode)
 {
-	switch (mode)
-	case (0)			//Default is using a y=kx+1/x model to cast -32767~32767 to -inf~inf
-	{
-		return (1/SteeringWheelVal-SteeringWheelVal/32767*32767);
-		break;
-	}
-	case (1)			//Using y=k/[x(+-)b] model
-	{
-		if (SteeringWheelVal>=0)
-			return (1/SteeringWheelVal-1/32767);
-		else
-			return (1/SteeringWheelVal+1/32767);
-		break;
-	}
+	switch (mode){
+    	case 0:			//Default is using a y=kx+1/x model to cast -32767~32767 to -inf~inf
+	    {
+	    	return (1/SteeringWheelVal-SteeringWheelVal/32767*32767);
+	    	break;
+	    }
+	    case 1:			//Using y=k/[x(+-)b] model
+	    {
+	    	if (SteeringWheelVal>=0)
+	    		return (1/SteeringWheelVal-1/32767);
+	    	else
+	    		return (1/SteeringWheelVal+1/32767);
+	    	break;
+	    }
+    }
 }
 
 void KOLCSteering(double radius, double speed, double* steerVal, double* driveVal)
@@ -48,16 +49,17 @@ void KOLCSteering(double radius, double speed, double* steerVal, double* driveVa
     //Kinematic Open-Loop Centralized Steering Controller
 	if (fabs(radius)>=100000 && fabs(speed/radius)<=0.0001)				//filtering out excessively slow turns
 	{
-		for (int i=0;i<4;i++)
+		for (int i=0;i<4;i++){
 			steerVal[i] = 0;
 			driveVal[i] = speed;
+		}
 	}
 	else
 	{
 		double leftBase = radius-Vehicle.TrackWidth/2;
 		double rightBase = radius+Vehicle.TrackWidth/2;
-		steerVal[0] = Encoder::reverseAngleLookup(atan(Vehicle.WheelBase/2/leftBase));
-		steerVal[1] = Encoder::reverseAngleLookup(atan(Vehicle.WheelBase/2/rightBase));
+		steerVal[0] = Enc[0][0].reverseAngleLookup(atan(Vehicle.WheelBase/2/leftBase));
+		steerVal[1] = Enc[0][1].reverseAngleLookup(atan(Vehicle.WheelBase/2/rightBase));
 		steerVal[2] = -steerVal[0];
 		steerVal[3] = -steerVal[1];
 		double omega = speed/radius;
@@ -87,6 +89,12 @@ void KCLCSteering(double radius, double speed, double* steerVal, double* driveVa
 	{
 		Target.omega = speed/radius;
 	}
+	double steerActual[4];
+	double driveActual[4];
+	for (int i=0; i<4; i++){
+        steerActual[i] = Enc[0][i].extractAngle();
+	    driveActual[i] = Enc[1][i].extractDiff() / step_time;
+	}
 	int errnum = Controller(Target, steerActual, driveActual, steerVal, driveVal);
 	//steerVal NEEDS CONVERSION!!!
 	//driveVal NEEDS CONVERSION!!!
@@ -97,8 +105,8 @@ void KCLHSteering(int16_t steering_wheel_input, double speed, double* steerVal, 
 {
     //Kinematic Closed-Loop Heading-locked Steering
     Kinematic Target;
-    Target.speed [1] = speed*sin(steering_wheel_input/32767*pi/2);
-    Target.speed [0] = speed*cos(steering_wheel_input/32767*pi/2);
+    Target.speed [1] = speed*sin(steering_wheel_input/32767*M_PI/2);
+    Target.speed [0] = speed*cos(steering_wheel_input/32767*M_PI/2);
     Target.omega = 0;
     
     int errnum = Controller(Target, steerActual, driveActual, steerVal, driveVal);
@@ -123,7 +131,7 @@ int Controller(Kinematic Target, double* steerActual, double* driveActual, doubl
 	Error.speed = Actual.speed - Target.speed;
 	Error.omega = Actual.omega - Target.omega;
 	//DESIGN FEEDBACKS HERE...
-	double r[2][4]
+	double r[2][4];
 	r[0][0] = -Vehicle.TrackWidth/2;
 	r[1][0] =  Vehicle.WheelBase/2;
 	r[0][1] =  Vehicle.TrackWidth/2;
