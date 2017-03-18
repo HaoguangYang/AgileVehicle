@@ -13,9 +13,11 @@ private:
     string          _label;
     unsigned short  _resolution;
     unsigned short  _zero;
+    uint16_t        _lastMark;
+    int32_t         _cycle_old;
     
 public:
-    uint16_t _lastMark;
+    
     uint16_t _value;
     int32_t _cycle;
     
@@ -63,6 +65,7 @@ public:
     
     void mark(){
         _lastMark = _value;
+        _cycle_old = _cycle;
     }
 	
 	void update(uint16_t NewData)
@@ -76,17 +79,24 @@ public:
 		return;
 	}
 	
-	double extractDiff(uint16_t NewData)
+	void update_value(uint16_t NewData)
 	{
 		_value = rectify(NewData);
+        if (_value-_lastMark<-_resolution/2)    //From 11*** to 00***, cycle + 1
+            ++_cycle;
+        if (_value-_lastMark>_resolution/2)
+            --_cycle;
+		return;
+	}
+	
+	double extractDiff()
+	{
 		int16_t tmpValue;
         if (_value-_lastMark<-_resolution/2){    //From 11*** to 00***, cycle + 1
-            ++_cycle;
-            tmpValue = _value - _lastMark + _resolution;
+            tmpValue = _value - _lastMark + (_cycle-_cycle_old)*_resolution;
         }
         if (_value-_lastMark>_resolution/2){
-            --_cycle;
-            tmpValue = _value - _lastMark - _resolution;
+            tmpValue = _value - _lastMark + (_cycle-_cycle_old)*_resolution;
         }
         mark();
 		return (2*M_PI*(tmpValue)/_resolution);

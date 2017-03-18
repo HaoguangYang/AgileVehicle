@@ -13,14 +13,20 @@ int publishToWheels(double* steerVal, double* driveVal, double* Torque)
 {
     uint16_t steer[4];
     uint16_t drive[4];
-    uint16_t brake[4]
+    uint16_t brake[4];
     std_msgs::UInt16MultiArray WheelCtrl[4];
+    ros::NodeHandle handle;
+    ros::Publisher wheel_pub[4] = {handle.advertise<std_msgs::UInt16MultiArray>("WheelControl00",2), \
+                                   handle.advertise<std_msgs::UInt16MultiArray>("WheelControl01",2), \
+                                   handle.advertise<std_msgs::UInt16MultiArray>("WheelControl02",2), \
+                                   handle.advertise<std_msgs::UInt16MultiArray>("WheelControl03",2)};
+
 	while (ros::ok())
 	{
-	    double ratio = PowerMizer();
+	    double ratio = 1.0; //PowerMizer();
 	    bool IsBrake = true;
 	    for (int i=0; i<4; i++){
-    		steer[i] = Encoder::reverseAngleLookup(steerVal[i]);
+    		steer[i] = Enc[0][i].reverseAngleLookup(steerVal[i]);
     		IsBrake = IsBrake && (driveVal[i]<=0);
     	}
     	if (IsBrake)
@@ -56,4 +62,6 @@ int publishToWheels(double* steerVal, double* driveVal, double* Torque)
 	    ros::spinOnce();
 	}
 }
+
+
 

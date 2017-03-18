@@ -22,18 +22,18 @@ typedef struct Kinematic{
 	double accel[2];
 	double angularAccel;
 };
-double step_time = 0.04;    //Arduino update time
-VehiclePhysicalParams Vehicle;
-Kinematic Actual;
-Encoder Enc[2][4];          //[0][*] - Steering; [1][*] - Driving
 
-double steerVal[4]={0};
-double driveVal[4]={0};
-double Torque[4]={0};
+extern double step_time;            //Arduino refresh time
 
-VehiclePhysicalParams GetVehicleData(void);
+extern Encoder Enc[2][4];          //[0][*] - Steering; [1][*] - Driving
+extern Kinematic Actual;
+extern double steerVal[4];
+extern double driveVal[4];
+extern double Torque[4];
 
-double SteeringWheel2Radius (int SteeringWheelVal, int mode);
+void GetVehicleData(int argc, char* argv[]);
+
+extern double SteeringWheel2Radius (int SteeringWheelVal, int mode);
 
 void KOLCSteering(double radius, double speed, double* steerVal, double* driveVal);
 
@@ -41,6 +41,6 @@ void KCLCSteering(double radius, double speed, double* steerVal, double* driveVa
 
 void KCLHSteering(int16_t steering_wheel_input, double speed, double* steerVal, double* driveVal);
 
-int Controller(Kinematic Target, double* steerActual, double* driveActual, double* steerVal, double* driveVal, double* Correction);
+extern int Controller(Kinematic Target, double* steerActual, double* driveActual, double* steerVal, double* driveVal);
 
 #endif
