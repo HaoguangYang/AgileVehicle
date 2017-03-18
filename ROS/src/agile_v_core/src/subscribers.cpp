@@ -1,6 +1,4 @@
-#include "subscribers.h"
-
-Encoder Enc[2][4];          //[0][*] - Steering; [1][*] - Driving
+#include "subscribers.h" 
 
 void readFromWheelsDrv00(const std_msgs::UInt16MultiArray& wheelData)
 {

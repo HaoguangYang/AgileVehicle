@@ -10,7 +10,6 @@ using namespace std;
 class Encoder {
 
 private:
-    string          _label;
     unsigned short  _resolution;
     unsigned short  _zero;
     uint16_t        _lastMark;
@@ -21,33 +20,12 @@ public:
     uint16_t _value;
     int32_t _cycle;
     
-    Encoder(){
-        _label = "newEncoder";
-        _resolution = 4096;
-        _cycle = 0;
-        _value = 0;
-    }
+    // 构造函数
+    Encoder(unsigned short resolution=4096, int32_t _cycle=0){};
     
-    Encoder(const char *label, unsigned short res){
-        _label = label;
+    Encoder(unsigned short res){
         _resolution = res;
         _cycle = 0;
-        _value = 0;
-    }
-    
-    Encoder(string& label, unsigned short res){
-        _label = label;
-        _resolution = res;
-        _cycle = 0;
-        _value = 0;
-    }
-    
-    void setLabel(const char *label){
-        _label = label;
-    }
-    
-    void setLabel(string& label){
-        _label = label;
     }
     
     void setRes(unsigned short res){

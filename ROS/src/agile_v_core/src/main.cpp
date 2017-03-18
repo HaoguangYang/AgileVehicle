@@ -6,6 +6,7 @@
 
 double steerVal[4] = {0};
 double driveVal[4] = {0};
+Encoder Enc[2][4];      //[0][*] - Steering; [1][*] - Driving
 
 void Call_back(const agile_v_core::joyinfoex& controlInput)
 {
@@ -19,6 +20,11 @@ void Call_back(const agile_v_core::joyinfoex& controlInput)
 
 int main(int argc, char* argv[])
 {
+    for (int i=1; i<2; i++){
+        for (int j=1; j<4; j++){
+            Enc[i][j] = Encoder();
+        }
+    }                   //Encoders Initialize
 	ros::init(argc, argv, "dynamic_core");
 	ros::NodeHandle handle;
 	GetVehicleData(argc, argv);
