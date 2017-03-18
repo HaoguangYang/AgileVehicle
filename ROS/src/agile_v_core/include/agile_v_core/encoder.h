@@ -1,46 +1,42 @@
+#ifndef ENCODER_H
+#define ENCODER_H
+
+#include <iostream>
+#include <math.h>
 #include <string>
 using namespace std;
-const double pi = 3.1415926535897932384626433832795028841971693993751058209749445923078164062862;
 
 class Encoder {
 
 private:
     string          _label;
     unsigned short  _resolution;
-    unsigned short  _symbol;
     unsigned short  _zero;
     
 public:
-    int16_t last_mark;
-    int16_t value;
+    uint16_t _lastMark;
+    uint16_t _value;
+    int32_t _cycle;
     
     Encoder(){
         _label = "newEncoder";
         _resolution = 4096;
-        _symbol = 4;                            //Bits not taken for encoder data stored in int16_t
-        value = 0;
+        _cycle = 0;
+        _value = 0;
     }
     
     Encoder(const char *label, unsigned short res){
         _label = label;
         _resolution = res;
-        unsigned int i = 0;
-        do {
-            ++i;
-        } while ((res >> i));
-        _symbol = 16-i;
-        value = 0;
+        _cycle = 0;
+        _value = 0;
     }
     
     Encoder(string& label, unsigned short res){
         _label = label;
         _resolution = res;
-        unsigned int i = 0;
-        do {
-            ++i;
-        } while ((res >> i));
-        _symbol = 16-i;
-        value = 0;
+        _cycle = 0;
+        _value = 0;
     }
     
     void setLabel(const char *label){
@@ -53,78 +49,62 @@ public:
     
     void setRes(unsigned short res){
         _resolution = res;
-        unsigned int i = 0;
-        do {
-            ++i;
-        } while ((res >> i));
-        _symbol = 16-i;
     }
     
     void setZero(unsigned short zero){
         _zero = zero;
     }
     
-    uint16_t rectify(uint16_t Encoder_in)
+    uint16_t rectify(uint16_t encoderIn)
     {
-	    return (((Encoder_in - _zero)<<(_symbol+1))>>(_symbol+1));		//Convert to 0~4095 loop
+	    return ((encoderIn - _zero + _resolution) % _resolution);		//Convert to 0~4095 loop
     }
     
     void mark(){
-        last_mark = value;
+        _lastMark = _value;
     }
 	
 	void update(uint16_t NewData)
 	{
-		Encoder_in = rectify(NewData);
-		int8_t flag = value>>(16-_symbol-1);
-        if (((Encoder_in)<<(_symbol+1))>>(16-_symbol+1)==0 && ((last_mark)<<(_symbol+1))>>(16-_symbol+1)==3)    //From 11*** to 00***, flag + 1
-            ++flag;
-        if (((Encoder_in)<<(_symbol+1))>>(16-_symbol+1)==3 && ((last_mark)<<(_symbol+1))>>(16-_symbol+1)==0)
-            --flag;
-        
-        value = (int16_t)(rectify(Encoder_in) + ((uint16_t)((flag)>>7))<<15 + (((uint16_t)flag)<<(16-_symbol))>>1);
+		_value = rectify(NewData);
+        if (_value-_lastMark<-_resolution/2)    //From 11*** to 00***, cycle + 1
+            ++_cycle;
+        if (_value-_lastMark>_resolution/2)
+            --_cycle;
         mark();
 		return;
 	}
 	
 	double extractDiff(uint16_t NewData)
 	{
-		Encoder_in = rectify(NewData);
-		int8_t flag = value>>(16-_symbol-1);
-        if (((Encoder_in)<<(_symbol+1))>>(16-_symbol+1)==0 && ((last_mark)<<(_symbol+1))>>(16-_symbol+1)==3)    //From 11*** to 00***, flag + 1
-            ++flag;
-        if (((Encoder_in)<<(_symbol+1))>>(16-_symbol+1)==3 && ((last_mark)<<(_symbol+1))>>(16-_symbol+1)==0)
-            --flag;
-        
-        value = (int16_t)(rectify(Encoder_in) + ((uint16_t)((flag)>>7))<<15 + (((uint16_t)flag)<<(16-_symbol))>>1);	//Reading + Sign + Flag
-        int16_t tmp_value = value - last_mark;
+		_value = rectify(NewData);
+        if (_value-_lastMark<-_resolution/2){    //From 11*** to 00***, cycle + 1
+            ++_cycle;
+            int16_t tmpValue = _value - _lastMark + _resolution;
+        }
+        if (_value-_lastMark>_resolution/2){
+            --_cycle;
+            int16_t tmpValue = _value - _lastMark - _resolution;
+        }
         mark();
-		return (2*pi*(tmp_value)/_resolution);
+		return (2*M_PI*(tmpValue)/_resolution);
 	}
     
     double extractAngle()
     {
-        return (2*pi*value/_resolution);                            //Return angle in RAD.
+        return (2*M_PI*(_value/_resolution+_cycle));                            //Return angle in RAD.
     }
     
     double extractAngle_OneCycle()
     {
-        return (2*pi*(((uint16_t)value<<(_symbol+1))>>(_symbol+1))/_resolution);
-    }
-    
-    double extractAngle_TwoCycle()
-    {
-        return (2*pi*(((uint16_t)value<<(_symbol))>>(_symbol))/_resolution);
-    }
-    
-    double extractAngle_FourCycle()
-    {
-        return (2*pi*(((uint16_t)value<<(_symbol-1))>>(_symbol-1))/_resolution);
+        return (2*M_PI*_value/_resolution);
     }
     
     uint16_t reverseAngleLookup(double angle_in)
     {
-        return ((((uint16_t)(angle_in*_resolution/(2*pi)))<<(_symbol+1))>>(_symbol+1));
+        return (((uint16_t)(angle_in*_resolution*0.5/M_PI))%_resolution);
     }
 };
+
+#endif
 
