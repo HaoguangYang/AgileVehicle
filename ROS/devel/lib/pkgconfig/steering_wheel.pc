@@ -1,8 +1,8 @@
-prefix=/mnt/Data/AgileV_Dev/ROS/devel
+prefix=/mnt/Data/AgileV_dev/ROS/devel
 
 Name: steering_wheel
 Description: Description of steering_wheel
 Version: 0.0.0
-Cflags: -I/mnt/Data/AgileV_Dev/ROS/devel/include -I/mnt/Data/AgileV_Dev/ROS/src/steering_wheel/include -I/usr/include/SDL2
-Libs: -L/mnt/Data/AgileV_Dev/ROS/devel/lib -lsteering_wheel -l-L/usr/lib/x86_64-linux-gnu  -lSDL2 
+Cflags: -I/mnt/Data/AgileV_dev/ROS/devel/include -I/mnt/Data/AgileV_dev/ROS/src/steering_wheel/include -I/usr/include/SDL2
+Libs: -L/mnt/Data/AgileV_dev/ROS/devel/lib -lsteering_wheel -l-L/usr/lib/x86_64-linux-gnu  -lSDL2 
 Requires: roscpp rospy std_msgs message_runtime

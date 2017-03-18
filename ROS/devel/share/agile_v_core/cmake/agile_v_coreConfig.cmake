@@ -67,14 +67,14 @@ set(agile_v_core_CONFIG_INCLUDED TRUE)
 
 # set variables for source/devel/install prefixes
 if("TRUE" STREQUAL "TRUE")
-  set(agile_v_core_SOURCE_PREFIX /mnt/Data/AgileV_Dev/ROS/src/agile_v_core)
-  set(agile_v_core_DEVEL_PREFIX /mnt/Data/AgileV_Dev/ROS/devel)
+  set(agile_v_core_SOURCE_PREFIX /mnt/Data/AgileV_dev/ROS/src/agile_v_core)
+  set(agile_v_core_DEVEL_PREFIX /mnt/Data/AgileV_dev/ROS/devel)
   set(agile_v_core_INSTALL_PREFIX "")
   set(agile_v_core_PREFIX ${agile_v_core_DEVEL_PREFIX})
 else()
   set(agile_v_core_SOURCE_PREFIX "")
   set(agile_v_core_DEVEL_PREFIX "")
-  set(agile_v_core_INSTALL_PREFIX /mnt/Data/AgileV_Dev/ROS/install)
+  set(agile_v_core_INSTALL_PREFIX /mnt/Data/AgileV_dev/ROS/install)
   set(agile_v_core_PREFIX ${agile_v_core_INSTALL_PREFIX})
 endif()
 
@@ -91,9 +91,9 @@ endif()
 # flag project as catkin-based to distinguish if a find_package()-ed project is a catkin project
 set(agile_v_core_FOUND_CATKIN_PROJECT TRUE)
 
-if(NOT "/mnt/Data/AgileV_Dev/ROS/devel/include;/mnt/Data/AgileV_Dev/ROS/src/agile_v_core/include " STREQUAL " ")
+if(NOT "/mnt/Data/AgileV_dev/ROS/devel/include;/mnt/Data/AgileV_dev/ROS/src/agile_v_core/include " STREQUAL " ")
   set(agile_v_core_INCLUDE_DIRS "")
-  set(_include_dirs "/mnt/Data/AgileV_Dev/ROS/devel/include;/mnt/Data/AgileV_Dev/ROS/src/agile_v_core/include")
+  set(_include_dirs "/mnt/Data/AgileV_dev/ROS/devel/include;/mnt/Data/AgileV_dev/ROS/src/agile_v_core/include")
   foreach(idir ${_include_dirs})
     if(IS_ABSOLUTE ${idir} AND IS_DIRECTORY ${idir})
       set(include ${idir})
@@ -103,7 +103,7 @@ if(NOT "/mnt/Data/AgileV_Dev/ROS/devel/include;/mnt/Data/AgileV_Dev/ROS/src/agil
         message(FATAL_ERROR "Project 'agile_v_core' specifies '${idir}' as an include dir, which is not found.  It does not exist in '${include}'.  Ask the maintainer 'john <john@todo.todo>' to fix it.")
       endif()
     else()
-      message(FATAL_ERROR "Project 'agile_v_core' specifies '${idir}' as an include dir, which is not found.  It does neither exist as an absolute directory nor in '/mnt/Data/AgileV_Dev/ROS/src/agile_v_core/${idir}'.  Ask the maintainer 'john <john@todo.todo>' to fix it.")
+      message(FATAL_ERROR "Project 'agile_v_core' specifies '${idir}' as an include dir, which is not found.  It does neither exist as an absolute directory nor in '/mnt/Data/AgileV_dev/ROS/src/agile_v_core/${idir}'.  Ask the maintainer 'john <john@todo.todo>' to fix it.")
     endif()
     _list_append_unique(agile_v_core_INCLUDE_DIRS ${include})
   endforeach()
@@ -122,7 +122,7 @@ foreach(library ${libraries})
     set(lib_path "")
     set(lib "${library}-NOTFOUND")
     # since the path where the library is found is returned we have to iterate over the paths manually
-    foreach(path /mnt/Data/AgileV_Dev/ROS/devel/lib;/opt/ros/kinetic/lib)
+    foreach(path /mnt/Data/AgileV_dev/ROS/devel/lib;/opt/ros/kinetic/lib)
       find_library(lib ${library}
         PATHS ${path}
         NO_DEFAULT_PATH NO_CMAKE_FIND_ROOT_PATH)

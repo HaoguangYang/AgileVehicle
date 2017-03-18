@@ -1,8 +1,8 @@
-prefix=/mnt/Data/AgileV_Dev/ROS/devel
+prefix=/mnt/Data/AgileV_dev/ROS/devel
 
 Name: agile_v_core
 Description: Description of agile_v_core
 Version: 0.0.0
-Cflags: -I/mnt/Data/AgileV_Dev/ROS/devel/include -I/mnt/Data/AgileV_Dev/ROS/src/agile_v_core/include
-Libs: -L/mnt/Data/AgileV_Dev/ROS/devel/lib -lagile_v_core
+Cflags: -I/mnt/Data/AgileV_dev/ROS/devel/include -I/mnt/Data/AgileV_dev/ROS/src/agile_v_core/include
+Libs: -L/mnt/Data/AgileV_dev/ROS/devel/lib -lagile_v_core
 Requires: roscpp rospy sensor_msgs std_msgs message_runtime

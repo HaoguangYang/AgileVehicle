@@ -1,8 +1,8 @@
-prefix=/mnt/Data/AgileV_Dev/ROS/devel
+prefix=/mnt/Data/AgileV_dev/ROS/devel
 
 Name: agile_v_vision
 Description: Description of agile_v_vision
 Version: 0.0.0
 Cflags: 
-Libs: -L/mnt/Data/AgileV_Dev/ROS/devel/lib 
+Libs: -L/mnt/Data/AgileV_dev/ROS/devel/lib 
 Requires: 

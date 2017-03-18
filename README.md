@@ -37,7 +37,7 @@ ROS based Arduino code able to transmit data at 30Hz. Run `./bootstrap` to prepa
 ##### /ROS/src
 Home to ROS packages and services. Currently including:
 
-> /ROS/src/steering_wheel: Steering Wheel Control Utilities which should read Logitech G29 data and publish it using custom message prescribed in `msg/joyinfoex.msg` under topic `WheelControl` (**DONE**), or in One-Wheel-Debug mode, publish directly to `WheelControl` topic which is an `Int32MultiArray` and directly received by Arduino, see Arduino code for reference (**UNDONE**).
+> /ROS/src/steering_wheel: Steering Wheel Control Utilities which should read Logitech G29 data and publish it using custom message prescribed in `msg/joyinfoex.msg` under topic `WheelControl` , or in One-Wheel-Debug mode, publish directly to `WheelControl` topic which is an `Int32MultiArray` and directly received by Arduino, see Arduino code for reference (ALL BUT force feedback are **DONE**).
 
 > /ROS/src/dyna_core: dynamic/kinematic control algorithms which subscribes the data from Arduino at four wheels and topic `WheelControl`, calculates the state of the vehicle, and publish data under `WheelControl` topic. NOT INITIALLIZED YET.
 
