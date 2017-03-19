@@ -1,1 +1,0 @@
-cmd_/mnt/Data/AgileV_dev/LogitechFFDrivers/hid/hid.o := ld -m elf_x86_64   -r -o /mnt/Data/AgileV_dev/LogitechFFDrivers/hid/hid.o /mnt/Data/AgileV_dev/LogitechFFDrivers/hid/hid-core.o /mnt/Data/AgileV_dev/LogitechFFDrivers/hid/hid-input.o /mnt/Data/AgileV_dev/LogitechFFDrivers/hid/hid-debug.o /mnt/Data/AgileV_dev/LogitechFFDrivers/hid/hidraw.o 
