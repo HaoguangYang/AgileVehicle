@@ -21,11 +21,13 @@ public:
 };
 
 extern ElectricStat ElectricMon[4];
+extern bool IsZeroCorrect[4];
 
 void readFromWheelsDrv00(const std_msgs::UInt16MultiArray& wheelData);
 void readFromWheelsDrv01(const std_msgs::UInt16MultiArray& wheelData);
 void readFromWheelsDrv02(const std_msgs::UInt16MultiArray& wheelData);
 void readFromWheelsDrv03(const std_msgs::UInt16MultiArray& wheelData);
+void encodersInit(int i, int j, uint16_t zero);
 void readFromWheelsPwr00(const std_msgs::Float32MultiArray& powerData);
 void readFromWheelsPwr01(const std_msgs::Float32MultiArray& powerData);
 void readFromWheelsPwr02(const std_msgs::Float32MultiArray& powerData);

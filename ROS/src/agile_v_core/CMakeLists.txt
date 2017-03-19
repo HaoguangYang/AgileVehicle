@@ -52,6 +52,8 @@ find_package(catkin REQUIRED COMPONENTS
  add_message_files(
    FILES
    joyinfoex.msg
+   electric.msg
+   kinematics.msg
 #   Message2.msg
  )
 
@@ -126,11 +128,9 @@ include_directories(
 )
 
 ## Declare a C++ library
- add_library(${PROJECT_NAME}
-   src/kinematicCtrl.cpp
-   src/end_publisher.cpp
-   src/subscribers.cpp
- )
+# add_library(${PROJECT_NAME}
+#  
+# )
 
 ## Add cmake target dependencies of the library
 ## as an example, code may need to be generated before libraries
@@ -142,6 +142,9 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
  add_executable(${PROJECT_NAME}_node
    src/main.cpp
+   src/kinematicCtrl.cpp
+   src/end_publisher.cpp
+   src/subscribers.cpp
  )
 
 ## Rename C++ executable without prefix
@@ -156,7 +159,7 @@ include_directories(
 
 ## Specify libraries to link a library or executable target against
  target_link_libraries(${PROJECT_NAME}_node
-   agile_v_core ${catkin_LIBRARIES}
+   ${catkin_LIBRARIES}
  )
 
 #############

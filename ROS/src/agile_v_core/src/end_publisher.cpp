@@ -58,7 +58,24 @@ void publishToWheels(double* steerVal, double* driveVal, double* Torque)
 	return;
 }
 
+//Publish to User or GUI the information of the vehicle.
 void publishToUser()
 {
+    agile_v_core::kinematics VehicleKinematics;
+	ros::NodeHandle handle;
+	ros::Publisher kineStat = handle.advertise<agile_v_core::kinematics>("VehicleKinematics",5);
 	
+	VehicleKinematics.CM_Velocity[0] = Actual.speed[0];
+	VehicleKinematics.CM_Velocity[1] = Actual.speed[1];
+	VehicleKinematics.CM_AngularVel = Actual.omega;
+	#pragma omp parallel for num_threads(4)
+	for (int i = 0; i<4; i++)
+    {
+    	VehicleKinematics.Wheel_LinearVel[i] = Enc[1][i].extractDiff()*Vehicle.WheelRadius / step_time;
+    	VehicleKinematics.Wheel_SteerAngl[i] = Enc[0][i].extractAngle();
+    }
+    VehicleKinematics.Time_Stamp = ros::Time::now();
+    
+    kineStat.publish(VehicleKinematics);
+    return;
 }

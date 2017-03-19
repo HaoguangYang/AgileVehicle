@@ -10,10 +10,12 @@ using namespace std;
 class Encoder {
 
 private:
-    unsigned short  _resolution;
-    unsigned short  _zero;
+    uint16_t        _resolution;
+    uint16_t        _zero;
     uint16_t        _lastMark;
     int32_t         _cycle_old;
+    bool            _noNewData;
+    int16_t          _diff_old;
     
 public:
     
@@ -21,18 +23,18 @@ public:
     int32_t _cycle;
     
     // 构造函数
-    Encoder(unsigned short resolution=4096, int32_t cycle=0):_resolution(resolution),_cycle(cycle){};
+    Encoder(uint16_t resolution=4096, int32_t cycle=0, bool noNewData=true):_resolution(resolution),_cycle(cycle),_noNewData(noNewData){};
     
-    Encoder(unsigned short res){
+    Encoder(uint16_t res, bool noNewData=true):_noNewData(noNewData){
         _resolution = res;
         _cycle = 0;
     }
     
-    void setRes(unsigned short res){
+    void setRes(uint16_t res){
         _resolution = res;
     }
     
-    void setZero(unsigned short zero){
+    void setZero(uint16_t zero){
         _zero = zero;
     }
     
@@ -48,12 +50,13 @@ public:
 	
 	void update(uint16_t NewData)
 	{
+	    mark();
 		_value = rectify(NewData);
         if (_value-_lastMark<-_resolution/2)    //From 11*** to 00***, cycle + 1
             ++_cycle;
         if (_value-_lastMark>_resolution/2)
             --_cycle;
-        mark();
+        _noNewData = false;
 		return;
 	}
 	
@@ -64,19 +67,27 @@ public:
             ++_cycle;
         if (_value-_lastMark>_resolution/2)
             --_cycle;
+        _noNewData = false;
 		return;
 	}
 	
 	double extractDiff()
 	{
 		int16_t tmpValue;
-        if (_value-_lastMark<-_resolution/2){    //From 11*** to 00***, cycle + 1
-            tmpValue = _value - _lastMark + (_cycle-_cycle_old)*_resolution;
+		if (_noNewData){
+		    tmpValue = _diff_old;
+		}
+        else{
+            if (_value-_lastMark<-_resolution/2){    //From 11*** to 00***, cycle + 1
+                tmpValue = _value - _lastMark + (_cycle-_cycle_old)*_resolution;
+            }
+            if (_value-_lastMark>_resolution/2){
+                tmpValue = _value - _lastMark + (_cycle-_cycle_old)*_resolution;
+            }
+            _diff_old = tmpValue;
+            mark();
         }
-        if (_value-_lastMark>_resolution/2){
-            tmpValue = _value - _lastMark + (_cycle-_cycle_old)*_resolution;
-        }
-        mark();
+        _noNewData = true;
 		return (2*M_PI*(tmpValue)/_resolution);
 	}
     

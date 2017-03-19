@@ -31,6 +31,7 @@ extern double steerVal[4];          // 四个轮子转弯角度
 extern double driveVal[4];          // 四个轮子线速度
 extern double Torque[4];            // 四个轮子扭矩
 // 左前，右前，左后，右后
+extern VehiclePhysicalParams Vehicle;
 
 void GetVehicleData(int argc, char* argv[]);
 

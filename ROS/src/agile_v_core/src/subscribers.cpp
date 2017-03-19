@@ -1,32 +1,68 @@
 #include "subscribers.h" 
 
 ElectricStat ElectricMon[4];
+bool IsInit[2][4]={false};
 
 void readFromWheelsDrv00(const std_msgs::UInt16MultiArray& wheelData)
 {
-    Enc[0][0].update(wheelData.data[0]);
-    Enc[1][0].update_value(wheelData.data[1]);
+    if (IsInit[0][0] && IsInit[1][0]){
+        Enc[0][0].update(wheelData.data[0]);
+        Enc[1][0].update_value(wheelData.data[1]);
+    }
+    else if (IsZeroCorrect[0])
+    {
+        encodersInit(0,0,wheelData.data[0]);
+        encodersInit(1,0,wheelData.data[1]);
+    }
     return;
 }
 
 void readFromWheelsDrv01(const std_msgs::UInt16MultiArray& wheelData)
 {
-    Enc[0][1].update(wheelData.data[0]);
-    Enc[1][1].update_value(wheelData.data[1]);
+    if (IsInit[0][1] && IsInit[1][1]){
+        Enc[0][1].update(wheelData.data[0]);
+        Enc[1][1].update_value(wheelData.data[1]);
+    }
+    else if (IsZeroCorrect[1])
+    {
+        encodersInit(0,1,wheelData.data[0]);
+        encodersInit(1,1,wheelData.data[1]);
+    }
     return;
 }
 
 void readFromWheelsDrv02(const std_msgs::UInt16MultiArray& wheelData)
 {
-    Enc[0][2].update(wheelData.data[0]);
-    Enc[1][2].update_value(wheelData.data[1]);
+    if (IsInit[0][2] && IsInit[1][2]){
+        Enc[0][2].update(wheelData.data[0]);
+        Enc[1][2].update_value(wheelData.data[1]);
+    }
+    else if (IsZeroCorrect[2])
+    {
+        encodersInit(0,2,wheelData.data[0]);
+        encodersInit(1,2,wheelData.data[1]);
+    }
     return;
 }
 
 void readFromWheelsDrv03(const std_msgs::UInt16MultiArray& wheelData)
 {
-    Enc[0][3].update(wheelData.data[0]);
-    Enc[1][3].update_value(wheelData.data[1]);
+    if (IsInit[0][2] && IsInit[1][2]){
+        Enc[0][3].update(wheelData.data[0]);
+        Enc[1][3].update_value(wheelData.data[1]);
+    }
+    else if (IsZeroCorrect[3])
+    {
+        encodersInit(0,2,wheelData.data[0]);
+        encodersInit(1,2,wheelData.data[1]);
+    }
+    return;
+}
+
+void encodersInit(int i, int j, uint16_t zero)
+{
+    Enc[i][j].setZero(zero);
+    IsInit[i][j] = {true};
     return;
 }
 

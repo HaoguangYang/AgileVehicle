@@ -102,7 +102,7 @@ void KCLCSteering(double radius, double speed, double* steerVal, double* driveVa
 	double driveActual[4];
 	for (int i=0; i<4; i++){
         steerActual[i] = Enc[0][i].extractAngle();
-	    driveActual[i] = Enc[1][i].extractDiff() / step_time;
+	    driveActual[i] = Enc[1][i].extractDiff()*Vehicle.WheelRadius / step_time;
 	}
 	int errnum = Controller(Target, steerActual, driveActual, steerVal, driveVal);
 	//steerVal NEEDS CONVERSION!!!
@@ -122,7 +122,7 @@ void KCLHSteering(int16_t steering_wheel_input, double speed, double* steerVal, 
 	double driveActual[4];
 	for (int i=0; i<4; i++){
         steerActual[i] = Enc[0][i].extractAngle();
-	    driveActual[i] = Enc[1][i].extractDiff() / step_time;
+	    driveActual[i] = Enc[1][i].extractDiff()*Vehicle.WheelRadius / step_time;
 	}
     int errnum = Controller(Target, steerActual, driveActual, steerVal, driveVal);
     return;
