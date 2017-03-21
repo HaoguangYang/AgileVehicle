@@ -22,8 +22,8 @@ void Call_back(const agile_v_core::joyinfoex& controlInput)
 
 int main(int argc, char* argv[])
 {
-    for (int i=1; i<2; i++){
-        for (int j=1; j<4; j++){
+    for (int i=0; i<2; i++){
+        for (int j=0; j<4; j++){
             Enc[i][j] = Encoder();
         }
     }                   //Encoders Initialize
