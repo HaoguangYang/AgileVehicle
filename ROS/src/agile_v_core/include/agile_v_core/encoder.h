@@ -93,7 +93,7 @@ public:
     
     double extractAngle()
     {
-        return (2*M_PI*(_value/_resolution+_cycle));                            //Return angle in RAD.
+        return (2*M_PI*(_value/_resolution+_cycle));    //Return angle in RAD.
     }
     
     double extractAngle_OneCycle()

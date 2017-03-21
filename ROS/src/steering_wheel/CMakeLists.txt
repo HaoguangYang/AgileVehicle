@@ -182,7 +182,7 @@ catkin_package(
 include_directories(
   ${catkin_INCLUDE_DIRS}
   ${SDL2_INCLUDE_DIR}
-  ./include/agile_v_core
+  ./include/steering_wheel
   ./include
 )
 
