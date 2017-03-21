@@ -1,4 +1,5 @@
 #include <ros.h>
+#include <FlexiTimer2.h>
 #include <std_msgs/UInt16MultiArray.h>
 #include <std_msgs/Float32MultiArray.h>
 #include <std_msgs/Int32MultiArray.h>
@@ -21,6 +22,7 @@ int encoder_resolution = 4095;
 int pulseTime = 100;
 int updateTime = 40;
 int Angle = 0;
+uint16_t steeringTarget = ActuatorStatus.data[0];
 
 std_msgs::UInt16MultiArray ActuatorStatus;
 /************
@@ -62,24 +64,29 @@ void Actuate( const std_msgs::UInt16MultiArray& ctrl_var){
 		analogWrite(BREAK,ctrl_var.data[2]);
 	}
     // As the first version has only one encoder (for the angle), only the angle part has the close loop control.
-    //-------------------start angle control------------------------------------
-    if(ctrl_var.data[0] < 0 || ctrl_var.data[0] >encoder_resolution) { // will be modified as -90 degree to 90 degree
+   steeringTarget = ctrl_var.data[0];
+}
+
+void Steering(){
+	//-------------------start angle control------------------------------------
+	if(steeringTarget < 0 || steeringTarget >encoder_resolution) { // will be modified as -90 degree to 90 degree
         //Serial.println("bad DesiredAngle input.");
     }
     else {
-		int err = min(min(abs(ctrl_var.data[0]-Angle),abs(ctrl_var.data[0]-Angle+encoder_resolution+1)),abs(ctrl_var.data[0]-Angle-encoder_resolution-1));
-        if(!(err<40)) {
+		int err = min(min(abs(steeringTarget-Angle),abs(steeringTarget-Angle+encoder_resolution+1)),abs(steeringTarget-Angle-encoder_resolution-1));
+        if(!(err<15)) {
 			pulseTime = 55000/(err+500);	//Need Modification
-            if (ctrl_var.data[1]>Angle) {
+            if (steeringTarget>Angle) {
                 OneUp(pulseTime,0);
             }
             else {
                 OneUp(pulseTime,1);
             }  
         }
+		FlexiTimer2::set(pulseTime*2,Steering);  //time in the unit of ms
         //end while loop 
     }
-    //----------------end angle control---------------------------------------------  
+	//----------------end angle control---------------------------------------------  
 }
 
 //***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
@@ -117,6 +124,13 @@ void setup() {
     ActuatorStatus.data = (uint16_t *)malloc(sizeof(uint16_t)*2);
     ActuatorStatus.data_length = 2;
     handle.advertise(assessActual);
+	
+	steeringTarget = ActuatorStatus.data[0];	//Stop Init Steering of the wheel
+	
+	//Initiate Steering Actuator and run via FlexiTimer
+	Steering();
+	FlexiTimer2::set(pulseTime*2,Steering);  //time in the unit of ms
+    FlexiTimer2::start();
 }
 
 int data = 0;

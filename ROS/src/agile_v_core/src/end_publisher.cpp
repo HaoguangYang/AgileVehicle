@@ -64,6 +64,7 @@ void publishToUser()
     agile_v_core::kinematics VehicleKinematics;
 	ros::NodeHandle handle;
 	ros::Publisher kineStat = handle.advertise<agile_v_core::kinematics>("VehicleKinematics",5);
+	ros::Publisher pwrStat = handle.advertise<agile_v_core::electric>("VehicleElectric",5);
 	
 	VehicleKinematics.CM_Velocity[0] = Actual.speed[0];
 	VehicleKinematics.CM_Velocity[1] = Actual.speed[1];
