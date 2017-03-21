@@ -8,7 +8,7 @@ double steerVal[4] = {0};
 double driveVal[4] = {0};
 double Torque[4] = {0};
 Encoder Enc[2][4];      //[0][*] - Steering; [1][*] - Driving
-bool IsZeroCorrect[4] = {false};
+bool IsZeroCorrect[4] = {false, false, false, false};
 
 void Call_back(const agile_v_core::joyinfoex& controlInput)
 {
@@ -47,7 +47,9 @@ int main(int argc, char* argv[])
 	bool IsErr = false; //vehicleInit()
 	for (int i = 0; i < 4; i++)
 	    IsZeroCorrect[i] = !IsErr;
+	
 	usleep(25000);
+	
 	ros::Subscriber joystick_input = handle.subscribe("SteeringWheel", 10, Call_back);
 	
 	while (ros::ok){
