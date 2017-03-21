@@ -10,8 +10,9 @@
 
 uint16_t reverse_MotorPerformance(double Speed, double Torque);
 
-void publishToWheels(double* steerVal, double* driveVal, double* Torque);
+void publishToWheels(ros::NodeHandle handle, ros::Publisher* wheel_pub, std_msgs::UInt16MultiArray* WheelCtrl, \
+                     double* steerVal, double* driveVal, double* Torque);
 
-void publishToUser();
+void publishToUser(ros::NodeHandle handle, ros::Publisher kineStat);
 
 #endif

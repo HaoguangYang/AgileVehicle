@@ -52,9 +52,31 @@ int main(int argc, char* argv[])
 	
 	ros::Subscriber joystick_input = handle.subscribe("SteeringWheel", 10, Call_back);
 	
+	//Publishers Initiallize
+	//To Wheel
+	std_msgs::UInt16MultiArray WheelCtrl[4];
+	ros::Publisher wheel_pub[4] = {handle.advertise<std_msgs::UInt16MultiArray>("WheelControl00",2), \
+                                   handle.advertise<std_msgs::UInt16MultiArray>("WheelControl01",2), \
+                                   handle.advertise<std_msgs::UInt16MultiArray>("WheelControl02",2), \
+                                   handle.advertise<std_msgs::UInt16MultiArray>("WheelControl03",2)};
+	for (int i=0; i<4; i++){
+        WheelCtrl[i].layout.dim.push_back(std_msgs::MultiArrayDimension());
+        WheelCtrl[i].layout.dim[0].label = "WheelControl";
+        WheelCtrl[i].layout.dim[0].size = 4;
+        WheelCtrl[i].layout.dim[0].stride = 1*4;
+        //Initialize the Array
+        for (int j = 0; j < 4; j++){
+            WheelCtrl[i].data.push_back(0);               
+        }
+    }
+    //To UI
+    ros::Publisher kineStat = handle.advertise<agile_v_core::kinematics>("VehicleKinematics",5);
+    
+	
+	//ROS Loop
 	while (ros::ok){
-		publishToWheels(steerVal, driveVal, Torque);
-		publishToUser();
+		publishToWheels(handle, wheel_pub, WheelCtrl, steerVal, driveVal, Torque);
+		publishToUser(handle, kineStat);
 		usleep(25000);
 		ros::spinOnce();
 	}
