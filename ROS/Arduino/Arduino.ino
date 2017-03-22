@@ -22,7 +22,7 @@ int encoder_resolution = 4095;
 int pulseTime = 100;
 int updateTime = 40;
 int Angle = 0;
-uint16_t steeringTarget = ActuatorStatus.data[0];
+uint16_t steeringTarget = 0;
 
 std_msgs::UInt16MultiArray ActuatorStatus;
 /************
@@ -48,6 +48,7 @@ ros::Publisher assessActual("WheelActual01", &ActuatorStatus);
 ros::Publisher assessPower("UnitPower01", &PowerStatus);
 
 void Actuate( const std_msgs::UInt16MultiArray& ctrl_var){
+    //Send Signals to stepper motor and BLDC according to messages subscribed
 	if(ctrl_var.data[3]>0){ // 倒车
         digitalWrite(BACK,HIGH);
 	}//adjust for the switch
@@ -55,7 +56,7 @@ void Actuate( const std_msgs::UInt16MultiArray& ctrl_var){
 		digitalWrite(BACK,LOW);
 	}
 	if (ctrl_var.data[2]==0){
-		ctrl_var.data[1] = ctrl_var.data[1]*175/255+80;	//Calibration of controller to elliminate dead zone
+		ctrl_var.data[1] = ctrl_var.data[1];	//Calibration of controller to elliminate dead zone
 		analogWrite(CONTRL,ctrl_var.data[1]);	//Normal Driving
 		analogWrite(BREAK,0);
 	}
@@ -67,6 +68,9 @@ void Actuate( const std_msgs::UInt16MultiArray& ctrl_var){
    steeringTarget = ctrl_var.data[0];
 }
 
+//***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
+ros::Subscriber<std_msgs::UInt16MultiArray> sub("WheelControl01", &Actuate);
+
 void Steering(){
 	//-------------------start angle control------------------------------------
 	if(steeringTarget < 0 || steeringTarget >encoder_resolution) { // will be modified as -90 degree to 90 degree
@@ -75,7 +79,7 @@ void Steering(){
     else {
 		int err = min(min(abs(steeringTarget-Angle),abs(steeringTarget-Angle+encoder_resolution+1)),abs(steeringTarget-Angle-encoder_resolution-1));
         if(!(err<15)) {
-			pulseTime = 55000/(err+500);	//Need Modification
+			pulseTime = 55000/(err+400);	//Need Modification
             if (steeringTarget>Angle) {
                 OneUp(pulseTime,0);
             }
@@ -83,14 +87,10 @@ void Steering(){
                 OneUp(pulseTime,1);
             }  
         }
-		FlexiTimer2::set(pulseTime*2,Steering);  //time in the unit of ms
         //end while loop 
     }
 	//----------------end angle control---------------------------------------------  
 }
-
-//***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
-ros::Subscriber<std_msgs::UInt16MultiArray> sub("WheelControl01", &Actuate);
 
 void setup() {
 	// set driving control
@@ -128,18 +128,14 @@ void setup() {
 	steeringTarget = ActuatorStatus.data[0];	//Stop Init Steering of the wheel
 	
 	//Initiate Steering Actuator and run via FlexiTimer
-	Steering();
-	FlexiTimer2::set(pulseTime*2,Steering);  //time in the unit of ms
+	Query();
+	FlexiTimer2::set(updateTime,Query);  //time in the unit of ms
     FlexiTimer2::start();
 }
 
-int data = 0;
-int counter = 0;
-
 void loop() {
-    Query();
-	handle.spinOnce();
-	delay(updateTime);
+   Steering(); 
+   handle.spinOnce();
 }
 
 // the function to move the angle motor for once

@@ -2,6 +2,7 @@
 #include "kinematicCtrl.h"
 #include "subscribers.h"
 #include "end_publisher.h"
+#include "globals.h"
 #include "agile_v_core/joyinfoex.h"
 
 double steerVal[4] = {0};

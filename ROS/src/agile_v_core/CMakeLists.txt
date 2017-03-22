@@ -51,8 +51,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate messages in the 'msg' folder
  add_message_files(
    FILES
-   joyinfoex.msg
    electric.msg
+   joyinfoex.msg
    kinematics.msg
 #   Message2.msg
  )
@@ -74,8 +74,8 @@ find_package(catkin REQUIRED COMPONENTS
 ## Generate added messages and services with any dependencies listed here
  generate_messages(
    DEPENDENCIES
-   sensor_msgs
    std_msgs
+   sensor_msgs
  )
 
 ################################################

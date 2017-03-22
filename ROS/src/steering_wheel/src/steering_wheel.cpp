@@ -206,7 +206,7 @@ int main(int argc, char* argv[])
 				    driveDutycycle = 0;
 
 				// 转向角度
-			    steer=(uint16_t)(joyinfo.dwXpos/65535.0*encoder_resolution);
+			    steer=(uint16_t)(encoder_resolution-(joyinfo.dwXpos/65535.0*encoder_resolution));
 
 			    // Output monitoring
 				cout << "buttonStatus" << bitset<64>(joyinfo.dwButtons) << endl; //Output button status

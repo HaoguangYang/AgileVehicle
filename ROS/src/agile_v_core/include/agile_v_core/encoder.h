@@ -34,6 +34,10 @@ public:
         _resolution = res;
     }
     
+    uint16_t getRes(){
+        return (_resolution);
+    }
+    
     void setZero(uint16_t zero){
         _zero = zero;
     }

@@ -1,11 +1,11 @@
 #include "end_publisher.h"
 
-uint16_t reverse_MotorPerformance(double Speed, double Torque)
+uint16_t reverse_MotorPerformance(double AngSpeed, double Torque)
 {
 	const double gain1 = 0.09549296586;
 	const double gain2 = 10.33;		//N.m/V
 	const double gain3 = 0.6;		//Friction-induced Torque
-    double v_input = (Torque + gain3 + gain1*Speed)/gain2 + 1.2;
+    double v_input = (Torque + gain3 + gain1*AngSpeed)/gain2 + 1.2;
 	return (v_input*51);	//*255/5
 }
 
