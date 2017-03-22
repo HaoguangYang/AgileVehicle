@@ -140,11 +140,11 @@ void setup() {
 
 void loop() {
    time_now = millis();
-   if (time_now - time_last > pulseTime){
+   if ((unsigned long)(time_now - time_last) > pulseTime){
        Steering();
        time_last = time_now;
    }
-   if (time_now - time_last_query > updateTime){
+   if ((unsigned long)(time_now - time_last_query) > updateTime){
        Query();
        time_last_query = time_now;
    }
@@ -152,27 +152,20 @@ void loop() {
 }
 
 // the function to determine the wave pattern to servo
-int V_last = LOW;
+bool V_last = false;
 void Flip(bool direc) {
-  if (direc == 0 && V_last == LOW){
+  if (direc == 0 && !V_last){
     digitalWrite(DIR,HIGH);
     delayMicroseconds(1);
   }
-  else if (direc == 1 && V_last == LOW) {
+  else if (direc == 1 && !V_last) {
     digitalWrite(DIR, LOW);
     delayMicroseconds(1);
   }
   // give a pulse
-  if (V_last == LOW){
-    V_last = HIGH;
-    digitalWrite(PUL,HIGH);
-    delayMicroseconds(1);
-  }
-  else{
-    V_last = LOW;
-    digitalWrite(PUL,LOW);
-    delayMicroseconds(1);
-  }
+  V_last = !V_last;
+  digitalWrite(PUL,V_last);
+  delayMicroseconds(1);
 }
 
 void Query()
