@@ -7,4 +7,10 @@
           PWRSTEERING
           PWRTOTAL-VAL
           PWRTOTAL
+          AMPDRIVING-VAL
+          AMPDRIVING
+          AMPSTEERING-VAL
+          AMPSTEERING
+          UNITAMP-VAL
+          UNITAMP
 ))
