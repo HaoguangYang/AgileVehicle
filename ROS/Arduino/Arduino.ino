@@ -1,5 +1,5 @@
 #include <ros.h>
-#include <FlexiTimer2.h>
+//#include <FlexiTimer2.h>
 #include <std_msgs/UInt16MultiArray.h>
 #include <std_msgs/Float32MultiArray.h>
 #include <std_msgs/Int32MultiArray.h>
@@ -18,10 +18,10 @@
 #define AMPS        A6
 
 ros::NodeHandle handle;
-int encoder_resolution = 4095;
-int pulseTime = 100;
-int updateTime = 40;
-int Angle = 0;
+const uint16_t encoder_resolution = 4095;
+const int updateTime = 40;
+int pulseTime = 5;                //Time in ms
+uint16_t Angle = 0;
 uint16_t steeringTarget = 0;
 
 std_msgs::UInt16MultiArray ActuatorStatus;
@@ -44,8 +44,13 @@ std_msgs::UInt16MultiArray ctrl_var;
 ************/
 
 //***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
-ros::Publisher assessActual("WheelActual01", &ActuatorStatus);
-ros::Publisher assessPower("UnitPower01", &PowerStatus);
+ros::Publisher assessActual("WheelActual00", &ActuatorStatus);
+ros::Publisher assessPower("UnitPower00", &PowerStatus);
+
+unsigned long time_last;                 //for Buffer flushing
+unsigned long time_last_query;           //for Query
+unsigned long time_now;
+
 
 void Actuate( const std_msgs::UInt16MultiArray& ctrl_var){
     //Send Signals to stepper motor and BLDC according to messages subscribed
@@ -69,7 +74,7 @@ void Actuate( const std_msgs::UInt16MultiArray& ctrl_var){
 }
 
 //***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
-ros::Subscriber<std_msgs::UInt16MultiArray> sub("WheelControl01", &Actuate);
+ros::Subscriber<std_msgs::UInt16MultiArray> sub("WheelControl00", &Actuate);
 
 void Steering(){
 	//-------------------start angle control------------------------------------
@@ -79,12 +84,12 @@ void Steering(){
     else {
 		int err = min(min(abs(steeringTarget-Angle),abs(steeringTarget-Angle+encoder_resolution+1)),abs(steeringTarget-Angle-encoder_resolution-1));
         if(!(err<15)) {
-			pulseTime = 55000/(err+400);	//Need Modification
-            if (steeringTarget>Angle) {
-                OneUp(pulseTime,0);
+			//pulseTime = 55000/(err+400);	//Need Modification
+            if ((steeringTarget-Angle+encoder_resolution+1)%(encoder_resolution+1)<(encoder_resolution+1)*0.5) {
+                Flip(0);
             }
             else {
-                OneUp(pulseTime,1);
+                Flip(1);
             }  
         }
         //end while loop 
@@ -128,31 +133,46 @@ void setup() {
 	steeringTarget = ActuatorStatus.data[0];	//Stop Init Steering of the wheel
 	
 	//Initiate Steering Actuator and run via FlexiTimer
-	Query();
-	FlexiTimer2::set(updateTime,Query);  //time in the unit of ms
-    FlexiTimer2::start();
+	//Query();
+	//FlexiTimer2::set(updateTime,Query);  //time in the unit of ms
+    //FlexiTimer2::start();
 }
 
 void loop() {
-   Steering(); 
+   time_now = millis();
+   if (time_now - time_last > pulseTime){
+       Steering();
+       time_last = time_now;
+   }
+   if (time_now - time_last_query > updateTime){
+       Query();
+       time_last_query = time_now;
+   }
    handle.spinOnce();
 }
 
-// the function to move the angle motor for once
-void OneUp(unsigned int time, bool direc) {
-  if (direc == 0){
+// the function to determine the wave pattern to servo
+int V_last = LOW;
+void Flip(bool direc) {
+  if (direc == 0 && V_last == LOW){
     digitalWrite(DIR,HIGH);
+    delayMicroseconds(1);
   }
-  else if (direc == 1) {
-    digitalWrite(DIR, HIGH);
+  else if (direc == 1 && V_last == LOW) {
+    digitalWrite(DIR, LOW);
+    delayMicroseconds(1);
   }
   // give a pulse
-  digitalWrite(PUL,HIGH);
-  delayMicroseconds(time);
-  digitalWrite(PUL,LOW);
-  delayMicroseconds(time);
-   //unit of time is us
-  delay(2);
+  if (V_last == LOW){
+    V_last = HIGH;
+    digitalWrite(PUL,HIGH);
+    delayMicroseconds(1);
+  }
+  else{
+    V_last = LOW;
+    digitalWrite(PUL,LOW);
+    delayMicroseconds(1);
+  }
 }
 
 void Query()
