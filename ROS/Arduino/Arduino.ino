@@ -18,7 +18,7 @@
 #define AMPS        A6
 
 ros::NodeHandle handle;
-const uint16_t encoder_resolution = 4095;
+const uint16_t encoder_resolution = 4096;
 const int updateTime = 40;
 int pulseTime = 5;                //Time in ms
 uint16_t Angle = 0;
@@ -49,7 +49,6 @@ ros::Publisher assessPower("UnitPower00", &PowerStatus);
 
 unsigned long time_last;                 //for Buffer flushing
 unsigned long time_last_query;           //for Query
-unsigned long time_now;
 
 
 void Actuate( const std_msgs::UInt16MultiArray& ctrl_var){
@@ -78,14 +77,15 @@ ros::Subscriber<std_msgs::UInt16MultiArray> sub("WheelControl00", &Actuate);
 
 void Steering(){
 	//-------------------start angle control------------------------------------
-	if(steeringTarget < 0 || steeringTarget >encoder_resolution) { // will be modified as -90 degree to 90 degree
+	if(steeringTarget < 0 || steeringTarget >encoder_resolution-1) { // will be modified as -90 degree to 90 degree
         //Serial.println("bad DesiredAngle input.");
     }
     else {
-		int err = min(min(abs(steeringTarget-Angle),abs(steeringTarget-Angle+encoder_resolution+1)),abs(steeringTarget-Angle-encoder_resolution-1));
-        if(!(err<15)) {
+		int err = (steeringTarget-Angle+encoder_resolution)%(encoder_resolution)-(encoder_resolution*0.5);
+		//min(min(abs(steeringTarget-Angle),abs(steeringTarget-Angle+encoder_resolution)),abs(steeringTarget-Angle-encoder_resolution));
+        if(!(abs(err)<15)) {
 			//pulseTime = 55000/(err+400);	//Need Modification
-            if ((steeringTarget-Angle+encoder_resolution+1)%(encoder_resolution+1)<(encoder_resolution+1)*0.5) {
+            if (err<0) {
                 Flip(0);
             }
             else {
@@ -139,14 +139,14 @@ void setup() {
 }
 
 void loop() {
-   time_now = millis();
+   unsigned long time_now = millis();
    if ((unsigned long)(time_now - time_last) > pulseTime){
        Steering();
-       time_last = time_now;
+       time_last = millis();
    }
    if ((unsigned long)(time_now - time_last_query) > updateTime){
        Query();
-       time_last_query = time_now;
+       time_last_query = millis();
    }
    handle.spinOnce();
 }
@@ -192,13 +192,17 @@ void Query()
     delayMicroseconds(1);
   }
   digitalWrite(csn,HIGH);
+  ActuatorStatus.header.stamp = handle.now();
   Angle=dataActuator[0];
   
   dataPower[0] = analogRead (VOLT)*(0.02892+0.00002576*analogRead (VOLT))+2.99;
   dataPower[1] = (analogRead (AMPS)-512)*30/409.6;
   dataPower[2] = (analogRead (AMPD)-512)*30/409.6;
+  PowerStatus.header.stamp = handle.now();
+  
   ActuatorStatus.data = dataActuator;
   PowerStatus.data = dataPower;
+  
   assessActual.publish (&ActuatorStatus);
   assessPower.publish (&PowerStatus);
   //Serial.write((const uint8_t*)&to_send,sizeof(serial_format));
