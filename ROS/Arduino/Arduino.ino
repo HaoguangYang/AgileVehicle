@@ -19,8 +19,8 @@
 
 ros::NodeHandle handle;
 const uint16_t encoder_resolution = 4096;
-const int updateTime = 40;
-int pulseTime = 5;                //Time in ms
+const int updateTime = 40000;		//Time in us
+int pulseTime = 50;                	//Time in us
 uint16_t Angle = 0;
 uint16_t steeringTarget = 0;
 
@@ -139,14 +139,14 @@ void setup() {
 }
 
 void loop() {
-   unsigned long time_now = millis();
+   unsigned long time_now = micros();
    if ((unsigned long)(time_now - time_last) > pulseTime){
        Steering();
-       time_last = millis();
+       time_last = micros();
    }
    if ((unsigned long)(time_now - time_last_query) > updateTime){
        Query();
-       time_last_query = millis();
+       time_last_query = micros();
    }
    handle.spinOnce();
 }
