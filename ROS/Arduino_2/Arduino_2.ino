@@ -62,7 +62,7 @@ void Actuate( const std_msgs::UInt16MultiArray& ctrl_var){
 	}
 	if (ctrl_var.data[2]==0){
 		ctrl_var.data[1] = ctrl_var.data[1];	//Calibration of controller to elliminate dead zone
-		analogWrite(CONTRL,ctrl_var.data[1]*100/255+70);	//Normal Driving
+		analogWrite(CONTRL,ctrl_var.data[1]*100/255+73);	//Normal Driving
 		analogWrite(BREAK,0);
 	}
 	else{											//Breaking

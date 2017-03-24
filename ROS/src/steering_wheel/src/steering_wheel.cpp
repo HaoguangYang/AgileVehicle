@@ -105,8 +105,14 @@ int main(int argc, char* argv[])
     int JOYSTICKID1 = setup();
 	
     //if (isOneWheelDebug)
-    ros::Subscriber actuator_feedback = handle.subscribe("WheelActual01", 10, ActuaterFeedback);
-    ros::Publisher wheel_pub = handle.advertise<std_msgs::UInt16MultiArray>("WheelControl01",2);
+    ros::Subscriber actuator_feedback0 = handle.subscribe("WheelActual00", 10, ActuaterFeedback);
+    ros::Subscriber actuator_feedback1 = handle.subscribe("WheelActual01", 10, ActuaterFeedback);
+    ros::Subscriber actuator_feedback2 = handle.subscribe("WheelActual02", 10, ActuaterFeedback);
+    ros::Subscriber actuator_feedback3 = handle.subscribe("WheelActual03", 10, ActuaterFeedback);
+    ros::Publisher wheel_pub0 = handle.advertise<std_msgs::UInt16MultiArray>("WheelControl00",2);
+    ros::Publisher wheel_pub1 = handle.advertise<std_msgs::UInt16MultiArray>("WheelControl01",2);
+    ros::Publisher wheel_pub2 = handle.advertise<std_msgs::UInt16MultiArray>("WheelControl02",2);
+    ros::Publisher wheel_pub3 = handle.advertise<std_msgs::UInt16MultiArray>("WheelControl03",2);
     
     // Arduino 接口用
     std_msgs::UInt16MultiArray WheelCtrl;
@@ -225,21 +231,33 @@ int main(int argc, char* argv[])
                     uint16 reverse;
                     ************/
 				    WheelCtrl.data[0] = steer;
-				    WheelCtrl.data[1] = driveDutycycle;
+				    WheelCtrl.data[1] = 55;//driveDutycycle;
 				    WheelCtrl.data[2] = brake;
 				    WheelCtrl.data[3] = 0;
 			    }
 			    
-			    wheel_pub.publish(WheelCtrl);
+			    wheel_pub0.publish(WheelCtrl);
+			    wheel_pub1.publish(WheelCtrl);
+			    wheel_pub2.publish(WheelCtrl);
+			    wheel_pub3.publish(WheelCtrl);
 			    usleep(25000);
 			//Publish steering wheel data to one wheel for debugging
 			}
 		}       //If have sysevent then update joystick values
 		
+		
 		ros::spinOnce();
 
     }
-
+    
+    WheelCtrl.data[1] = 0;//driveDutycycle;
+	WheelCtrl.data[2] = 255;
+	wheel_pub0.publish(WheelCtrl);
+	wheel_pub1.publish(WheelCtrl);
+	wheel_pub2.publish(WheelCtrl);
+	wheel_pub3.publish(WheelCtrl);
+    ros::spinOnce();
+    
 	SDL_JoystickClose(joy);
 	//system("pause");
 	return 0;

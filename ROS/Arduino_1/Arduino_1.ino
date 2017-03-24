@@ -23,7 +23,7 @@ const unsigned int updateTime = 40000;	//Time in us
 int pulseTime = 100;                	//Time in us
 uint16_t Angle = 0;
 uint16_t steeringTarget = 0;
-uint16_t _zero = 1895;
+uint16_t _zero = 2646;
 
 std_msgs::UInt16MultiArray ActuatorStatus;
 /************
@@ -45,8 +45,8 @@ std_msgs::UInt16MultiArray ctrl_var;
 ************/
 
 //***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
-ros::Publisher assessActual("WheelActual02", &ActuatorStatus);
-ros::Publisher assessPower("UnitPower02", &PowerStatus);
+ros::Publisher assessActual("WheelActual01", &ActuatorStatus);
+ros::Publisher assessPower("UnitPower01", &PowerStatus);
 
 unsigned long time_last;                 //for Buffer flushing
 unsigned long time_last_query;           //for Query
@@ -74,7 +74,7 @@ void Actuate( const std_msgs::UInt16MultiArray& ctrl_var){
 }
 
 //***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
-ros::Subscriber<std_msgs::UInt16MultiArray> sub("WheelControl02", &Actuate);
+ros::Subscriber<std_msgs::UInt16MultiArray> sub("WheelControl01", &Actuate);
 
 void Steering(){
 	//-------------------start angle control------------------------------------

@@ -1,5 +1,6 @@
-//#include <limits.h>
+#include <limits.h>
 #include "kinematicCtrl.h"
+#include <stdio.h>
 
 double step_time;
 VehiclePhysicalParams Vehicle;
@@ -174,6 +175,9 @@ int Controller(Kinematic Target, double* steerActual, double* driveActual, doubl
 	    driveVal[i] = sqrt(AfterCorrection[1][i]*AfterCorrection[1][i]+AfterCorrection[0][i]*AfterCorrection[0][i]);
 	    Torque[i] = sqrt(Correction[0][i]*Correction[0][i]+Correction[1][i]*Correction[1][i]);
 	}
+	
+	cout << "steerVal" << steerVal;
+	cout << "Error" << Error.speed << endl;
 	
 	return 0;
 }

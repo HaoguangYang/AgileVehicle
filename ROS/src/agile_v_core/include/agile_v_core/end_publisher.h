@@ -5,7 +5,7 @@
 #include "encoder.h"
 #include "kinematicCtrl.h"
 #include "std_msgs/UInt16MultiArray.h"
-#include "agile_v_core/electric.h"
+//#include "agile_v_core/electric.h"
 #include "agile_v_core/kinematics.h"
 
 uint16_t reverse_MotorPerformance(double Speed, double Torque);
