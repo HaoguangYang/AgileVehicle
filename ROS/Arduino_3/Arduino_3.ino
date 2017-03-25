@@ -22,11 +22,15 @@ const uint16_t encoder_resolution = 4096;
 const unsigned int updateTime = 40000;	//Time in us
 int pulseTime = 100;                	//Time in us
 uint16_t Angle = 0;
+uint16_t Speed = 0;
 uint16_t steeringTarget = 0;
 uint16_t _zero = 2297;
+uint16_t _last = 0;
+uint16_t drive_input;
+uint16_t drive_val;
 
 std_msgs::UInt16MultiArray ActuatorStatus;
-/************jj
+/************
     unsigned short StrActual;
     unsigned short DrvActual;
 ************/
@@ -60,9 +64,10 @@ void Actuate( const std_msgs::UInt16MultiArray& ctrl_var){
     else{
 		digitalWrite(BACK,LOW);
 	}
+	drive_input = ctrl_var.data[1];
 	if (ctrl_var.data[2]==0){
-		ctrl_var.data[1] = ctrl_var.data[1];	//Calibration of controller to elliminate dead zone
-		analogWrite(CONTRL,ctrl_var.data[1]*100/255+77);	//Normal Driving
+		//ctrl_var.data[1] = ctrl_var.data[1] + 75;	//Calibration of controller to elliminate dead zone
+		analogWrite(CONTRL,drive_input);	//Normal Driving
 		analogWrite(BREAK,0);
 	}
 	else{											//Breaking
@@ -75,6 +80,12 @@ void Actuate( const std_msgs::UInt16MultiArray& ctrl_var){
 
 //***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
 ros::Subscriber<std_msgs::UInt16MultiArray> sub("WheelControl03", &Actuate);
+
+void Driving(){
+    int error = drive_input - Speed;
+    drive_val = error/300*180 + 75;
+    drive_val = max(min(drive_val * min(1000.0 / (PowerStatus.data[0]*PowerStatus.data[2]),1.0),255),0);
+}
 
 void Steering(){
 	//-------------------start angle control------------------------------------
@@ -147,6 +158,7 @@ void loop() {
    }
    if ((unsigned long)(time_now - time_last_query) > updateTime){
        Query();
+       Driving();
        time_last_query = micros();
    }
    handle.spinOnce();
@@ -191,6 +203,8 @@ void Query()
   }
   digitalWrite(csn,HIGH);
   Angle=(dataActuator[0]-_zero+encoder_resolution)%encoder_resolution;
+  Speed=(dataActuator[1]-_last+encoder_resolution)%encoder_resolution;
+  _last = dataActuator[1];
   //Angle=dataActuator[0];
   
   dataPower[0] = analogRead (VOLT)*(0.02892+0.00002576*analogRead (VOLT))+2.99;

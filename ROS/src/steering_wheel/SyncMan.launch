@@ -8,7 +8,7 @@
     <!--Arduino-->
 	<!--If problems occur, refer to http://answers.ros.org/question/38786/problem-adding-rosserial-node-to-turtlebot-bringup/-->
 	<node pkg="rosserial_python" type="serial_node.py" name="wheel00" output="screen">
-<param name='~port' value='/dev/ttyUSB4' />
+<param name='~port' value='/dev/ttyUSB0' />
 	  <param name="~baud" value="57600" />
     </node>
     <node pkg="rosserial_python" type="serial_node.py" name="wheel01" output="screen">
@@ -16,11 +16,11 @@
 	  <param name="~baud" value="57600" />
     </node>
 	<node pkg="rosserial_python" type="serial_node.py" name="wheel02" output="screen">
-<param name='~port' value='/dev/ttyUSB5' />
+<param name='~port' value='/dev/ttyUSB2' />
 	  <param name="~baud" value="57600" />
     </node>
 	<node pkg="rosserial_python" type="serial_node.py" name="wheel03" output="screen">
-<param name='~port' value='/dev/ttyUSB6' />
+<param name='~port' value='/dev/ttyUSB3' />
 	  <param name="~baud" value="57600" />
     </node>
   </group>
