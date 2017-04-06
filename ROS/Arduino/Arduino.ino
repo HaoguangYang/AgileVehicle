@@ -19,10 +19,16 @@
 
 ros::NodeHandle handle;
 const uint16_t encoder_resolution = 4096;
-const int updateTime = 40000;		//Time in us
-int pulseTime = 50;                	//Time in us
+const unsigned int updateTime = 40000;	//Time in us
+const unsigned int queryTime = 1000;	//Time in us
+int pulseTime = 100;                	//Time in us
 uint16_t Angle = 0;
+int16_t Speed = 0;
 uint16_t steeringTarget = 0;
+uint16_t _zero = 231;
+uint16_t _last = 0;
+uint16_t drive_input;
+uint16_t drive_val;
 
 std_msgs::UInt16MultiArray ActuatorStatus;
 /************
@@ -49,7 +55,7 @@ ros::Publisher assessPower("UnitPower00", &PowerStatus);
 
 unsigned long time_last;                 //for Buffer flushing
 unsigned long time_last_query;           //for Query
-
+unsigned long time_last_publish;		 //for Publish
 
 void Actuate( const std_msgs::UInt16MultiArray& ctrl_var){
     //Send Signals to stepper motor and BLDC according to messages subscribed
@@ -59,9 +65,10 @@ void Actuate( const std_msgs::UInt16MultiArray& ctrl_var){
     else{
 		digitalWrite(BACK,LOW);
 	}
+	drive_input = ctrl_var.data[1];
 	if (ctrl_var.data[2]==0){
-		ctrl_var.data[1] = ctrl_var.data[1];	//Calibration of controller to elliminate dead zone
-		analogWrite(CONTRL,ctrl_var.data[1]);	//Normal Driving
+		//ctrl_var.data[1] = ctrl_var.data[1] + 75;	//Calibration of controller to elliminate dead zone
+		analogWrite(CONTRL,drive_input);	//Normal Driving
 		analogWrite(BREAK,0);
 	}
 	else{											//Breaking
@@ -75,6 +82,12 @@ void Actuate( const std_msgs::UInt16MultiArray& ctrl_var){
 //***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
 ros::Subscriber<std_msgs::UInt16MultiArray> sub("WheelControl00", &Actuate);
 
+void Driving(){
+    int error = drive_input - Speed;
+    drive_val = error/255*180 + 75;
+    drive_val = max(min(drive_val * min(1000.0 / (PowerStatus.data[0]*PowerStatus.data[2]),1.0),255),0);
+}
+
 void Steering(){
 	//-------------------start angle control------------------------------------
 	if(steeringTarget < 0 || steeringTarget >encoder_resolution-1) { // will be modified as -90 degree to 90 degree
@@ -83,8 +96,8 @@ void Steering(){
     else {
 		int err = (steeringTarget-Angle+encoder_resolution)%(encoder_resolution)-(encoder_resolution*0.5);
 		//min(min(abs(steeringTarget-Angle),abs(steeringTarget-Angle+encoder_resolution)),abs(steeringTarget-Angle-encoder_resolution));
-        if(!(abs(err)<15)) {
-			//pulseTime = 55000/(err+400);	//Need Modification
+        if(!(abs(err)<40)) {
+			pulseTime = 7000/(1.1*abs(err)+5);	//Need Modification
             if (err<0) {
                 Flip(0);
             }
@@ -144,9 +157,14 @@ void loop() {
        Steering();
        time_last = micros();
    }
-   if ((unsigned long)(time_now - time_last_query) > updateTime){
+   if ((unsigned long)(time_now - time_last_query) > queryTime){
        Query();
+       Driving();
        time_last_query = micros();
+   }
+   if ((unsigned long)(time_now - time_last_publish) > updateTime){
+	   Publish();
+	   time_last_publish = micros();
    }
    handle.spinOnce();
 }
@@ -156,16 +174,13 @@ bool V_last = false;
 void Flip(bool direc) {
   if (direc == 0 && !V_last){
     digitalWrite(DIR,HIGH);
-    delayMicroseconds(1);
   }
   else if (direc == 1 && !V_last) {
     digitalWrite(DIR, LOW);
-    delayMicroseconds(1);
   }
   // give a pulse
   V_last = !V_last;
   digitalWrite(PUL,V_last);
-  delayMicroseconds(1);
 }
 
 void Query()
@@ -192,17 +207,24 @@ void Query()
     delayMicroseconds(1);
   }
   digitalWrite(csn,HIGH);
-  ActuatorStatus.header.stamp = handle.now();
-  Angle=dataActuator[0];
+  Angle=(dataActuator[0]-_zero+encoder_resolution)%encoder_resolution;
+  Speed=(-dataActuator[1]+_last+encoder_resolution)%encoder_resolution;
+  _last = dataActuator[1];
+  //Angle=dataActuator[0];
   
   dataPower[0] = analogRead (VOLT)*(0.02892+0.00002576*analogRead (VOLT))+2.99;
   dataPower[1] = (analogRead (AMPS)-512)*30/409.6;
   dataPower[2] = (analogRead (AMPD)-512)*30/409.6;
-  PowerStatus.header.stamp = handle.now();
   
   ActuatorStatus.data = dataActuator;
   PowerStatus.data = dataPower;
   
+  ActuatorStatus.data[0] = drive_input;
+  ActuatorStatus.data[1] = drive_val;
+}
+
+void Publish()
+{  
   assessActual.publish (&ActuatorStatus);
   assessPower.publish (&PowerStatus);
   //Serial.write((const uint8_t*)&to_send,sizeof(serial_format));
