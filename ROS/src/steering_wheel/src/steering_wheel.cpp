@@ -1,4 +1,5 @@
 #include "steering_wheel.h"
+#include <math.h>
 
 using namespace std;
 
@@ -92,6 +93,26 @@ void ActuaterFeedback(const std_msgs::UInt16MultiArray& ActuatorStatus)
 	return;
 }
 
+double SteeringWheel2Radius (int SteeringWheelVal, int mode)
+{
+    double value;
+	switch (mode){
+    	case 0:			//Default is using a y=kx+1/x model to cast -32767~32767 to -inf~inf
+	    {
+	    	value = 1.0/SteeringWheelVal-SteeringWheelVal/32767.0;
+	    	break;
+	    }
+	    case 1:			//Using y=k/[x(+-)b] model
+	    {
+	    	if (SteeringWheelVal>=0)
+	    		value = 1.0/SteeringWheelVal-1/32767.0;
+	    	else
+	    		value = 1.0/SteeringWheelVal+1/32767.0;
+	    	break;
+	    }
+    }
+    return value;
+}
 
 int main(int argc, char* argv[])
 {
@@ -105,21 +126,48 @@ int main(int argc, char* argv[])
     int JOYSTICKID1 = setup();
 	
     //if (isOneWheelDebug)
-    ros::Subscriber actuator_feedback = handle.subscribe("WheelActual01", 10, ActuaterFeedback);
-    ros::Publisher wheel_pub = handle.advertise<std_msgs::UInt16MultiArray>("WheelControl01",2);
+    ros::Subscriber actuator_feedback0 = handle.subscribe("WheelActual00", 10, ActuaterFeedback);
+    ros::Subscriber actuator_feedback1 = handle.subscribe("WheelActual01", 10, ActuaterFeedback);
+    ros::Subscriber actuator_feedback2 = handle.subscribe("WheelActual02", 10, ActuaterFeedback);
+    ros::Subscriber actuator_feedback3 = handle.subscribe("WheelActual03", 10, ActuaterFeedback);
+    ros::Publisher wheel_pub0 = handle.advertise<std_msgs::UInt16MultiArray>("WheelControl00",2);
+    ros::Publisher wheel_pub1 = handle.advertise<std_msgs::UInt16MultiArray>("WheelControl01",2);
+    ros::Publisher wheel_pub2 = handle.advertise<std_msgs::UInt16MultiArray>("WheelControl02",2);
+    ros::Publisher wheel_pub3 = handle.advertise<std_msgs::UInt16MultiArray>("WheelControl03",2);
     
     // Arduino 接口用
-    std_msgs::UInt16MultiArray WheelCtrl;
+    std_msgs::UInt16MultiArray WheelCtrl00;
+    std_msgs::UInt16MultiArray WheelCtrl01;
+    std_msgs::UInt16MultiArray WheelCtrl02;
+    std_msgs::UInt16MultiArray WheelCtrl03;
     
     // ROS Multiarray initialize operation	
-    WheelCtrl.layout.dim.push_back(std_msgs::MultiArrayDimension());
-    WheelCtrl.layout.dim[0].label = "WheelControl";
-    WheelCtrl.layout.dim[0].size = 4;
-    WheelCtrl.layout.dim[0].stride = 1*4;
+    WheelCtrl00.layout.dim.push_back(std_msgs::MultiArrayDimension());
+    WheelCtrl00.layout.dim[0].label = "WheelControl";
+    WheelCtrl00.layout.dim[0].size = 4;
+    WheelCtrl00.layout.dim[0].stride = 1*4;
+    
+    WheelCtrl01.layout.dim.push_back(std_msgs::MultiArrayDimension());
+    WheelCtrl01.layout.dim[0].label = "WheelControl";
+    WheelCtrl01.layout.dim[0].size = 4;
+    WheelCtrl01.layout.dim[0].stride = 1*4;
+    
+    WheelCtrl02.layout.dim.push_back(std_msgs::MultiArrayDimension());
+    WheelCtrl02.layout.dim[0].label = "WheelControl";
+    WheelCtrl02.layout.dim[0].size = 4;
+    WheelCtrl02.layout.dim[0].stride = 1*4;
+    
+    WheelCtrl03.layout.dim.push_back(std_msgs::MultiArrayDimension());
+    WheelCtrl03.layout.dim[0].label = "WheelControl";
+    WheelCtrl03.layout.dim[0].size = 4;
+    WheelCtrl03.layout.dim[0].stride = 1*4;
 
     //Initialize the Array
     for (int i = 0; i < 4; i++){
-        WheelCtrl.data.push_back(0);               
+        WheelCtrl00.data.push_back(0);
+        WheelCtrl01.data.push_back(0);
+        WheelCtrl02.data.push_back(0);
+        WheelCtrl03.data.push_back(0);
     }
 	
     uint16_t driveDutycycle=0;
@@ -206,7 +254,7 @@ int main(int argc, char* argv[])
 				    driveDutycycle = 0;
 
 				// 转向角度
-			    steer=(uint16_t)(encoder_resolution-(joyinfo.dwXpos/65535.0*encoder_resolution));
+			    steer=(uint16_t)(joyinfo.dwXpos/65535.0*encoder_resolution);
 
 			    // Output monitoring
 				cout << "buttonStatus" << bitset<64>(joyinfo.dwButtons) << endl; //Output button status
@@ -224,22 +272,64 @@ int main(int argc, char* argv[])
                     uint16 inputBrake;
                     uint16 reverse;
                     ************/
-				    WheelCtrl.data[0] = steer;
-				    WheelCtrl.data[1] = driveDutycycle;
-				    WheelCtrl.data[2] = brake;
-				    WheelCtrl.data[3] = 0;
+				    WheelCtrl00.data[0] = steer;
+				    WheelCtrl00.data[1] = driveDutycycle;
+				    WheelCtrl00.data[2] = min((int)(1.5*brake),255);
+				    WheelCtrl00.data[3] = 0;
 			    }
 			    
-			    wheel_pub.publish(WheelCtrl);
+			    /*/TEST CODE STARTS..............................................
+			    double TrackWidth = 1.315;
+		        double WheelBase = 1.520;
+		        double Mass = 450.0;
+		        double WheelRadius = 0.6114*0.5;
+			    
+			    double radius = SteeringWheel2Radius(joyinfo.dwXpos-32768,0);
+			    
+			    cout << radius << endl;
+			    
+			    double leftBase = radius-TrackWidth/2;  //Left Side of Vehicle to Steering Center
+		        double rightBase = radius+TrackWidth/2; //Right Side ...
+		        if (leftBase == 0) leftBase = 0.00001;
+		        if (rightBase == 0) rightBase = 0.00001;
+		        uint16_t steerVal[4];
+		        steerVal[0] = 4095-((uint16_t)(atan(WheelBase/2/leftBase)*(encoder_resolution+1)*0.5/M_PI)+encoder_resolution+1)%(encoder_resolution+1);
+		        steerVal[1] = 4095-((uint16_t)(atan(WheelBase/2/rightBase)*(encoder_resolution+1)*0.5/M_PI)+encoder_resolution+1)%(encoder_resolution+1);
+		        steerVal[2] = steerVal[0];
+		        steerVal[3] = steerVal[1];
+		        
+		        WheelCtrl00.data[0] = steerVal[0];    //for test code*/
+			    wheel_pub0.publish(WheelCtrl00);
+			    
+			    //WheelCtrl01.data[0] = steerVal[1];    //for test code
+			    wheel_pub1.publish(WheelCtrl00);
+			    
+			    //WheelCtrl02.data[0] = steerVal[2];    //for test code
+			    wheel_pub2.publish(WheelCtrl00);
+			    
+			    //WheelCtrl03.data[0] = steerVal[3];    //for test code
+			    wheel_pub3.publish(WheelCtrl00);
+			    
+			    //TEST CODE ENDS................................................
+			    
 			    usleep(25000);
 			//Publish steering wheel data to one wheel for debugging
 			}
 		}       //If have sysevent then update joystick values
 		
+		
 		ros::spinOnce();
 
     }
-
+    
+    WheelCtrl00.data[1] = 0;//driveDutycycle;
+	WheelCtrl00.data[2] = 255;
+	wheel_pub0.publish(WheelCtrl00);
+	wheel_pub1.publish(WheelCtrl00);
+	wheel_pub2.publish(WheelCtrl00);
+	wheel_pub3.publish(WheelCtrl00);
+    ros::spinOnce();
+    
 	SDL_JoystickClose(joy);
 	//system("pause");
 	return 0;
