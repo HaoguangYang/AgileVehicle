@@ -25,7 +25,7 @@ int pulseTime = 100;                	//Time in us
 uint16_t Angle = 0;
 int16_t Speed = 0;
 uint16_t steeringTarget = 0;
-uint16_t _zero = 231;
+uint16_t _zero=0;
 uint16_t _last = 0;
 uint16_t drive_input;
 uint16_t drive_val;
@@ -50,8 +50,8 @@ std_msgs::UInt16MultiArray ctrl_var;
 ************/
 
 //***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
-ros::Publisher assessActual("WheelActual00", &ActuatorStatus);
-ros::Publisher assessPower("UnitPower00", &PowerStatus);
+ros::Publisher assessActual("WheelActual0x", &ActuatorStatus);
+ros::Publisher assessPower("UnitPower0x", &PowerStatus);
 
 unsigned long time_last;                 //for Buffer flushing
 unsigned long time_last_query;           //for Query
@@ -76,11 +76,11 @@ void Actuate( const std_msgs::UInt16MultiArray& ctrl_var){
 		analogWrite(BREAK,ctrl_var.data[2]);
 	}
     // As the first version has only one encoder (for the angle), only the angle part has the close loop control.
-   steeringTarget = ctrl_var.data[0];
+   steeringTarget = encoder_resolution-1-ctrl_var.data[0];
 }
 
 //***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
-ros::Subscriber<std_msgs::UInt16MultiArray> sub("WheelControl00", &Actuate);
+ros::Subscriber<std_msgs::UInt16MultiArray> sub("WheelControl0x", &Actuate);
 
 void Driving(){
     int error = drive_input - Speed;
@@ -208,8 +208,9 @@ void Query()
   }
   digitalWrite(csn,HIGH);
   Angle=(dataActuator[0]-_zero+encoder_resolution)%encoder_resolution;
-  Speed=(-dataActuator[1]+_last+encoder_resolution)%encoder_resolution;
-  _last = dataActuator[1];
+  dataActuator[0] = encoder_resolution-1-dataActuator[0];
+  //Speed=(-dataActuator[1]+_last+encoder_resolution)%encoder_resolution;
+  //_last = dataActuator[1];
   //Angle=dataActuator[0];
   
   dataPower[0] = analogRead (VOLT)*(0.02892+0.00002576*analogRead (VOLT))+2.99;
