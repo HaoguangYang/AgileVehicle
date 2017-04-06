@@ -3,6 +3,7 @@
 
 ## Latest Update:
 **Mar 29** Won Silver Medal on the 45th International Exhibition of Inventions of Geneva.
+
 **Mar 25** Transversal maneuvers realized through open-loop control only.
 
 ## Linux Prerequisites
