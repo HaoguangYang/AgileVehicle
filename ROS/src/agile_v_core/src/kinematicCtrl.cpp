@@ -39,15 +39,15 @@ double SteeringWheel2Radius (int SteeringWheelVal, int mode)
 	switch (mode){
     	case 0:			//Default is using a y=kx+1/x model to cast -32767~32767 to -inf~inf
 	    {
-	    	return (1/SteeringWheelVal-SteeringWheelVal/32767*32767);
+	    	return (32767/SteeringWheelVal-SteeringWheelVal/32767);
 	    	break;
 	    }
 	    case 1:			//Using y=k/[x(+-)b] model
 	    {
 	    	if (SteeringWheelVal>=0)
-	    		return (1/SteeringWheelVal-1/32767);
+	    		return (1.5*(32767/SteeringWheelVal-1));
 	    	else
-	    		return (1/SteeringWheelVal+1/32767);
+	    		return (1.5*(32767/SteeringWheelVal+1));
 	    	break;
 	    }
     }
