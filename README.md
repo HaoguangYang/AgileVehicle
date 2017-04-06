@@ -1,6 +1,9 @@
 # AgileVehicle
 ## The AgileVehicle Project, an automated road vehicle that take you wherever your destination is in whatever attitude you want.
-Coming soon.
+
+## Latest Update:
+**Mar 29** Won Silver Medal on the 45th International Exhibition of Inventions of Geneva.
+**Mar 25** Transversal maneuvers realized through open-loop control only.
 
 ## Linux Prerequisites
 For Ubuntu and other Debian based users, please run the following command to ensure everything is set up:
