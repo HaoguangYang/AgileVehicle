@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(steering_wheel)
+project(virtual_device_debugger)
 
 #SDL2
 SET(SDL2_SEARCH_PATHS
@@ -72,6 +72,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  sensor_msgs
   message_generation
 )
 find_package(SDL2 REQUIRED)
@@ -110,6 +111,7 @@ find_package(SDL2 REQUIRED)
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
+
  add_message_files(
    FILES
    joyinfoex.msg
@@ -168,7 +170,7 @@ find_package(SDL2 REQUIRED)
 catkin_package(
   INCLUDE_DIRS include
   LIBRARIES steering_wheel
-  CATKIN_DEPENDS roscpp rospy std_msgs message_runtime
+  CATKIN_DEPENDS roscpp rospy sensor_msgs std_msgs message_runtime
   DEPENDS SDL2
 )
 
@@ -188,7 +190,7 @@ include_directories(
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/steering_wheel.cpp
+#   src/${PROJECT_NAME}/virtual_device_debugger.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -257,7 +259,7 @@ include_directories(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_steering_wheel.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_virtual_device_debugger.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

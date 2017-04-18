@@ -1,0 +1,8 @@
+prefix=/mnt/Data/AgileV_dev/ROS/devel
+
+Name: virtual_device_debugger
+Description: Description of virtual_device_debugger
+Version: 0.0.0
+Cflags: 
+Libs: -L/mnt/Data/AgileV_dev/ROS/devel/lib 
+Requires: 
