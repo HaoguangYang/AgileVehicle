@@ -49,6 +49,7 @@ sed -i "/${match}/a${insert}" $configFile
 
 echo "----------------- MAKING ARDUINO CODE -----------------"
 cd ../../Arduino
+echo "#### Arduino 1.5.0 or higher version is REQUIRED. ####"
 
 sed 's/0x"/00"/g' Arduino.ino
 sed 's/_zero=0; /_zero=231; /g' Arduino.ino

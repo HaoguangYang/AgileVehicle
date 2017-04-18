@@ -1,13 +1,15 @@
 #!/bin/bash
 echo "
-     A        GGGGGGG     IIIII    LLL        EEEEEEEEE  VV       VV
-    AAA      GG     GG     III     LLL        EEE        VV       VV
-   AA AA    GGG            III     LLL        EEE        VV       VV
+
+     A        GGGGGGG     IIIII    LLL        EEEEEEEEE  VVV      VV
+    AAA      GG     GG     III     LLL        EEE        VVV      VV
+   AA AA    GGG            III     LLL        EEE        VVV      VV
   AA   AA   GGG            III     LLL        EEEEEEEEE   VV     VV 
  AA     AA  GGG  GGGGG     III     LLL        EEE          VV   VV 
 AAAAAAAAAAA GGG     GG     III     LLL        EEE           VV VV
-AA       AA  GG     GG     III     LLL        EEE            VVV
-AA       AA   GGGGGGG     IIIII    LLLLLLLLL  EEEEEEEEE       V
+AA      AAA  GG     GG     III     LLL        EEE            VVV
+AA      AAA   GGGGGGG     IIIII    LLLLLLLLL  EEEEEEEEE       V
+
 "
 
 echo "------------- INITIALIZING STEERING WHEEL -------------"
