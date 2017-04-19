@@ -4,7 +4,7 @@
 using namespace std;
 
 steering_wheel::joyinfoex joyinfo;
-bool isOneWheelDebug = false;
+SDL_Joystick *joy;
 
 // application reads from the specified serial port and reports the collected data
 
@@ -260,7 +260,7 @@ int main(int argc, char* argv[])
 				{
 					case SDL_KEYDOWN:
 					/* Check the SDLKey values and move change the coords */
-						switch( event.key.keysym.sym ){
+						switch( SysEvent.key.keysym.sym ){
 						case SDLK_LEFT:
 							delta_x = -1;
 							break;
@@ -281,7 +281,7 @@ int main(int argc, char* argv[])
 					/* and y velocity variables. But we must also be       */
 					/* careful not to zero the velocities when we shouldn't*/
 					case SDL_KEYUP:
-						switch( event.key.keysym.sym ){
+						switch( SysEvent.key.keysym.sym ){
 						case SDLK_LEFT:
                         /* We check to make sure the alien is moving */
                         /* to the left. If it is then we zero the    */
@@ -313,18 +313,18 @@ int main(int argc, char* argv[])
 			}
 			SDL_FlushEvents(SDL_APP_TERMINATING, SDL_LASTEVENT); //Flush Old Events
 			if (delta_x != 0 | delta_z != 0){
-				joyinfo.dwXpos = max(min(joyinfo.dwXpos+delta_x,65535),0);
+				joyinfo.dwXpos = max(min(int(joyinfo.dwXpos+delta_x),65535),0);
 				if (delta_z < 0){
 					if (joyinfo.dwRpos==65535)
-						joyinfo.dwZpos = max(min(joyinfo.dwZpos+delta_x,65535),0);
+						joyinfo.dwZpos = max(min(int(joyinfo.dwZpos)+delta_x,65535),0);
 					else
-						joyinfo.dwRpos = max(min(joyinfo.dwRpos-delta_x,65535),0);
+						joyinfo.dwRpos = max(min(int(joyinfo.dwRpos)-delta_x,65535),0);
 				}
 				if (delta_z > 0){
 					if (joyinfo.dwZpos==65535)
-						joyinfo.dwRpos = max(min(joyinfo.dwRpos+delta_x,65535),0);
+						joyinfo.dwRpos = max(min(int(joyinfo.dwRpos)+delta_x,65535),0);
 					else
-						joyinfo.dwZpos = max(min(joyinfo.dwZpos-delta_x,65535),0);
+						joyinfo.dwZpos = max(min(int(joyinfo.dwZpos)-delta_x,65535),0);
 				}
 				steering_wheel_pub.publish(joyinfo);
 				usleep(25000);
