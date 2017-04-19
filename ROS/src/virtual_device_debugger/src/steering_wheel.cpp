@@ -80,19 +80,16 @@ int FFupdate(SDL_Joystick * joystick , unsigned short center)
 }
 
 // 单轮驱动用来显示方向盘示数
-void ActuaterFeedback(const std_msgs::UInt16MultiArray& ActuatorStatus)
+void SteerFeedback(const std_msgs::UInt16MultiArray& ActuatorStatus)
 {
     system("clear");
-	if (isOneWheelDebug)
-	{
-	    int errNum = FFupdate(joy,ActuatorStatus.data[0]);
-	    cout << "ActualSteer: " << ActuatorStatus.data[0] << endl;
-	    cout << "ActualDrive: " << ActuatorStatus.data[1] << endl;
-	    cout << "HapticsUpdateStatus: " << errNum << endl;
-	    cout << "Joystick: " << joyinfo.dwXpos << endl;
-	    cout << "          " << joyinfo.dwZpos << endl;
-	    cout << "Buffer:" <<endl;
-	}
+    int errNum = FFupdate(joy,ActuatorStatus.data[0]);
+	cout << "Actual Drive Direction  : " << ActuatorStatus.data[0] << endl;
+	cout << "Actual Heading Direction: " << ActuatorStatus.data[1] << endl;
+	cout << "Haptics Update Status   : " << errNum << endl;
+	cout << "Joystick Status         : " << joyinfo.dwXpos << endl;
+	cout << "                          " << joyinfo.dwZpos << endl;
+	cout << "Buffer:" <<endl;
 	return;
 }
 
@@ -125,54 +122,9 @@ int main(int argc, char* argv[])
     ros::NodeHandle handle;
 
     ros::Publisher steering_wheel_pub = handle.advertise<steering_wheel::joyinfoex>("SteeringWheel",10);
+	ros::Subscriber steer_feedback = handle.subscribe("SteeringWheelFeedBack", 10, SteerFeedback);
 	
     int JOYSTICKID1 = setup();
-	
-    //if (isOneWheelDebug)
-	//Flip Publisher and Subscriber.
-    ros::Publisher actuator_feedback0 = handle.subscribe("WheelActual00", 10, ActuaterFeedback);
-    ros::Publisher actuator_feedback1 = handle.subscribe("WheelActual01", 10, ActuaterFeedback);
-    ros::Publisher actuator_feedback2 = handle.subscribe("WheelActual02", 10, ActuaterFeedback);
-    ros::Publisher actuator_feedback3 = handle.subscribe("WheelActual03", 10, ActuaterFeedback);
-    ros::Subscriber wheel_pub0 = handle.advertise<std_msgs::UInt16MultiArray>("WheelControl00",2);
-    ros::Subscriber wheel_pub1 = handle.advertise<std_msgs::UInt16MultiArray>("WheelControl01",2);
-    ros::Subscriber wheel_pub2 = handle.advertise<std_msgs::UInt16MultiArray>("WheelControl02",2);
-    ros::Subscriber wheel_pub3 = handle.advertise<std_msgs::UInt16MultiArray>("WheelControl03",2);
-    
-    // Arduino 接口用
-    std_msgs::UInt16MultiArray WheelCtrl00;
-    std_msgs::UInt16MultiArray WheelCtrl01;
-    std_msgs::UInt16MultiArray WheelCtrl02;
-    std_msgs::UInt16MultiArray WheelCtrl03;
-    
-    // ROS Multiarray initialize operation	
-    WheelCtrl00.layout.dim.push_back(std_msgs::MultiArrayDimension());
-    WheelCtrl00.layout.dim[0].label = "WheelControl";
-    WheelCtrl00.layout.dim[0].size = 4;
-    WheelCtrl00.layout.dim[0].stride = 1*4;
-    
-    WheelCtrl01.layout.dim.push_back(std_msgs::MultiArrayDimension());
-    WheelCtrl01.layout.dim[0].label = "WheelControl";
-    WheelCtrl01.layout.dim[0].size = 4;
-    WheelCtrl01.layout.dim[0].stride = 1*4;
-    
-    WheelCtrl02.layout.dim.push_back(std_msgs::MultiArrayDimension());
-    WheelCtrl02.layout.dim[0].label = "WheelControl";
-    WheelCtrl02.layout.dim[0].size = 4;
-    WheelCtrl02.layout.dim[0].stride = 1*4;
-    
-    WheelCtrl03.layout.dim.push_back(std_msgs::MultiArrayDimension());
-    WheelCtrl03.layout.dim[0].label = "WheelControl";
-    WheelCtrl03.layout.dim[0].size = 4;
-    WheelCtrl03.layout.dim[0].stride = 1*4;
-
-    //Initialize the Array
-    for (int i = 0; i < 4; i++){
-        WheelCtrl00.data.push_back(0);
-        WheelCtrl01.data.push_back(0);
-        WheelCtrl02.data.push_back(0);
-        WheelCtrl03.data.push_back(0);
-    }
 	
     uint16_t driveDutycycle=0;
     uint16_t brake = 255;
@@ -182,17 +134,23 @@ int main(int argc, char* argv[])
 
 //joystick initialize***********************
 
-    joy=SDL_JoystickOpen(JOYSTICKID1);
-    if (joy) {
-        printf("Opened Joystick %d\n",JOYSTICKID1);
-        printf("Name: %s\n", SDL_JoystickNameForIndex(0));
-        printf("Number of Axes: %d\n", SDL_JoystickNumAxes(joy));
-        printf("Number of Buttons: %d\n", SDL_JoystickNumButtons(joy));
-        printf("Number of Balls: %d\n", SDL_JoystickNumBalls(joy));
-    } else {
-        printf("Couldn't open Joystick %d\n", JOYSTICKID1);
-        return -1*JOYSTICKID1;
-    }
+	if (JOYSTICKID1>=0){
+		joy=SDL_JoystickOpen(JOYSTICKID1);
+		if (joy) {
+			printf("Opened Joystick %d\n",JOYSTICKID1);
+			printf("Name: %s\n", SDL_JoystickNameForIndex(0));
+			printf("Number of Axes: %d\n", SDL_JoystickNumAxes(joy));
+			printf("Number of Buttons: %d\n", SDL_JoystickNumButtons(joy));
+			printf("Number of Balls: %d\n", SDL_JoystickNumBalls(joy));
+		}
+		else {
+			printf("Couldn't open Joystick %d\n", JOYSTICKID1);
+			printf("Using Keyboard as Virtual Control Device...");
+		}
+	}
+	else {
+		printf("Using Keyboard as Virtual Control Device...");
+	}
 
 //button status
 
@@ -213,6 +171,7 @@ int main(int argc, char* argv[])
     bool noAction = 1;
     SDL_Event SysEvent;
     bool NoQuit = true;
+	if (JOYSTICKID1>=0){
     while(NoQuit && ros::ok())
     {
     	if (SDL_PollEvent(&SysEvent)) // 如果游戏杆动了
@@ -247,41 +206,6 @@ int main(int argc, char* argv[])
 			// 发出方向盘信息
 			steering_wheel_pub.publish(joyinfo);
 			
-			if (isOneWheelDebug)
-			{
-			    //preprocessing data
-			    brake = (uint16_t)((1-joyinfo.dwRpos/65535.0)*fullDutycycle);			//Modify as necessary.
-
-			    if (brake==0) 
-				    driveDutycycle = (uint16_t)((1-joyinfo.dwZpos/65535.0)*fullDutycycle);
-			    else // 刹车的话油门至0
-				    driveDutycycle = 0;
-
-				// 转向角度
-			    steer=(uint16_t)(joyinfo.dwXpos/65535.0*encoder_resolution);
-
-			    // Output monitoring
-				cout << "buttonStatus" << bitset<64>(joyinfo.dwButtons) << endl; //Output button status
-			    cout << "X Steering Wheel:" << steer << endl;
-			    cout << "Z Throttle:" << driveDutycycle << endl;
-				cout << "R Brake:" << brake << endl;
-				
-				// Verifying data and publishing
-			    if(driveDutycycle>=0 && driveDutycycle<=255 && brake>=0 && brake<=255 && steer>=0 && steer<=encoder_resolution) //Double check
-			    {
-			    /***REFER TO ARDUINO PROGRAM***
-                    std_msgs::UInt16MultiArray ctrl_var;
-                    uint16 inputSteer;
-                    uint16 inputDrive;
-                    uint16 inputBrake;
-                    uint16 reverse;
-                    ************/
-				    WheelCtrl00.data[0] = steer;
-				    WheelCtrl00.data[1] = driveDutycycle;
-				    WheelCtrl00.data[2] = min((int)(1.5*brake),255);
-				    WheelCtrl00.data[3] = 0;
-			    }
-			    
 			    /*/TEST CODE STARTS..............................................
 			    double TrackWidth = 1.315;
 		        double WheelBase = 1.520;
@@ -302,7 +226,7 @@ int main(int argc, char* argv[])
 		        steerVal[2] = steerVal[0];
 		        steerVal[3] = steerVal[1];
 		        
-		        WheelCtrl00.data[0] = steerVal[0];    //for test code*/
+		        WheelCtrl00.data[0] = steerVal[0];    //for test code
 			    wheel_pub0.publish(WheelCtrl00);
 			    
 			    //WheelCtrl01.data[0] = steerVal[1];    //for test code
@@ -314,27 +238,100 @@ int main(int argc, char* argv[])
 			    //WheelCtrl03.data[0] = steerVal[3];    //for test code
 			    wheel_pub3.publish(WheelCtrl00);
 			    
-			    //TEST CODE ENDS................................................
+			    //TEST CODE ENDS................................................*/
 			    
 			    usleep(25000);
 			//Publish steering wheel data to one wheel for debugging
-			}
 		}       //If have sysevent then update joystick values
-		
-		
 		ros::spinOnce();
-
     }
-    
-    WheelCtrl00.data[1] = 0;//driveDutycycle;
-	WheelCtrl00.data[2] = 255;
-	wheel_pub0.publish(WheelCtrl00);
-	wheel_pub1.publish(WheelCtrl00);
-	wheel_pub2.publish(WheelCtrl00);
-	wheel_pub3.publish(WheelCtrl00);
-    ros::spinOnce();
-    
 	SDL_JoystickClose(joy);
+	}
+	else{
+		joyinfo.dwXpos = 32768;
+		joyinfo.dwRpos = 65535;			//Zero Brake
+		joyinfo.dwZpos = 65535;			//Zero Power
+		while(NoQuit && ros::ok())
+		{
+			short int delta_x, delta_z;
+			if (SDL_PollEvent(&SysEvent)) // 如果游戏杆动了
+			{
+				switch (SysEvent.type)
+				{
+					case SDL_KEYDOWN:
+					/* Check the SDLKey values and move change the coords */
+						switch( event.key.keysym.sym ){
+						case SDLK_LEFT:
+							delta_x = -1;
+							break;
+						case SDLK_RIGHT:
+							delta_x =  1;
+							break;
+						case SDLK_UP:
+							delta_z = -1;
+							break;
+						case SDLK_DOWN:
+							delta_z =  1;
+							break;
+						default:
+							break;
+						}
+						break;
+					/* We must also use the SDL_KEYUP events to zero the x */
+					/* and y velocity variables. But we must also be       */
+					/* careful not to zero the velocities when we shouldn't*/
+					case SDL_KEYUP:
+						switch( event.key.keysym.sym ){
+						case SDLK_LEFT:
+                        /* We check to make sure the alien is moving */
+                        /* to the left. If it is then we zero the    */
+                        /* velocity. If the alien is moving to the   */
+                        /* right then the right key is still press   */
+                        /* so we don't tocuh the velocity            */
+							if( delta_x < 0 )
+								delta_x = 0;
+							break;
+						case SDLK_RIGHT:
+							if( delta_x > 0 )
+								delta_x = 0;
+							break;
+						case SDLK_UP:
+							if( delta_z < 0 )
+								delta_z = 0;
+							break;
+						case SDLK_DOWN:
+							if( delta_z > 0 )
+								delta_z = 0;
+							break;
+						default:
+							break;
+						}
+						break;
+					default:
+						break;
+				}
+			}
+			SDL_FlushEvents(SDL_APP_TERMINATING, SDL_LASTEVENT); //Flush Old Events
+			if (delta_x != 0 | delta_z != 0){
+				joyinfo.dwXpos = max(min(joyinfo.dwXpos+delta_x,65535),0);
+				if (delta_z < 0){
+					if (joyinfo.dwRpos==65535)
+						joyinfo.dwZpos = max(min(joyinfo.dwZpos+delta_x,65535),0);
+					else
+						joyinfo.dwRpos = max(min(joyinfo.dwRpos-delta_x,65535),0);
+				}
+				if (delta_z > 0){
+					if (joyinfo.dwZpos==65535)
+						joyinfo.dwRpos = max(min(joyinfo.dwRpos+delta_x,65535),0);
+					else
+						joyinfo.dwZpos = max(min(joyinfo.dwZpos-delta_x,65535),0);
+				}
+				steering_wheel_pub.publish(joyinfo);
+				usleep(25000);
+			}
+			ros::spinOnce();
+		}
+	}
 	//system("pause");
 	return 0;
 }
