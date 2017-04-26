@@ -16,25 +16,33 @@ int setup(void)
 	unsigned int JOYSTICKID1;
 	if (SDL_Init(SDL_INIT_JOYSTICK) < 0){
         cout << "Error initializing SDL!" << endl;
-        return -1;
+        exit( -1 );
+    }
+    
+    /* Initialise SDL */
+    if( SDL_Init( SDL_INIT_VIDEO ) < 0){
+        fprintf( stderr, "Could not initialise SDL: %s\n", SDL_GetError() );
+        exit( -1 );
     }
     
     int CtrlNum = SDL_NumJoysticks();
     if (CtrlNum == 1)
         JOYSTICKID1 = 0;
-    else if (CtrlNum == 0) {
-		cout << "There is 0 physical controllers found..." << endl;
-		return -2;
-	}
-	else {
-        cout << "There are " << CtrlNum << " physical controllers found..." << endl;
-        for(int i=0;i<CtrlNum;i++)
-        {
-            joy = SDL_JoystickOpen(i);
-            printf("%s\n", SDL_JoystickName(joy));
+    else{
+        if (CtrlNum == 0) {
+		    cout << "There is 0 physical controllers found..." << endl;
+		    JOYSTICKID1 = -2;
+	    }
+	    else {
+            cout << "There are " << CtrlNum << " physical controllers found..." << endl;
+            for(int i=0;i<CtrlNum;i++)
+            {
+                joy = SDL_JoystickOpen(i);
+                printf("%s\n", SDL_JoystickName(joy));
+            }
+            cout << "Choose the one you wish to use: " << endl;
+            cin >> JOYSTICKID1;
         }
-        cout << "Choose the one you wish to use: " << endl;
-        cin >> JOYSTICKID1;
     }
     return JOYSTICKID1;
 }
@@ -145,11 +153,11 @@ int main(int argc, char* argv[])
 		}
 		else {
 			printf("Couldn't open Joystick %d\n", JOYSTICKID1);
-			printf("Using Keyboard as Virtual Control Device...");
+			printf("Using Keyboard Input as Virtual Control Device...");
 		}
 	}
 	else {
-		printf("Using Keyboard as Virtual Control Device...");
+		cout << "Using Keyboard Input as Virtual Control Device..." << endl;
 	}
 
 //button status
@@ -205,40 +213,6 @@ int main(int argc, char* argv[])
 			}
 			// 发出方向盘信息
 			steering_wheel_pub.publish(joyinfo);
-			
-			    /*/TEST CODE STARTS..............................................
-			    double TrackWidth = 1.315;
-		        double WheelBase = 1.520;
-		        double Mass = 450.0;
-		        double WheelRadius = 0.6114*0.5;
-			    
-			    double radius = SteeringWheel2Radius(joyinfo.dwXpos-32768,0);
-			    
-			    cout << radius << endl;
-			    
-			    double leftBase = radius-TrackWidth/2;  //Left Side of Vehicle to Steering Center
-		        double rightBase = radius+TrackWidth/2; //Right Side ...
-		        if (leftBase == 0) leftBase = 0.00001;
-		        if (rightBase == 0) rightBase = 0.00001;
-		        uint16_t steerVal[4];
-		        steerVal[0] = 4095-((uint16_t)(atan(WheelBase/2/leftBase)*(encoder_resolution+1)*0.5/M_PI)+encoder_resolution+1)%(encoder_resolution+1);
-		        steerVal[1] = 4095-((uint16_t)(atan(WheelBase/2/rightBase)*(encoder_resolution+1)*0.5/M_PI)+encoder_resolution+1)%(encoder_resolution+1);
-		        steerVal[2] = steerVal[0];
-		        steerVal[3] = steerVal[1];
-		        
-		        WheelCtrl00.data[0] = steerVal[0];    //for test code
-			    wheel_pub0.publish(WheelCtrl00);
-			    
-			    //WheelCtrl01.data[0] = steerVal[1];    //for test code
-			    wheel_pub1.publish(WheelCtrl00);
-			    
-			    //WheelCtrl02.data[0] = steerVal[2];    //for test code
-			    wheel_pub2.publish(WheelCtrl00);
-			    
-			    //WheelCtrl03.data[0] = steerVal[3];    //for test code
-			    wheel_pub3.publish(WheelCtrl00);
-			    
-			    //TEST CODE ENDS................................................*/
 			    
 			    usleep(25000);
 			//Publish steering wheel data to one wheel for debugging
@@ -253,13 +227,16 @@ int main(int argc, char* argv[])
 		joyinfo.dwZpos = 65535;			//Zero Power
 		while(NoQuit && ros::ok())
 		{
-			short int delta_x, delta_z;
-			if (SDL_PollEvent(&SysEvent)) // 如果游戏杆动了
+		    cin >> joyinfo.dwXpos;
+		    cin >> joyinfo.dwRpos;
+		    cin >> joyinfo.dwZpos;
+			//int delta_x, delta_z;
+			if (SDL_PollEvent(&SysEvent))
 			{
 				switch (SysEvent.type)
 				{
-					case SDL_KEYDOWN:
-					/* Check the SDLKey values and move change the coords */
+					/*case SDL_KEYDOWN:
+					// Check the SDLKey values and move change the coords
 						switch( SysEvent.key.keysym.sym ){
 						case SDLK_LEFT:
 							delta_x = -1;
@@ -277,17 +254,17 @@ int main(int argc, char* argv[])
 							break;
 						}
 						break;
-					/* We must also use the SDL_KEYUP events to zero the x */
-					/* and y velocity variables. But we must also be       */
-					/* careful not to zero the velocities when we shouldn't*/
+					// We must also use the SDL_KEYUP events to zero the x 
+					// and y velocity variables. But we must also be       
+					// careful not to zero the velocities when we shouldn't
 					case SDL_KEYUP:
 						switch( SysEvent.key.keysym.sym ){
 						case SDLK_LEFT:
-                        /* We check to make sure the alien is moving */
-                        /* to the left. If it is then we zero the    */
-                        /* velocity. If the alien is moving to the   */
-                        /* right then the right key is still press   */
-                        /* so we don't tocuh the velocity            */
+                        // We check to make sure the alien is moving 
+                        // to the left. If it is then we zero the    
+                        // velocity. If the alien is moving to the   
+                        // right then the right key is still press   
+                        // so we don't tocuh the velocity            
 							if( delta_x < 0 )
 								delta_x = 0;
 							break;
@@ -306,29 +283,41 @@ int main(int argc, char* argv[])
 						default:
 							break;
 						}
-						break;
+						break;*/
+					case SDL_QUIT:
+	    	        {
+	    	            NoQuit = false;
+	    	            break;
+	    	        }
 					default:
 						break;
 				}
 			}
-			SDL_FlushEvents(SDL_APP_TERMINATING, SDL_LASTEVENT); //Flush Old Events
-			if (delta_x != 0 | delta_z != 0){
+			//SDL_FlushEvents(SDL_APP_TERMINATING, SDL_LASTEVENT); //Flush Old Events
+			//cout << "Done" << endl;
+			/*if (delta_x != 0 | delta_z != 0){
 				joyinfo.dwXpos = max(min(int(joyinfo.dwXpos+delta_x),65535),0);
 				if (delta_z < 0){
 					if (joyinfo.dwRpos==65535)
-						joyinfo.dwZpos = max(min(int(joyinfo.dwZpos)+delta_x,65535),0);
+						joyinfo.dwZpos = max(min(int(joyinfo.dwZpos)+delta_z,65535),0);
 					else
-						joyinfo.dwRpos = max(min(int(joyinfo.dwRpos)-delta_x,65535),0);
+						joyinfo.dwRpos = max(min(int(joyinfo.dwRpos)-delta_z,65535),0);
 				}
 				if (delta_z > 0){
 					if (joyinfo.dwZpos==65535)
-						joyinfo.dwRpos = max(min(int(joyinfo.dwRpos)+delta_x,65535),0);
+						joyinfo.dwRpos = max(min(int(joyinfo.dwRpos)+delta_z,65535),0);
 					else
-						joyinfo.dwZpos = max(min(int(joyinfo.dwZpos)-delta_x,65535),0);
-				}
+						joyinfo.dwZpos = max(min(int(joyinfo.dwZpos)-delta_z,65535),0);
+				}*/
 				steering_wheel_pub.publish(joyinfo);
+	/****/
+	system("clear");
+	cout << "Joystick Status         : " << joyinfo.dwXpos << endl;
+	cout << "                          " << joyinfo.dwRpos << endl;
+	cout << "                          " << joyinfo.dwZpos << endl;
+	/****/
 				usleep(25000);
-			}
+			//}
 			ros::spinOnce();
 		}
 	}
