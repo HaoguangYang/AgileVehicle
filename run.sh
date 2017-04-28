@@ -1,23 +1,33 @@
 #!/bin/bash
 echo "
-     A        GGGGGGG     IIIII    LLL        EEEEEEEEE  VV       VV
-    AAA      GG     GG     III     LLL        EEE        VV       VV
-   AA AA    GGG            III     LLL        EEE        VV       VV
+
+     A        GGGGGGG     IIIII    LLL        EEEEEEEEE  VVV      VV
+    AAA      GG     GG     III     LLL        EEE        VVV      VV
+   AA AA    GGG            III     LLL        EEE        VVV      VV
   AA   AA   GGG            III     LLL        EEEEEEEEE   VV     VV 
  AA     AA  GGG  GGGGG     III     LLL        EEE          VV   VV 
 AAAAAAAAAAA GGG     GG     III     LLL        EEE           VV VV
-AA       AA  GG     GG     III     LLL        EEE            VVV
-AA       AA   GGGGGGG     IIIII    LLLLLLLLL  EEEEEEEEE       V
+AA      AAA  GG     GG     III     LLL        EEE            VVV
+AA      AAA   GGGGGGG     IIIII    LLLLLLLLL  EEEEEEEEE       V
+
 "
 
-echo "------------- INITIALIZING STEERING WHEEL -------------"
-#initialize Logitech drivers
-cd ./LogitechFFDrivers
-sudo make load_g29
-read -p "Please reset the steering wheel (unplug/plug), then press any key to continue..."
+for arg in "$@"
+do
+    case "$arg" in
+    "-load_g29")
+        echo "------------- INITIALIZING STEERING WHEEL -------------"
+        #initialize Logitech drivers
+        cd ./LogitechFFDrivers
+        sudo make load_g29
+        read -p "Please reset the steering wheel (unplug/plug), then press any key to continue..."
+        cd ..
+        ;;
+    esac
+done
 
 echo "-------------- CUSTOMIZING SYSTEM SETUP ---------------"
-cd ../ROS
+cd ./ROS
 source ./devel/setup.bash
 cd ./src/agile_v_core
 #modify old launch files based on input of USB port names if necessary.

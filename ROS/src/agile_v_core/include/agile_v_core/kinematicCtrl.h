@@ -19,6 +19,9 @@ void KOLCSteering(double radius, double speed, double* steerVal, double* driveVa
 void KCLCSteering(double radius, double speed, double* steerVal, double* driveVal);
 //Kinematic Closed Loop Centralized Steering
 
+void KOLHSteering(int16_t steering_wheel_input, double speed, double* steerVal, double* driveVal);
+//Kinematic Open-Loop Heading-locked Steering
+
 void KCLHSteering(int16_t steering_wheel_input, double speed, double* steerVal, double* driveVal);
 //Kinematic Closed Loop Heading-locked Steering
 

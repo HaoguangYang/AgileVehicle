@@ -16,16 +16,15 @@ void publishToWheels(ros::NodeHandle handle, ros::Publisher* wheel_pub, std_msgs
     uint16_t drive[4];
     uint16_t brake[4];
 
-    double ratio = 1.0; //PowerMizer();
     bool IsBrake = true;
     for (int i=0; i<4; i++){
-   		steer[i] = Enc[0][i].reverseAngleLookup(steerVal[i]);
+   		steer[i] = Enc[0][i].reverseAngleLookup2x(steerVal[i]);
    		IsBrake = IsBrake && (driveVal[i]<=0);
    	}
    	if (IsBrake)
    	{
    	    for (int i = 0; i<4; i++){
-   	        brake[i] = reverse_MotorPerformance(-driveVal[i], -Torque[i]) * ratio;
+   	        brake[i] = reverse_MotorPerformance(-driveVal[i], -Torque[i]);
    	        drive[i] = 0;
    	    }
    	}
@@ -33,7 +32,7 @@ void publishToWheels(ros::NodeHandle handle, ros::Publisher* wheel_pub, std_msgs
    	{
    	    for (int i = 0; i<4; i++){
    	        brake[i] = 0;
-   	        drive[i] = reverse_MotorPerformance(driveVal[i], Torque[i]) * ratio;
+   	        drive[i] = reverse_MotorPerformance(driveVal[i], Torque[i]);
    	    }
    	}
    	
@@ -44,6 +43,12 @@ void publishToWheels(ros::NodeHandle handle, ros::Publisher* wheel_pub, std_msgs
     	WheelCtrl[i].data[2] = brake[i];
     	WheelCtrl[i].data[3] = 0;
     }
+    
+    system("clear");
+    for (int i = 0; i<4; i++){
+    	cout << "Steering of Wheel " << i << " :    " << WheelCtrl[i].data[0] << endl;
+    }
+    
    	//publish control message
    	
     #pragma omp parallel for num_threads(4)

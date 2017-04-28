@@ -109,6 +109,11 @@ public:
     {
         return (((uint16_t)(angle_in*_resolution*0.5/M_PI))%_resolution);
     }
+    
+    uint16_t reverseAngleLookup2x(double angle_in)
+    {
+        return (((uint16_t)(angle_in*_resolution/M_PI))%_resolution);
+    }
 };
 
 #endif
