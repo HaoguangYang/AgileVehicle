@@ -1,5 +1,4 @@
 #include <ros.h>
-//#include <FlexiTimer2.h>
 #include <std_msgs/UInt16MultiArray.h>
 #include <std_msgs/Float32MultiArray.h>
 #include <std_msgs/Int32MultiArray.h>
@@ -19,16 +18,20 @@
 
 ros::NodeHandle handle;
 const uint16_t encoder_resolution = 4096;
-const unsigned int updateTime = 40000;	//Time in us
-const unsigned int queryTime = 1000;	//Time in us
-int pulseTime = 100;                	//Time in us
-uint16_t Angle = 0;
-int16_t Speed = 0;
-uint16_t steeringTarget = 0;
-uint16_t _zero=0;
-uint16_t _last = 0;
+const uint16_t         updateTime = 40000;	//Time in us
+const uint16_t          queryTime = 1000;	//Time in us
+const uint16_t              _zero = 0;
+uint16_t                pulseTime = 100;    //Time in us
+uint16_t                    Angle = 0;
+uint16_t           steeringTarget = 0;
 uint16_t drive_input;
-uint16_t drive_val;
+float throttle;
+
+uint16_t dataActuator[2];
+float dataPower[3];
+
+//int16_t  Speed = 0;
+//uint16_t _last = 0;
 
 std_msgs::UInt16MultiArray ActuatorStatus;
 /************
@@ -50,8 +53,8 @@ std_msgs::UInt16MultiArray ctrl_var;
 ************/
 
 //***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
-ros::Publisher assessActual("WheelActual0x", &ActuatorStatus);
-ros::Publisher assessPower("UnitPower0x", &PowerStatus);
+ros::Publisher assessActual("WheelActual00", &ActuatorStatus);
+ros::Publisher assessPower("UnitPower00", &PowerStatus);
 
 unsigned long time_last;                 //for Buffer flushing
 unsigned long time_last_query;           //for Query
@@ -68,7 +71,7 @@ void Actuate( const std_msgs::UInt16MultiArray& ctrl_var){
 	drive_input = ctrl_var.data[1];
 	if (ctrl_var.data[2]==0){
 		//ctrl_var.data[1] = ctrl_var.data[1] + 75;	//Calibration of controller to elliminate dead zone
-		analogWrite(CONTRL,drive_input);	//Normal Driving
+		analogWrite(CONTRL,drive_input*throttle);	//Normal Driving
 		analogWrite(BREAK,0);
 	}
 	else{											//Breaking
@@ -80,13 +83,7 @@ void Actuate( const std_msgs::UInt16MultiArray& ctrl_var){
 }
 
 //***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
-ros::Subscriber<std_msgs::UInt16MultiArray> sub("WheelControl0x", &Actuate);
-
-void Driving(){
-    int error = drive_input - Speed;
-    drive_val = error/255*180 + 75;
-    drive_val = max(min(drive_val * min(1000.0 / (PowerStatus.data[0]*PowerStatus.data[2]),1.0),255),0);
-}
+ros::Subscriber<std_msgs::UInt16MultiArray> sub("WheelControl00", &Actuate);
 
 void Steering(){
 	//-------------------start angle control------------------------------------
@@ -94,7 +91,7 @@ void Steering(){
         //Serial.println("bad DesiredAngle input.");
     }
     else {
-		int err = (steeringTarget-Angle+encoder_resolution)%(encoder_resolution)-(encoder_resolution*0.5);
+		int16_t err = (steeringTarget-Angle+encoder_resolution)%(encoder_resolution)-(encoder_resolution*0.5);
 		//min(min(abs(steeringTarget-Angle),abs(steeringTarget-Angle+encoder_resolution)),abs(steeringTarget-Angle-encoder_resolution));
         if(!(abs(err)<40)) {
 			pulseTime = 7000/(1.1*abs(err)+5);	//Need Modification
@@ -108,6 +105,10 @@ void Steering(){
         //end while loop 
     }
 	//----------------end angle control---------------------------------------------  
+}
+
+void Throttling(){
+    throttle = min(throttle * 1050.0 / max(PowerStatus.data[0]*PowerStatus.data[2],0.001),1.0);
 }
 
 void setup() {
@@ -128,7 +129,7 @@ void setup() {
     PowerStatus.layout.dim[0].label = "UnitPower";
     PowerStatus.layout.dim[0].size = 3;
     PowerStatus.layout.dim[0].stride = 1*3;
-    //PowerStatus.layout.data_offset = 0;
+    PowerStatus.layout.data_offset = 0;
     PowerStatus.data = (float *)malloc(sizeof(float)*3);
     PowerStatus.data_length = 3;
     handle.advertise(assessPower);
@@ -138,17 +139,13 @@ void setup() {
     ActuatorStatus.layout.dim[0].label = "WheelActual";
     ActuatorStatus.layout.dim[0].size = 2;
     ActuatorStatus.layout.dim[0].stride = 1*2;
-    //ActuatorStatus.layout.data_offset = 0;
+    ActuatorStatus.layout.data_offset = 0;
     ActuatorStatus.data = (uint16_t *)malloc(sizeof(uint16_t)*2);
     ActuatorStatus.data_length = 2;
     handle.advertise(assessActual);
 	
 	steeringTarget = ActuatorStatus.data[0];	//Stop Init Steering of the wheel
 	
-	//Initiate Steering Actuator and run via FlexiTimer
-	//Query();
-	//FlexiTimer2::set(updateTime,Query);  //time in the unit of ms
-    //FlexiTimer2::start();
 }
 
 void loop() {
@@ -159,7 +156,7 @@ void loop() {
    }
    if ((unsigned long)(time_now - time_last_query) > queryTime){
        Query();
-       Driving();
+       Throttling();
        time_last_query = micros();
    }
    if ((unsigned long)(time_now - time_last_publish) > updateTime){
@@ -185,11 +182,11 @@ void Flip(bool direc) {
 
 void Query()
 {
-  uint16_t dataActuator[2] = {0};
-  float dataPower[3];
+  dataActuator[0] = 0;
+  dataActuator[1] = 0;
   digitalWrite(csn,LOW);
   delayMicroseconds(1);
-  for (int k=0;k<12;k++)
+  for (uint8_t k=0;k<12;k++)
   {
     digitalWrite(clk,LOW);
     delayMicroseconds(1);
@@ -199,7 +196,7 @@ void Query()
     dataActuator[1]=(dataActuator[1]<<1)+digitalRead(datD);		//Driving
     //delayMicroseconds(1);
   }
-  for (int k=0;k<6;k++)
+  for (uint8_t k=0;k<6;k++)
   {
     digitalWrite(clk,LOW);
     delayMicroseconds(1);
@@ -216,18 +213,12 @@ void Query()
   dataPower[0] = analogRead (VOLT)*(0.02892+0.00002576*analogRead (VOLT))+2.99;
   dataPower[1] = (analogRead (AMPS)-512)*30/409.6;
   dataPower[2] = (analogRead (AMPD)-512)*30/409.6;
-  
-  ActuatorStatus.data = dataActuator;
-  PowerStatus.data = dataPower;
-  
-  ActuatorStatus.data[0] = drive_input;
-  ActuatorStatus.data[1] = drive_val;
 }
 
-void Publish()
-{  
-  assessActual.publish (&ActuatorStatus);
-  assessPower.publish (&PowerStatus);
-  //Serial.write((const uint8_t*)&to_send,sizeof(serial_format));
+void Publish(){
+    ActuatorStatus.data = dataActuator;
+    PowerStatus.data = dataPower;
+    assessActual.publish (&ActuatorStatus);
+    assessPower.publish (&PowerStatus);
 }
 

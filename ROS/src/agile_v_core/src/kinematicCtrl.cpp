@@ -75,9 +75,9 @@ void KOLCSteering(double radius, double speed, double* steerVal, double* driveVa
 		steerVal[2] = -steerVal[0];
 		steerVal[3] = -steerVal[1];
 		
-		for (int i = 0; i<4; i++){
-    	    cout << "Steering Angle of Wheel " << i << " :    " << steerVal[i] << endl;
-        }
+		//for (int i = 0; i<4; i++){
+    	//    cout << "Steering Angle of Wheel " << i << " :    " << steerVal[i] << endl;
+        //}
 		
 		double omega = speed/radius;
 		double Rleft = sqrt(leftBase*leftBase+Vehicle.WheelBase*Vehicle.WheelBase/4); // 左轮的转弯半径
@@ -116,6 +116,21 @@ void KCLCSteering(double radius, double speed, double* steerVal, double* driveVa
 	//steerVal NEEDS CONVERSION!!!
 	//driveVal NEEDS CONVERSION!!!
 	return;
+}
+
+
+void KOLHSteering(int16_t steering_wheel_input, double speed, double* steerVal, double* driveVal)
+{
+    //Kinematic Open-Loop Heading-locked Steering
+    steerVal[0] = steering_wheel_input/32767.0*M_PI*0.5;
+	steerVal[1] = steerVal[0];
+	steerVal[2] = steerVal[0];
+	steerVal[3] = steerVal[0];
+	driveVal[0] = speed;
+	driveVal[1] = speed;
+	driveVal[2] = speed;
+	driveVal[3] = speed;
+    return;
 }
 
 

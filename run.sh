@@ -12,14 +12,18 @@ AA      AAA   GGGGGGG     IIIII    LLLLLLLLL  EEEEEEEEE       V
 
 "
 
-echo "------------- INITIALIZING STEERING WHEEL -------------"
-#initialize Logitech drivers
-cd ./LogitechFFDrivers
-sudo make load_g29
-read -p "Please reset the steering wheel (unplug/plug), then press any key to continue..."
+while getopts load_g29: 
+do
+    echo "------------- INITIALIZING STEERING WHEEL -------------"
+    #initialize Logitech drivers
+    cd ./LogitechFFDrivers
+    sudo make load_g29
+    read -p "Please reset the steering wheel (unplug/plug), then press any key to continue..."
+    cd ..
+done
 
 echo "-------------- CUSTOMIZING SYSTEM SETUP ---------------"
-cd ../ROS
+cd ./ROS
 source ./devel/setup.bash
 cd ./src/agile_v_core
 #modify old launch files based on input of USB port names if necessary.
