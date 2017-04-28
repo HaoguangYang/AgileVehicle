@@ -169,7 +169,7 @@ find_package(SDL2 REQUIRED)
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-  LIBRARIES steering_wheel
+#  LIBRARIES steering_wheel
   CATKIN_DEPENDS roscpp rospy sensor_msgs std_msgs message_runtime
   DEPENDS SDL2
 )
@@ -201,7 +201,8 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
- add_executable(${PROJECT_NAME}_node src/steering_wheel.cpp)
+ add_executable(virtual_steering_wheel_node src/steering_wheel.cpp)
+ add_executable(virtual_agile_vehicle_node src/wheels.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -214,7 +215,12 @@ include_directories(
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
- target_link_libraries(${PROJECT_NAME}_node
+ target_link_libraries(virtual_steering_wheel_node
+   ${SDL2_LIBRARY}
+   ${catkin_LIBRARIES}
+ )
+ 
+ target_link_libraries(virtual_agile_vehicle_node
    ${SDL2_LIBRARY}
    ${catkin_LIBRARIES}
  )

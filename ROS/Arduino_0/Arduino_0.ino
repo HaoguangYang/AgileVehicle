@@ -75,7 +75,7 @@ void Actuate( const std_msgs::UInt16MultiArray& ctrl_var){
 		analogWrite(BREAK,ctrl_var.data[2]);
 	}
     // As the first version has only one encoder (for the angle), only the angle part has the close loop control.
-   steeringTarget = ctrl_var.data[0];
+   steeringTarget = ctrl_var.data[0];               //Modify here as res-data[0] OR in publisher.
 }
 
 //***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//

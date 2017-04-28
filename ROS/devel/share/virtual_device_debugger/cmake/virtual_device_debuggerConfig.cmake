@@ -109,7 +109,7 @@ if(NOT "/mnt/Data/AgileV_dev/ROS/devel/include;/mnt/Data/AgileV_dev/ROS/src/virt
   endforeach()
 endif()
 
-set(libraries "steering_wheel;-L/usr/lib/x86_64-linux-gnu  -lSDL2 ")
+set(libraries "-L/usr/lib/x86_64-linux-gnu  -lSDL2 ")
 foreach(library ${libraries})
   # keep build configuration keywords, target names and absolute libraries as-is
   if("${library}" MATCHES "^(debug|optimized|general)$")

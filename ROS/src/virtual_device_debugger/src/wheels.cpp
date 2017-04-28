@@ -1,4 +1,4 @@
-#include <ros.h>
+#include "ros/ros.h"
 //#include <FlexiTimer2.h>
 #include <std_msgs/UInt16MultiArray.h>
 #include <std_msgs/Float32MultiArray.h>
@@ -220,7 +220,7 @@ void Query()
   digitalWrite(csn,HIGH);
   */
 
-  dataActuator[0] = angle/360*4096+_zero;
+  dataActuator[0] = (angle/360*4096)%4096+_zero;
   dataActuator[1] = dataActuator[1]+vel/4096;
   Angle=(dataActuator[0]-_zero+encoder_resolution)%encoder_resolution;
   Speed=(-dataActuator[1]+_last+encoder_resolution)%encoder_resolution;
