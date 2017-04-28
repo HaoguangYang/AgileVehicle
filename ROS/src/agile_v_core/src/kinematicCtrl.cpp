@@ -1,4 +1,5 @@
 //#include <limits.h>
+#include <float.h>
 #include "kinematicCtrl.h"
 
 double step_time;
@@ -39,15 +40,17 @@ double SteeringWheel2Radius (int SteeringWheelVal, int mode)
 	switch (mode){
     	case 0:			//Default is using a y=kx+1/x model to cast -32767~32767 to -inf~inf
 	    {
-	    	return (32767/SteeringWheelVal-SteeringWheelVal/32767);
+	    	return (32767.0/SteeringWheelVal-SteeringWheelVal/32767.0);
 	    	break;
 	    }
 	    case 1:			//Using y=k/[x(+-)b] model
 	    {
-	    	if (SteeringWheelVal>=0)
-	    		return (1.5*(32767/SteeringWheelVal-1));
+	    	if (SteeringWheelVal>0)
+	    		return (1.5*(32767.0/SteeringWheelVal-1.0));
+	    	else if (SteeringWheelVal<0)
+	    		return (1.5*(32767.0/SteeringWheelVal+1.0));
 	    	else
-	    		return (1.5*(32767/SteeringWheelVal+1));
+	    	    return (DBL_MAX);
 	    	break;
 	    }
     }
@@ -67,10 +70,15 @@ void KOLCSteering(double radius, double speed, double* steerVal, double* driveVa
 	{
 		double leftBase = radius-Vehicle.TrackWidth/2;  //Left Side of Vehicle to Steering Center
 		double rightBase = radius+Vehicle.TrackWidth/2; //Right Side ...
-		steerVal[0] = Enc[0][0].reverseAngleLookup(atan(Vehicle.WheelBase/2/leftBase));
-		steerVal[1] = Enc[0][1].reverseAngleLookup(atan(Vehicle.WheelBase/2/rightBase));
+		steerVal[0] = atan(Vehicle.WheelBase/2/leftBase);
+		steerVal[1] = atan(Vehicle.WheelBase/2/rightBase);
 		steerVal[2] = -steerVal[0];
 		steerVal[3] = -steerVal[1];
+		
+		for (int i = 0; i<4; i++){
+    	    cout << "Steering Angle of Wheel " << i << " :    " << steerVal[i] << endl;
+        }
+		
 		double omega = speed/radius;
 		double Rleft = sqrt(leftBase*leftBase+Vehicle.WheelBase*Vehicle.WheelBase/4); // 左轮的转弯半径
 		double Rright = sqrt(rightBase*rightBase+Vehicle.WheelBase*Vehicle.WheelBase/4);

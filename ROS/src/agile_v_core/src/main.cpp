@@ -13,11 +13,13 @@ bool IsZeroCorrect[4] = {false, false, false, false};
 
 void Call_back(const agile_v_core::joyinfoex& controlInput)
 {
-	int16_t steeringIn = controlInput.dwXpos;
+	int16_t steeringIn = controlInput.dwXpos-32768;     //from uint to int
 	double speed = controlInput.dwZpos/32767*10;
 	double radius = SteeringWheel2Radius(steeringIn, 1);
 	
-	KCLCSteering(radius, speed, steerVal, driveVal);
+	cout << "Radius: " << radius << endl;
+	
+	KOLCSteering(radius, speed, steerVal, driveVal);
 	//control val calc
 }
 
@@ -49,7 +51,7 @@ int main(int argc, char* argv[])
 	for (int i = 0; i < 4; i++)
 	    IsZeroCorrect[i] = !IsErr;
 	
-	usleep(25000);
+	//usleep(25000);
 	
 	ros::Subscriber joystick_input = handle.subscribe("SteeringWheel", 10, Call_back);
 	

@@ -5,7 +5,7 @@ using namespace std;
 
 steering_wheel::joyinfoex joyinfo;
 SDL_Joystick *joy;
-bool isOneWheelDebug = true;
+bool isOneWheelDebug = false;
 
 // application reads from the specified serial port and reports the collected data
 
@@ -80,16 +80,16 @@ int FFupdate(SDL_Joystick * joystick , unsigned short center)
 void ActuaterFeedback(const std_msgs::UInt16MultiArray& ActuatorStatus)
 {
     system("clear");
-	if (isOneWheelDebug)
+    if (isOneWheelDebug)
 	{
 	    int errNum = FFupdate(joy,ActuatorStatus.data[0]);
 	    cout << "ActualSteer: " << ActuatorStatus.data[0] << endl;
 	    cout << "ActualDrive: " << ActuatorStatus.data[1] << endl;
 	    cout << "HapticsUpdateStatus: " << errNum << endl;
-	    cout << "Joystick: " << joyinfo.dwXpos << endl;
-	    cout << "          " << joyinfo.dwZpos << endl;
-	    cout << "Buffer:" <<endl;
 	}
+	cout << "Joystick: " << joyinfo.dwXpos << endl;
+	cout << "          " << joyinfo.dwZpos << endl;
+	cout << "Buffer:" <<endl;
 	return;
 }
 
@@ -125,7 +125,8 @@ int main(int argc, char* argv[])
 	
     int JOYSTICKID1 = setup();
 	
-    //if (isOneWheelDebug)
+/*
+    if (isOneWheelDebug)
     ros::Subscriber actuator_feedback0 = handle.subscribe("WheelActual00", 10, ActuaterFeedback);
     ros::Subscriber actuator_feedback1 = handle.subscribe("WheelActual01", 10, ActuaterFeedback);
     ros::Subscriber actuator_feedback2 = handle.subscribe("WheelActual02", 10, ActuaterFeedback);
@@ -175,6 +176,7 @@ int main(int argc, char* argv[])
     uint16_t steer=2048;
     const int encoder_resolution=4095;
     const int fullDutycycle=255;
+*/
 
 //joystick initialize***********************
 
@@ -243,6 +245,11 @@ int main(int argc, char* argv[])
 			// 发出方向盘信息
 			steering_wheel_pub.publish(joyinfo);
 			
+			system("clear");
+			cout << "Joystick: " << joyinfo.dwXpos << endl;
+	        cout << "          " << joyinfo.dwZpos << endl;
+	        
+			/*
 			if (isOneWheelDebug)
 			{
 			    //preprocessing data
@@ -272,11 +279,13 @@ int main(int argc, char* argv[])
                     uint16 inputBrake;
                     uint16 reverse;
                     ************/
+/*
 				    WheelCtrl00.data[0] = steer;
 				    WheelCtrl00.data[1] = driveDutycycle;
 				    WheelCtrl00.data[2] = min((int)(1.5*brake),255);
 				    WheelCtrl00.data[3] = 0;
 			    }
+*/
 			    
 			    /*/TEST CODE STARTS..............................................
 			    double TrackWidth = 1.315;
@@ -299,36 +308,28 @@ int main(int argc, char* argv[])
 		        steerVal[3] = steerVal[1];
 		        
 		        WheelCtrl00.data[0] = steerVal[0];    //for test code*/
-			    wheel_pub0.publish(WheelCtrl00);
+//			    wheel_pub0.publish(WheelCtrl00);
 			    
 			    //WheelCtrl01.data[0] = steerVal[1];    //for test code
-			    wheel_pub1.publish(WheelCtrl00);
+//			    wheel_pub1.publish(WheelCtrl00);
 			    
 			    //WheelCtrl02.data[0] = steerVal[2];    //for test code
-			    wheel_pub2.publish(WheelCtrl00);
+//			    wheel_pub2.publish(WheelCtrl00);
 			    
 			    //WheelCtrl03.data[0] = steerVal[3];    //for test code
-			    wheel_pub3.publish(WheelCtrl00);
+//			    wheel_pub3.publish(WheelCtrl00);
 			    
 			    //TEST CODE ENDS................................................
 			    
-			    usleep(25000);
+//			    usleep(25000);
 			//Publish steering wheel data to one wheel for debugging
-			}
+//			}
 		}       //If have sysevent then update joystick values
 		
 		
 		ros::spinOnce();
 
     }
-    
-    WheelCtrl00.data[1] = 0;//driveDutycycle;
-	WheelCtrl00.data[2] = 255;
-	wheel_pub0.publish(WheelCtrl00);
-	wheel_pub1.publish(WheelCtrl00);
-	wheel_pub2.publish(WheelCtrl00);
-	wheel_pub3.publish(WheelCtrl00);
-    ros::spinOnce();
     
 	SDL_JoystickClose(joy);
 	//system("pause");

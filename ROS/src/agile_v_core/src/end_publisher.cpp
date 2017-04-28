@@ -44,6 +44,11 @@ void publishToWheels(ros::NodeHandle handle, ros::Publisher* wheel_pub, std_msgs
     	WheelCtrl[i].data[2] = brake[i];
     	WheelCtrl[i].data[3] = 0;
     }
+    
+    for (int i = 0; i<4; i++){
+    	cout << "Steering of Wheel " << i << " :    " << WheelCtrl[i].data[0] << endl;
+    }
+    
    	//publish control message
    	
     #pragma omp parallel for num_threads(4)
