@@ -12,14 +12,18 @@ AA      AAA   GGGGGGG     IIIII    LLLLLLLLL  EEEEEEEEE       V
 
 "
 
-while getopts load_g29: 
+for arg in "$@"
 do
-    echo "------------- INITIALIZING STEERING WHEEL -------------"
-    #initialize Logitech drivers
-    cd ./LogitechFFDrivers
-    sudo make load_g29
-    read -p "Please reset the steering wheel (unplug/plug), then press any key to continue..."
-    cd ..
+    case "$arg" in
+    "-load_g29")
+        echo "------------- INITIALIZING STEERING WHEEL -------------"
+        #initialize Logitech drivers
+        cd ./LogitechFFDrivers
+        sudo make load_g29
+        read -p "Please reset the steering wheel (unplug/plug), then press any key to continue..."
+        cd ..
+        ;;
+    esac
 done
 
 echo "-------------- CUSTOMIZING SYSTEM SETUP ---------------"

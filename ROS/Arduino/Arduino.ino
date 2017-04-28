@@ -53,8 +53,8 @@ std_msgs::UInt16MultiArray ctrl_var;
 ************/
 
 //***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
-ros::Publisher assessActual("WheelActual00", &ActuatorStatus);
-ros::Publisher assessPower("UnitPower00", &PowerStatus);
+ros::Publisher assessActual("WheelActual0x", &ActuatorStatus);
+ros::Publisher assessPower("UnitPower0x", &PowerStatus);
 
 unsigned long time_last;                 //for Buffer flushing
 unsigned long time_last_query;           //for Query
@@ -83,7 +83,7 @@ void Actuate( const std_msgs::UInt16MultiArray& ctrl_var){
 }
 
 //***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
-ros::Subscriber<std_msgs::UInt16MultiArray> sub("WheelControl00", &Actuate);
+ros::Subscriber<std_msgs::UInt16MultiArray> sub("WheelControl0x", &Actuate);
 
 void Steering(){
 	//-------------------start angle control------------------------------------
