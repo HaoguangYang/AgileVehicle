@@ -51,18 +51,19 @@ echo "----------------- MAKING ARDUINO CODE -----------------"
 cd ../../Arduino
 echo "#### Arduino 1.5.0 or higher version is REQUIRED. ####"
 
+
 sed -i 's/0x"/00"/g' Arduino.ino
 sed -i 's/_zero=0; /_zero=231; /g' Arduino.ino
-arduino --upload --board arduino:avr:nano:cpu=atmega328 --port $port0 Arduino.ino
+arduino --upload --board arduino:avr:nano:cpu=atmega328 --port $port0 $(pwd)/Arduino.ino
 sed -i 's/00"/01"/g' Arduino.ino
 sed -i 's/_zero=231; /_zero=2646; /g' Arduino.ino
-arduino --upload --board arduino:avr:nano:cpu=atmega328 --port $port1 Arduino.ino
+arduino --upload --board arduino:avr:nano:cpu=atmega328 --port $port1 $(pwd)/Arduino.ino
 sed -i 's/01"/02"/g' Arduino.ino
 sed -i 's/_zero=2646; /_zero=1895; /g' Arduino.ino
-arduino --upload --board arduino:avr:nano:cpu=atmega328 --port $port2 Arduino.ino
+arduino --upload --board arduino:avr:nano:cpu=atmega328 --port $port2 $(pwd)/Arduino.ino
 sed -i 's/02"/03"/g' Arduino.ino
 sed -i 's/_zero=1895; /_zero=2297; /g' Arduino.ino
-arduino --upload --board arduino:avr:nano:cpu=atmega328 --port $port3 Arduino.ino
+arduino --upload --board arduino:avr:nano:cpu=atmega328 --port $port3 $(pwd)/Arduino.ino
 sed -i 's/03"/0x"/g' Arduino.ino
 sed -i 's/_zero=2297; /_zero=0; /g' Arduino.ino
 

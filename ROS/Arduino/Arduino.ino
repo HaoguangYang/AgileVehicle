@@ -1,7 +1,7 @@
 #include <ros.h>
 #include <std_msgs/UInt16MultiArray.h>
 #include <std_msgs/Float32MultiArray.h>
-#include <std_msgs/Int32MultiArray.h>
+//#include <std_msgs/Int32MultiArray.h>
 
 #define CONTRL      3
 #define BACK        4
@@ -20,7 +20,7 @@ ros::NodeHandle handle;
 const uint16_t encoder_resolution = 4096;
 const uint16_t         updateTime = 40000;	//Time in us
 const uint16_t          queryTime = 1000;	//Time in us
-const uint16_t              _zero = 0;
+const uint16_t              _zero = 2297;
 uint16_t                pulseTime = 100;    //Time in us
 uint16_t                    Angle = 0;
 uint16_t           steeringTarget = 0;
@@ -53,8 +53,8 @@ std_msgs::UInt16MultiArray ctrl_var;
 ************/
 
 //***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
-ros::Publisher assessActual("WheelActual0x", &ActuatorStatus);
-ros::Publisher assessPower("UnitPower0x", &PowerStatus);
+ros::Publisher assessActual("WheelActual03", &ActuatorStatus);
+ros::Publisher assessPower("UnitPower03", &PowerStatus);
 
 unsigned long time_last;                 //for Buffer flushing
 unsigned long time_last_query;           //for Query
@@ -83,7 +83,7 @@ void Actuate( const std_msgs::UInt16MultiArray& ctrl_var){
 }
 
 //***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
-ros::Subscriber<std_msgs::UInt16MultiArray> sub("WheelControl0x", &Actuate);
+ros::Subscriber<std_msgs::UInt16MultiArray> sub("WheelControl03", &Actuate);
 
 void Steering(){
 	//-------------------start angle control------------------------------------
