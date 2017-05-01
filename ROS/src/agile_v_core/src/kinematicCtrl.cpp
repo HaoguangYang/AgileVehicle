@@ -68,8 +68,8 @@ void KOLCSteering(double radius, double speed, double* steerVal, double* driveVa
 	}
 	else
 	{
-		double leftBase = radius-Vehicle.TrackWidth/2;  //Left Side of Vehicle to Steering Center
-		double rightBase = radius+Vehicle.TrackWidth/2; //Right Side ...
+		double rightBase = radius-Vehicle.TrackWidth/2;  //Left Side of Vehicle to Steering Center
+		double leftBase = radius+Vehicle.TrackWidth/2; //Right Side ...
 		steerVal[0] = atan(Vehicle.WheelBase/2/leftBase);
 		steerVal[1] = atan(Vehicle.WheelBase/2/rightBase);
 		steerVal[2] = -steerVal[0];
@@ -138,8 +138,8 @@ void KCLHSteering(int16_t steering_wheel_input, double speed, double* steerVal, 
 {
     //Kinematic Closed-Loop Heading-locked Steering
     Kinematic Target;
-    Target.speed [1] = speed*sin(steering_wheel_input/32767*M_PI*0.5);
-    Target.speed [0] = speed*cos(steering_wheel_input/32767*M_PI*0.5);
+    Target.speed [1] = speed*sin(steering_wheel_input/32767.0*M_PI*0.5);
+    Target.speed [0] = speed*cos(steering_wheel_input/32767.0*M_PI*0.5);
     Target.omega = 0;
     double steerActual[4];
 	double driveActual[4];

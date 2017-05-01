@@ -25,7 +25,7 @@ uint16_t                    Angle = 0;
 uint16_t           steeringTarget = 0;
 const uint16_t _zero=0; 
 uint16_t drive_input;
-float throttle;
+float throttle=1.0;
 
 uint16_t dataActuator[2];
 float dataPower[3];
@@ -71,8 +71,8 @@ void Actuate( const std_msgs::UInt16MultiArray& ctrl_var){
 	drive_input = ctrl_var.data[1];
 	if (ctrl_var.data[2]==0){
 		//ctrl_var.data[1] = ctrl_var.data[1] + 75;	//Calibration of controller to elliminate dead zone
-		analogWrite(CONTRL,drive_input*throttle);	//Normal Driving
 		analogWrite(BREAK,0);
+		analogWrite(CONTRL,drive_input);//*throttle);	//Normal Driving
 	}
 	else{											//Breaking
 		analogWrite(CONTRL,0);
@@ -87,11 +87,11 @@ ros::Subscriber<std_msgs::UInt16MultiArray> sub("WheelControl0x", &Actuate);
 
 void Steering(){
 	//-------------------start angle control------------------------------------
-	if(steeringTarget < 0 || steeringTarget >encoder_resolution-1) { // will be modified as -90 degree to 90 degree
+	if(steeringTarget > encoder_resolution-1) { // will be modified as -90 degree to 90 degree
         //Serial.println("bad DesiredAngle input.");
     }
     else {
-		int16_t err = (steeringTarget-Angle+encoder_resolution)%(encoder_resolution)-(encoder_resolution*0.5);
+		int16_t err = (steeringTarget-Angle+(uint16_t)(0.5*encoder_resolution))%(encoder_resolution)-(encoder_resolution*0.5);
 		//min(min(abs(steeringTarget-Angle),abs(steeringTarget-Angle+encoder_resolution)),abs(steeringTarget-Angle-encoder_resolution));
         if(!(abs(err)<40)) {
 			pulseTime = 7000/(1.1*abs(err)+5);	//Need Modification
@@ -169,10 +169,10 @@ void loop() {
 // the function to determine the wave pattern to servo
 bool V_last = false;
 void Flip(bool direc) {
-  if (direc == 0 && !V_last){
+  if (!direc && !V_last){
     digitalWrite(DIR,HIGH);
   }
-  else if (direc == 1 && !V_last) {
+  else if (direc && !V_last) {
     digitalWrite(DIR, LOW);
   }
   // give a pulse
@@ -205,7 +205,7 @@ void Query()
   }
   digitalWrite(csn,HIGH);
   Angle=(dataActuator[0]-_zero+encoder_resolution)%encoder_resolution;
-  dataActuator[0] = encoder_resolution-1-dataActuator[0];
+  dataActuator[0] = Angle;
   //Speed=(-dataActuator[1]+_last+encoder_resolution)%encoder_resolution;
   //_last = dataActuator[1];
   //Angle=dataActuator[0];

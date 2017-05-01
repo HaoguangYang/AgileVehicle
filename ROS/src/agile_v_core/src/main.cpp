@@ -14,7 +14,7 @@ bool IsZeroCorrect[4] = {false, false, false, false};
 void Call_back(const agile_v_core::joyinfoex& controlInput)
 {
 	int16_t steeringIn = controlInput.dwXpos-32768;     //from uint to int
-	double speed = (65535-controlInput.dwZpos)/32767*10;
+	double speed = (65535.0-controlInput.dwZpos)/32767.0*190.0;
 	double radius = SteeringWheel2Radius(steeringIn, 1);
 	
 	cout << "Radius: " << radius << endl;
