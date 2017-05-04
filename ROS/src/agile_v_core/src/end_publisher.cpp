@@ -40,7 +40,7 @@ void publishToWheels(ros::NodeHandle handle, ros::Publisher* wheel_pub, std_msgs
    	for (int i = 0; i<4; i++){
        	WheelCtrl[i].data[0] = steer[i];
     	WheelCtrl[i].data[1] = drive[i];
-    	WheelCtrl[i].data[2] = brake[i];
+    	WheelCtrl[i].data[2] = 0;//brake[i];
     	WheelCtrl[i].data[3] = 0;
     }
     
