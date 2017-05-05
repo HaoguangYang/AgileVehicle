@@ -1,0 +1,8 @@
+prefix=/mnt/Data/AgileV_dev/ROS/devel
+
+Name: virtual_device_debugger
+Description: Description of virtual_device_debugger
+Version: 0.0.0
+Cflags: -I/mnt/Data/AgileV_dev/ROS/devel/include -I/mnt/Data/AgileV_dev/ROS/src/virtual_device_debugger/include -I/usr/include/SDL2
+Libs: -L/mnt/Data/AgileV_dev/ROS/devel/lib -lsteering_wheel -l-L/usr/lib/x86_64-linux-gnu  -lSDL2 
+Requires: roscpp rospy sensor_msgs std_msgs message_runtime
