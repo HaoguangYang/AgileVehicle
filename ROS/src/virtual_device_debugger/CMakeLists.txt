@@ -202,7 +202,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/vdd_main.cpp src/wheels.cpp)          #Uncomment this when virtual vehicle is ready.
+ add_executable(virtual_vehicle_node src/wheels.cpp)          #Uncomment this when virtual vehicle is ready.
  add_executable(${PROJECT_NAME}_node src/vdd_main.cpp)
 
 ## Rename C++ executable without prefix
@@ -217,6 +217,10 @@ include_directories(
 
 ## Specify libraries to link a library or executable target against
  target_link_libraries(${PROJECT_NAME}_node
+   ${SDL2_LIBRARY}
+   ${catkin_LIBRARIES}
+ )
+ target_link_libraries(virtual_vehicle_node
    ${SDL2_LIBRARY}
    ${catkin_LIBRARIES}
  )
