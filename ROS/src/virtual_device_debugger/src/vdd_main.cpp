@@ -87,7 +87,7 @@ int FFupdate(SDL_Joystick * joystick , unsigned short center)
   return 0; // Success
 }
 
-// 单轮驱动用来显示方向盘示数
+// 单轮驱动用来显示控制数据
 void SteerFeedback(const std_msgs::UInt16MultiArray& ActuatorStatus)
 {
     system("clear");
@@ -314,13 +314,19 @@ int main(int argc, char* argv[])
 						joyinfo.dwZpos = max(min(int(joyinfo.dwZpos)+delta_z,65535),0);
 				}
 				steering_wheel_pub.publish(joyinfo);
+				SDL_Rect frame1 = { 10, 10, 65535/150 , 10 };
+				SDL_Rect frame2 = { 10, 25, 65535/150 , 10 };
+				SDL_Rect frame3 = { 10, 40, 65535/150 , 10 };
 				SDL_Rect bar1 = { 10, 10, joyinfo.dwXpos/150 , 10 };
 				SDL_Rect bar2 = { 10, 25, joyinfo.dwZpos/150 , 10 };
 				SDL_Rect bar3 = { 10, 40, joyinfo.dwRpos/150 , 10 };
 				SDL_RenderClear(renderer);
-				SDL_RenderDrawRect(renderer, &bar1);
-				SDL_RenderDrawRect(renderer, &bar2);
-				SDL_RenderDrawRect(renderer, &bar3);
+				SDL_RenderDrawRect(renderer, &frame1);
+				SDL_RenderDrawRect(renderer, &frame2);
+				SDL_RenderDrawRect(renderer, &frame3);
+				SDL_RenderFillRect(renderer, &bar1);
+				SDL_RenderFillRect(renderer, &bar2);
+				SDL_RenderFillRect(renderer, &bar3);
 				SDL_RenderPresent(renderer);
 	/****/
 	system("clear");
@@ -328,8 +334,9 @@ int main(int argc, char* argv[])
 	cout << "                          " << joyinfo.dwRpos << endl;
 	cout << "                          " << joyinfo.dwZpos << endl;
 	/****/
-				usleep(25000);
+				
 			}
+			usleep(25000);
 			ros::spinOnce();
 		}
 		SDL_DestroyRenderer(renderer);
