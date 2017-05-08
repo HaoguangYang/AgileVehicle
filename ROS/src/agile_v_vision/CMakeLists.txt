@@ -17,6 +17,7 @@ find_package(catkin REQUIRED COMPONENTS
   ecl_ipc
 )
 
+find_package(OpenMP)
 find_package( CUDA )
 
 if (CUDA_FOUND)
@@ -39,14 +40,63 @@ if (CUDA_FOUND)
  # only necessary if you wish to create a lib
   set(CUDA_ATTACH_VS_BUILD_RULE_TO_CUDA_FILE OFF)
   set(BUILD_SHARED_LIBS ON)
+  
+  set(folder_source_elas src/elas/elas_gpu.cu
+                         src/elas/descriptor.cpp
+                         src/elas/filter.cpp
+                         src/elas/matrix.cpp
+                         src/elas/triangle.cpp)
+ 
+else(if (OPENMP_FOUND))
+  message(STATUS "OpenMP FOUND")
 
-# cuda compile GPU_CODE for executable
-#  cuda_compile(  ELAS_CU_O src/elas/elas_gpu.cu )
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 
+  set(folder_source_elas src/elas/elas_omp.cpp
+                         src/elas/descriptor.cpp
+                         src/elas/filter.cpp
+                         src/elas/matrix.cpp
+                         src/elas/triangle.cpp)
+else()
+  message(STATUS "OpenMP NOT FOUND")
+  set(folder_source_elas src/elas/elas.cpp
+                         src/elas/descriptor.cpp
+                         src/elas/filter.cpp
+                         src/elas/matrix.cpp
+                         src/elas/triangle.cpp)
 endif()
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse -msse2 -msse3")
+
+if(CUDA_FOUND)
+  set(folder_header 
+                  include/elas/elas_gpu.h
+                  include/elas/descriptor.h
+                  include/elas/image.h
+                  include/elas/filter.h
+                  include/elas/timer.h
+                  include/elas/matrix.h
+                  include/elas/triangle.h)
+else()
+  set(folder_header 
+                  include/elas/elas.h
+                  include/elas/descriptor.h
+                  include/elas/image.h
+                  include/elas/filter.h
+                  include/elas/timer.h
+                  include/elas/matrix.h
+                  include/elas/triangle.h)
+endif()
+
+if(OpenCV_VERSION_MAJOR GREATER 2)
+  add_definitions(-DOPENCV_GREATER_2)
+endif()
+
+source_group("Source Files" FILES ${folder_source})
+source_group("ELAS Source Files" FILES ${folder_source_elas})
+source_group("Header Files" FILES ${folder_header})
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -138,9 +188,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse -msse2 -msse3")
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES agile_v_vision
-#  CATKIN_DEPENDS cv_bridge image_transport roscpp rospy sensor_msgs std_msgs
+  INCLUDE_DIRS include
+  LIBRARIES agile_v_vision
+  CATKIN_DEPENDS cv_bridge image_transport roscpp rospy sensor_msgs std_msgs
 #  DEPENDS system_lib
 )
 
@@ -152,13 +202,18 @@ catkin_package(
 ## Your package locations should be listed before other locations
 # include_directories(include)
 include_directories(
+  ${OpenCV_INCLUDE_DIRS}
   ${catkin_INCLUDE_DIRS}
+  ./include
+  ./include/elas
 )
 
 ## Declare a C++ library
-# add_library(${PROJECT_NAME}
+ add_library(elas
+    ${folder_source_elas} ${folder_header}
 #   src/${PROJECT_NAME}/agile_v_vision.cpp
-# )
+ )
+
 # cuda_add_library( ${PROJECT_NAME}
 #   src/elas/elas_gpu.cu
 #   src/elas/*.cpp
@@ -175,6 +230,9 @@ include_directories(
 # add_executable(${PROJECT_NAME}_node src/agile_v_vision_node.cpp)
 # cuda_add_executable (${PROJECT_NAME}_node ${LINE_PROFILER_CU_O})
 
+# cuda compile GPU_CODE for executable
+#  cuda_compile(  ELAS_CU_O src/elas/elas_gpu.cu )
+
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
 ## target back to the shorter version for ease of user use
@@ -186,9 +244,10 @@ include_directories(
 # add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS} ${LINE_PROFILER_CU_O})
 
 ## Specify libraries to link a library or executable target against
-# target_link_libraries(${PROJECT_NAME}_node
-#   ${catkin_LIBRARIES}
-# )
+ target_link_libraries(elas
+   ${OpenCV_LIBRARIES}
+   ${catkin_LIBRARIES}
+ )
 
 #############
 ## Install ##

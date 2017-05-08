@@ -3,6 +3,6 @@ prefix=/mnt/Data/AgileV_dev/ROS/devel
 Name: agile_v_vision
 Description: Description of agile_v_vision
 Version: 0.0.0
-Cflags: 
-Libs: -L/mnt/Data/AgileV_dev/ROS/devel/lib 
-Requires: 
+Cflags: -I/mnt/Data/AgileV_dev/ROS/src/agile_v_vision/include
+Libs: -L/mnt/Data/AgileV_dev/ROS/devel/lib -lagile_v_vision
+Requires: cv_bridge image_transport roscpp rospy sensor_msgs std_msgs
