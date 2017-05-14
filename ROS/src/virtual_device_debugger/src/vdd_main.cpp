@@ -5,6 +5,8 @@ using namespace std;
 
 steering_wheel::joyinfoex joyinfo;
 SDL_Joystick *joy;
+SDL_Window *window;
+SDL_Renderer *renderer;
 
 // application reads from the specified serial port and reports the collected data
 
@@ -15,7 +17,7 @@ int setup(void)
 	
 	unsigned int JOYSTICKID1;
 	if (SDL_Init(SDL_INIT_JOYSTICK) < 0){
-        cout << "Error initializing SDL!" << endl;
+        fprintf( stderr, "Could not initialise SDL: %s\n", SDL_GetError() );
         exit( -1 );
     }
     
@@ -88,18 +90,23 @@ int FFupdate(SDL_Joystick * joystick , unsigned short center)
 }
 
 // 单轮驱动用来显示控制数据
-void SteerFeedback(const std_msgs::UInt16MultiArray& ActuatorStatus)
+void SteerFeedback(const std_msgs::UInt16MultiArray& FFStatus)
 {
     system("clear");
-    int errNum = FFupdate(joy,ActuatorStatus.data[0]);
-	cout << "Actual Drive Direction  : " << ActuatorStatus.data[0] << endl;
-	cout << "Actual Heading Direction: " << ActuatorStatus.data[1] << endl;
+    int errNum = FFupdate(joy,FFStatus.data[0]);
+	cout << "Actual Drive Direction  : " << FFStatus.data[0] << endl;
+	cout << "Actual Heading Direction: " << FFStatus.data[1] << endl;
 	cout << "Haptics Update Status   : " << errNum << endl;
 	cout << "Joystick Status         : " << joyinfo.dwXpos << endl;
 	cout << "                          " << joyinfo.dwZpos << endl;
 	cout << "Buffer:" <<endl;
 	return;
 }
+
+void DrawWheel0(const std_msgs::UInt16MultiArray& WheelStatus0){}
+void DrawWheel1(const std_msgs::UInt16MultiArray& WheelStatus1){}
+void DrawWheel2(const std_msgs::UInt16MultiArray& WheelStatus2){}
+void DrawWheel3(const std_msgs::UInt16MultiArray& WheelStatus3){}
 
 double SteeringWheel2Radius (int SteeringWheelVal, int mode)
 {
@@ -122,17 +129,43 @@ double SteeringWheel2Radius (int SteeringWheelVal, int mode)
     return value;
 }
 
+void GUIUpdateInput(){
+    SDL_Rect frame1 = { 10, 10, 65535/150 , 10 };
+	SDL_Rect frame2 = { 10, 25, 65535/150 , 10 };
+	SDL_Rect frame3 = { 10, 40, 65535/150 , 10 };
+    SDL_Rect bar1 = { 10, 10, joyinfo.dwXpos/150 , 10 };
+	SDL_Rect bar2 = { 10, 25, joyinfo.dwZpos/150 , 10 };
+	SDL_Rect bar3 = { 10, 40, joyinfo.dwRpos/150 , 10 };
+	SDL_RenderClear(renderer);
+	SDL_RenderDrawRect(renderer, &frame1);
+	SDL_RenderDrawRect(renderer, &frame2);
+	SDL_RenderDrawRect(renderer, &frame3);
+	SDL_RenderFillRect(renderer, &bar1);
+	SDL_RenderFillRect(renderer, &bar2);
+	SDL_RenderFillRect(renderer, &bar3);
+	SDL_RenderPresent(renderer);
+}
+
 int main(int argc, char* argv[])
 {
 // connect the COM
     ros::init(argc, argv, "steering_wheel");
-
     ros::NodeHandle handle;
-
-    ros::Publisher steering_wheel_pub = handle.advertise<steering_wheel::joyinfoex>("SteeringWheel",10);
-	ros::Subscriber steer_feedback = handle.subscribe("SteeringWheelFeedBack", 10, SteerFeedback);
 	
     int JOYSTICKID1 = setup();
+    
+    window = SDL_CreateWindow("SDL2 Vehicle Moniitor",
+                              SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, 0);
+    renderer = SDL_CreateRenderer(window, -1, 0);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+    
+    ros::Publisher steering_wheel_pub = handle.advertise<steering_wheel::joyinfoex>("SteeringWheel",10);
+	ros::Subscriber steer_feedback = handle.subscribe("SteeringWheelFeedBack", 10, SteerFeedback);
+	ros::Subscriber actuator_status[4];
+	actuator_status[0] = handle.subscribe("WheelActual00", 3, DrawWheel0);
+	actuator_status[1] = handle.subscribe("WheelActual01", 3, DrawWheel1);
+	actuator_status[2] = handle.subscribe("WheelActual02", 3, DrawWheel2);
+	actuator_status[3] = handle.subscribe("WheelActual03", 3, DrawWheel3);
 	
     uint16_t driveDutycycle=0;
     uint16_t brake = 255;
@@ -179,6 +212,7 @@ int main(int argc, char* argv[])
     bool noAction = 1;
     SDL_Event SysEvent;
     bool NoQuit = true;
+	
 	if (JOYSTICKID1>=0){
     while(NoQuit && ros::ok())
     {
@@ -213,8 +247,10 @@ int main(int argc, char* argv[])
 			}
 			// 发出方向盘信息
 			steering_wheel_pub.publish(joyinfo);
+			
+			GUIUpdateInput();
 			    
-			    usleep(25000);
+			usleep(25000);
 			//Publish steering wheel data to one wheel for debugging
 		}       //If have sysevent then update joystick values
 		ros::spinOnce();
@@ -225,10 +261,7 @@ int main(int argc, char* argv[])
 		joyinfo.dwXpos = 32768;
 		joyinfo.dwRpos = 65535;			//Zero Brake
 		joyinfo.dwZpos = 65535;			//Zero Power
-		SDL_Window * window = SDL_CreateWindow("SDL2 Keyboard/Mouse events",
-                                           SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, 0);
-        SDL_Renderer * renderer = SDL_CreateRenderer(window, -1, 0);
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+		
 		while(NoQuit && ros::ok())
 		{
 		    //cin >> joyinfo.dwXpos;
@@ -314,20 +347,8 @@ int main(int argc, char* argv[])
 						joyinfo.dwZpos = max(min(int(joyinfo.dwZpos)+delta_z,65535),0);
 				}
 				steering_wheel_pub.publish(joyinfo);
-				SDL_Rect frame1 = { 10, 10, 65535/150 , 10 };
-				SDL_Rect frame2 = { 10, 25, 65535/150 , 10 };
-				SDL_Rect frame3 = { 10, 40, 65535/150 , 10 };
-				SDL_Rect bar1 = { 10, 10, joyinfo.dwXpos/150 , 10 };
-				SDL_Rect bar2 = { 10, 25, joyinfo.dwZpos/150 , 10 };
-				SDL_Rect bar3 = { 10, 40, joyinfo.dwRpos/150 , 10 };
-				SDL_RenderClear(renderer);
-				SDL_RenderDrawRect(renderer, &frame1);
-				SDL_RenderDrawRect(renderer, &frame2);
-				SDL_RenderDrawRect(renderer, &frame3);
-				SDL_RenderFillRect(renderer, &bar1);
-				SDL_RenderFillRect(renderer, &bar2);
-				SDL_RenderFillRect(renderer, &bar3);
-				SDL_RenderPresent(renderer);
+				
+				GUIUpdateInput();
 	/****/
 	system("clear");
 	cout << "Joystick Status         : " << joyinfo.dwXpos << endl;
@@ -339,10 +360,11 @@ int main(int argc, char* argv[])
 			usleep(25000);
 			ros::spinOnce();
 		}
-		SDL_DestroyRenderer(renderer);
-        SDL_DestroyWindow(window);
-        SDL_Quit();
 	}
+	SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
 	//system("pause");
 	return 0;
 }
+
