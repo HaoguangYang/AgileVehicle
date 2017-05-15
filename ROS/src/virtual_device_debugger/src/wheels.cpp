@@ -256,6 +256,11 @@ int main(){
     setup();
     while (ros::ok()){
         loop();
+		cout << "Control Value:" << endl;
+		fprintf( "Steering Target >>>>>>>>>>>>>>>>>>\n%d    %d    %d    %d\n", steeringTarget[0], steeringTarget[1], steeringTarget[2], steeringTarget[3] );
+		fprintf( "Driving Target >>>>>>>>>>>>>>>>>>>\n%d    %d    %d    %d\n", drive_input[0], drive_input[1], drive_input[2], drive_input[3] );
+		fprintf( "Throttling >>>>>>>>>>>>>>>>>>>>>>>\n%f    %f    %f    %f\n", throttle[0], throttle[1], throttle[2], throttle[3] );
+		
         ros::spinOnce();
     }
     return 0;
