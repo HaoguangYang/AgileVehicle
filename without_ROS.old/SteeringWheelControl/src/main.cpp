@@ -221,14 +221,16 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 		cout << "buttonNumber" << joyinfo.dwButtonNumber << endl;
 		cout << "buttonStatus" << bitset<64>(joyinfo.dwButtons) << endl; //Output button status
+		
 		//Buttons:
-		/*now_in_situ=bitset<64>(joyinfo.dwButtons)[0];
+		now_in_situ=bitset<64>(joyinfo.dwButtons)[0];
 		now_any_direction=bitset<64>(joyinfo.dwButtons)[3];
 		now_tradition=bitset<64>(joyinfo.dwButtons)[1];
 		cout << "is_in_situ:" << is_in_situ << endl;
 		cout << "is_any_direction:" << is_any_direction << endl;
 		cout << "is_tradition:" << is_tradition << endl;
 		
+		//PostProcessing********************************************************
 		if(now_in_situ== true && last_in_situ ==false)
 		{
 			is_in_situ =true;
@@ -259,7 +261,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 		last_in_situ =now_in_situ;
 		last_any_direction =now_any_direction;
-		last_tradition =now_tradition;*/
+		last_tradition =now_tradition;
 		
 		if(action)//Double-check that the inactivated throttle value is set to 0.
 		{
@@ -300,6 +302,7 @@ int _tmain(int argc, _TCHAR* argv[])
 			}
 		}
 		
+		//Writing to Arduino Seriall**************************************************
 		printf("outDrive:%s\n",outDrive);
 		bool isWriteDrive = SP->WriteData((char*)&outDrive, strlen(outDrive));
 		cout << "WriteSucceed?" << isWriteDrive << endl;
@@ -309,14 +312,16 @@ int _tmain(int argc, _TCHAR* argv[])
 		printf("outBreak:%s\n",outBreak);
 		bool isWriteBreak = SP->WriteData((char*)&outBreak, strlen(outBreak));
 		cout << "WriteSucceed?" << isWriteBreak << endl;
+
 #if defined(_MSC_VER)
-		Sleep(120);
+		Sleep(120);                 //time in ms
 		system("cls");
 #elif defined (__linux__)
 		}       //If have sysevent then update joystick values
-		usleep(120000);
+		usleep(120000);             //time in us
 		system("clear");
 #endif
+        //Read back from Arduino
 		readResult = SP->ReadData(incomingData,dataLengthin);
 		///*if(readResult<2*sizeof(serial_format)){
 		//	printf("No enough data received. Let's wait.\n");
