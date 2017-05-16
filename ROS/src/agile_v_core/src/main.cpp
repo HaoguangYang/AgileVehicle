@@ -49,7 +49,7 @@ int main(int argc, char* argv[])
 	Electric[3] = handle.subscribe("UnitPower03", 5, readFromWheelsPwr03);
 	
 	//Initiallize the vehicle and start controls.
-	bool IsErr = false; //vehicleInit()
+	bool IsErr = false; //To be fulfilled by vehicleInit()
 	for (int i = 0; i < 4; i++)
 	    IsZeroCorrect[i] = !IsErr;
 	

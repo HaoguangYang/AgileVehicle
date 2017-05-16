@@ -1,4 +1,5 @@
 #include "steering_wheel.h"
+#include "encoder.h"
 #include <math.h>
 
 using namespace std;
@@ -7,6 +8,8 @@ steering_wheel::joyinfoex joyinfo;
 SDL_Joystick *joy;
 SDL_Window *window;
 SDL_Renderer *renderer;
+SDL_Point wheel[9];
+
 
 // application reads from the specified serial port and reports the collected data
 
@@ -46,6 +49,23 @@ int setup(void)
             cin >> JOYSTICKID1;
         }
     }
+    
+    //GUI Setup
+    wheel[0] = {-10,30};
+    wheel[1] = {10,30};
+    wheel[2] = {10,-30};
+    wheel[3] = {-10,-30};
+    wheel[4] = {-10,30};
+    wheel[5] = {-10,-10};
+    wheel[6] = {-30,-10};
+    wheel[7] = {-30,10};
+    wheel[8] = {-10,10};
+    
+    window = SDL_CreateWindow("SDL2 Vehicle Moniitor",
+                              SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, 0);
+    renderer = SDL_CreateRenderer(window, -1, 0);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+    
     return JOYSTICKID1;
 }
 
@@ -103,40 +123,49 @@ void SteerFeedback(const std_msgs::UInt16MultiArray& FFStatus)
 	return;
 }
 
-point* pointsRotate(int n, point &actual, float &angle, bool isRAD) {
-  const double DEG2RAD = 1          //HERE
-  float radians[n];
+SDL_Point* pointsRotTrans(int n, SDL_Point *actual, float angle, bool isRAD, int *Trans) {
+  const double DEG2RAD = 2.0*M_PI/360.0;
+  float radians;
   if (!isRAD){
-    for (int i=0; i<n; i++){
-        radians[i] = angle[i] * DEG2RAD;
-    }
+    radians = angle * DEG2RAD;
   }
   else{
     radians = angle;
   }
-  point rotated[n], 
+  SDL_Point rotated[n];
   for  (int i=0; i<n; i++){
-      rotated[i].x = actual[i].x * cos(radians[i]) - actual[i].y * sin(radians[i]);
-      rotated[i].y = actual[i].x * sin(radians[i]) + actual[i].y * cos(radians[i]);
+      rotated[i].x = actual[i].x * cos(radians) - actual[i].y * sin(radians) + Trans[0];
+      rotated[i].y = actual[i].x * sin(radians) + actual[i].y * cos(radians) + Trans[1];
   }
   return rotated;
 }
 
-point wheel[8];
-wheel[0].x = 10;
-wheel[0].y = 30;
-wheel[1].x = 10;
-wheel[1].y = -30;
-wheel[2].x = -10;
-wheel[2].y = -30;
-wheel[3].x = -10;
-wheel[3].y = 30;
-wheel[4].x = -10;
-wheel[4].y = 
-void DrawWheel0(const std_msgs::UInt16MultiArray& WheelStatus0){}
-void DrawWheel1(const std_msgs::UInt16MultiArray& WheelStatus1){}
-void DrawWheel2(const std_msgs::UInt16MultiArray& WheelStatus2){}
-void DrawWheel3(const std_msgs::UInt16MultiArray& WheelStatus3){}
+
+void DrawWheel0(const std_msgs::UInt16MultiArray& WheelStatus0){
+    float angle = 1.0;//encoder[1]::extractAngle()/2.0;
+    static int position[2] = {50, 100};
+    const SDL_Point *draw = pointsRotTrans(9, wheel, angle, 1, position);
+    SDL_RenderDrawLines(renderer, draw, 9);
+}
+void DrawWheel1(const std_msgs::UInt16MultiArray& WheelStatus1){
+    float angle = 2.0;//encoder[1]::extractAngle()/2.0;
+    static int position[2] = {182, 100};
+    const SDL_Point *draw = pointsRotTrans(9, wheel, angle, 1, position);
+    SDL_RenderDrawLines(renderer, draw, 9);
+}
+void DrawWheel2(const std_msgs::UInt16MultiArray& WheelStatus2){
+    float angle = 3.0;//encoder[1]::extractAngle()/2.0;
+    static int position[2] = {50, 252};
+    const SDL_Point *draw = pointsRotTrans(9, wheel, angle, 1, position);
+    SDL_RenderDrawLines(renderer, draw, 9);
+}
+void DrawWheel3(const std_msgs::UInt16MultiArray& WheelStatus3){
+    float angle = 4.0;//encoder[1]::extractAngle()/2.0;
+    static int position[2] = {182, 252};
+    const SDL_Point *draw = pointsRotTrans(9, wheel, angle, 1, position);
+    SDL_RenderDrawLines(renderer, draw, 9);
+}
+
 
 double SteeringWheel2Radius (int SteeringWheelVal, int mode)
 {
@@ -183,11 +212,6 @@ int main(int argc, char* argv[])
     ros::NodeHandle handle;
 	
     int JOYSTICKID1 = setup();
-    
-    window = SDL_CreateWindow("SDL2 Vehicle Moniitor",
-                              SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, 0);
-    renderer = SDL_CreateRenderer(window, -1, 0);
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     
     ros::Publisher steering_wheel_pub = handle.advertise<steering_wheel::joyinfoex>("SteeringWheel",10);
 	ros::Subscriber steer_feedback = handle.subscribe("SteeringWheelFeedBack", 10, SteerFeedback);
