@@ -48,7 +48,6 @@ int main(int argc, char *argv[])
 
 	// Longitudinal coefficients
 	pacejka.a0 = 1.3f;
-	pacejka.a0 = 1.3f;
 	pacejka.a1 = -49.0f;
 	pacejka.a2 = 1216.0f;
 	pacejka.a3 = 1632.0f;

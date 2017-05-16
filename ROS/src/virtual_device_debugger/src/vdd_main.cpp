@@ -103,6 +103,36 @@ void SteerFeedback(const std_msgs::UInt16MultiArray& FFStatus)
 	return;
 }
 
+point* pointsRotate(int n, point &actual, float &angle, bool isRAD) {
+  const double DEG2RAD = 1          //HERE
+  float radians[n];
+  if (!isRAD){
+    for (int i=0; i<n; i++){
+        radians[i] = angle[i] * DEG2RAD;
+    }
+  }
+  else{
+    radians = angle;
+  }
+  point rotated[n], 
+  for  (int i=0; i<n; i++){
+      rotated[i].x = actual[i].x * cos(radians[i]) - actual[i].y * sin(radians[i]);
+      rotated[i].y = actual[i].x * sin(radians[i]) + actual[i].y * cos(radians[i]);
+  }
+  return rotated;
+}
+
+point wheel[8];
+wheel[0].x = 10;
+wheel[0].y = 30;
+wheel[1].x = 10;
+wheel[1].y = -30;
+wheel[2].x = -10;
+wheel[2].y = -30;
+wheel[3].x = -10;
+wheel[3].y = 30;
+wheel[4].x = -10;
+wheel[4].y = 
 void DrawWheel0(const std_msgs::UInt16MultiArray& WheelStatus0){}
 void DrawWheel1(const std_msgs::UInt16MultiArray& WheelStatus1){}
 void DrawWheel2(const std_msgs::UInt16MultiArray& WheelStatus2){}
