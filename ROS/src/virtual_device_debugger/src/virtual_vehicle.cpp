@@ -6,7 +6,6 @@
 #include <math.h>
 using namespace std;
 
-ros::NodeHandle handle;
 const uint16_t encoder_resolution = 4096;
 const unsigned int updateTime = 40000;	                    //Time in us
 const unsigned int queryTime = 1000;
@@ -42,44 +41,15 @@ std_msgs::UInt16MultiArray ctrl_var;
 ************/
 
 //***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
-ros::Publisher assessActual[4] = {handle.advertise<std_msgs::UInt16MultiArray>("WheelActual00", 2), \
-                                  handle.advertise<std_msgs::UInt16MultiArray>("WheelActual01", 2), \
-                                  handle.advertise<std_msgs::UInt16MultiArray>("WheelActual02", 2), \
-                                  handle.advertise<std_msgs::UInt16MultiArray>("WheelActual03", 2)};
-
-ros::Publisher assessPower[4] = {handle.advertise<std_msgs::Float32MultiArray>("UnitPower00", 2), \
-                                 handle.advertise<std_msgs::Float32MultiArray>("UnitPower01", 2), \
-                                 handle.advertise<std_msgs::Float32MultiArray>("UnitPower02", 2), \
-                                 handle.advertise<std_msgs::Float32MultiArray>("UnitPower03", 2)};
+ros::Publisher assessActual[4];
+ros::Publisher assessPower[4];
+//***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
+ros::Subscriber sub[4];
 
 struct timeval time_last[4];              //for Buffer flushing
 struct timeval time_last_query;           //for Query
 struct timeval time_last_publish;
 
-void setup() {
-	
-	for (int i=0; i<4; i++){
-    PowerStatus[i].layout.dim.push_back(std_msgs::MultiArrayDimension());
-    PowerStatus[i].layout.dim[0].label = "UnitPower";
-    PowerStatus[i].layout.dim[0].size = 3;
-    PowerStatus[i].layout.dim[0].stride = 1*3;
-    for (int j = 0; j < 3; j++){
-        PowerStatus[i].data.push_back(0.0);
-        }
-    
-    
-    ActuatorStatus[i].layout.dim.push_back(std_msgs::MultiArrayDimension());
-    ActuatorStatus[i].layout.dim[0].label = "WheelActual";
-    ActuatorStatus[i].layout.dim[0].size = 2;
-    ActuatorStatus[i].layout.dim[0].stride = 1*2;
-    for (int j = 0; j < 2; j++){
-        PowerStatus[i].data.push_back(0);
-        }
-    
-    steeringTarget[i] = ActuatorStatus[i].data[0];	//Stop Init Steering of the wheel
-    }
-	
-}
 
 void Actuate0( const std_msgs::UInt16MultiArray& ctrl_var){
     int i=0;
@@ -161,12 +131,6 @@ void Actuate3( const std_msgs::UInt16MultiArray& ctrl_var){
    steeringTarget[i] = ctrl_var.data[0];
 }
 
-//***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
-ros::Subscriber sub[4] ={handle.subscribe("WheelControl00", 2, &Actuate0), \
-                         handle.subscribe("WheelControl01", 2, &Actuate1), \
-                         handle.subscribe("WheelControl02", 2, &Actuate2), \
-                         handle.subscribe("WheelControl03", 2, &Actuate3)};
-
 // the function to determine the wave pattern to servo
 bool V_last = false;
 void Flip(bool direc, uint8_t which_one) {
@@ -231,6 +195,31 @@ void Publish(int i){
   assessPower[i].publish (PowerStatus[i]);
 }
 
+void setup() {
+	for (int i=0; i<4; i++){
+        PowerStatus[i].layout.dim.push_back(std_msgs::MultiArrayDimension());
+        PowerStatus[i].layout.dim[0].label = "UnitPower";
+        PowerStatus[i].layout.dim[0].size = 3;
+        PowerStatus[i].layout.dim[0].stride = 1*3;
+        for (int j = 0; j < 3; j++){
+            PowerStatus[i].data.push_back(0.0);
+        }
+        
+        ActuatorStatus[i].layout.dim.push_back(std_msgs::MultiArrayDimension());
+        ActuatorStatus[i].layout.dim[0].label = "WheelActual";
+        ActuatorStatus[i].layout.dim[0].size = 2;
+        ActuatorStatus[i].layout.dim[0].stride = 1*2;
+        for (int j = 0; j < 2; j++){
+            PowerStatus[i].data.push_back(0);
+        }
+    }
+    for (int i=0; i<4; i++){
+       //Problematic
+        steeringTarget[i] = ActuatorStatus[i].data[0];	//Stop Init Steering of the wheel
+    }
+    return;
+}
+
 void loop() {
    struct timeval time_now;
    gettimeofday(&time_now, NULL);
@@ -252,8 +241,23 @@ void loop() {
    ros::spinOnce();
 }
 
-int main(){
+int main(int argc, char* argv[]){
+    ros::init(argc, argv, "agile_v_simulator");
+    ros::NodeHandle handle;
+    assessActual[0] = handle.advertise<std_msgs::UInt16MultiArray>("WheelActual00", 2); 
+    assessActual[1] = handle.advertise<std_msgs::UInt16MultiArray>("WheelActual01", 2);
+    assessActual[2] = handle.advertise<std_msgs::UInt16MultiArray>("WheelActual02", 2);
+    assessActual[3] = handle.advertise<std_msgs::UInt16MultiArray>("WheelActual03", 2);
+    assessPower[0] = handle.advertise<std_msgs::Float32MultiArray>("UnitPower00", 2);
+    assessPower[1] = handle.advertise<std_msgs::Float32MultiArray>("UnitPower01", 2);
+    assessPower[2] = handle.advertise<std_msgs::Float32MultiArray>("UnitPower02", 2);
+    assessPower[3] = handle.advertise<std_msgs::Float32MultiArray>("UnitPower03", 2);
+    sub[0] = handle.subscribe("WheelControl00", 2, &Actuate0);
+    sub[1] = handle.subscribe("WheelControl01", 2, &Actuate1);
+    sub[2] = handle.subscribe("WheelControl02", 2, &Actuate2);
+    sub[3] = handle.subscribe("WheelControl03", 2, &Actuate3);
     setup();
+    
     while (ros::ok()){
         loop();
 		cout << "Control Value:" << endl;

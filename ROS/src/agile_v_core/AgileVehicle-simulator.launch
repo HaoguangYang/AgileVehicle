@@ -1,0 +1,19 @@
+<launch>
+  <group name="agv-utils">
+    <!--Steering Wheel-->
+    <node pkg="steering_wheel" type="steering_wheel_node" name="LogitechG29" />
+    
+    <!-- The navigation stack and associated parameters -->
+    
+    <!--Simulator-->
+	<node pkg="virtual_device_debugger" type="virtual_device_debugger_node" name="agile_v_simulator" />
+    
+    <!--Core-->
+    <node pkg="agile_v_core" type="agile_v_core_node" name="dyna_core"
+       args='-TW 1.315  \
+             -WB 1.520  \
+             -M 400.0   \
+             -WR 0.305  \
+             -ST 0.04' />
+  </group>
+</launch>

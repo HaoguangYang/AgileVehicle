@@ -66,5 +66,9 @@ cd ./src/agile_v_core
 
 #launch tht nodes
 echo "------------------ LAUNCHING NODES --------------------"
-roslaunch ./AgileVehicle.launch
+if ls /dev/ttyUSB* &> /dev/null || ls /dev/ttyACM* &> /dev/null ; then
+    roslaunch ./AgileVehicle.launch
+else
+    roslaunch ./AgileVehicle-simulator.launch
+fi
 
