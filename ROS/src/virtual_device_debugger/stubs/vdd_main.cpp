@@ -137,19 +137,7 @@ int main(int argc, char* argv[])
     
     ros::Publisher steering_wheel_pub = handle.advertise<steering_wheel::joyinfoex>("SteeringWheel",10);
 	ros::Subscriber steer_feedback = handle.subscribe("SteeringWheelFeedBack", 10, SteerFeedback);
-	ros::Subscriber actuator_status[4];
-	/*
-	actuator_status[0] = handle.subscribe("WheelActual00", 3, DrawWheel0);
-	actuator_status[1] = handle.subscribe("WheelActual01", 3, DrawWheel1);
-	actuator_status[2] = handle.subscribe("WheelActual02", 3, DrawWheel2);
-	actuator_status[3] = handle.subscribe("WheelActual03", 3, DrawWheel3);
-	*/
 	
-    uint16_t driveDutycycle=0;
-    uint16_t brake = 255;
-    uint16_t steer=2048;
-    const int encoder_resolution=4095;
-    const int fullDutycycle=255;
 
 //joystick initialize***********************
 

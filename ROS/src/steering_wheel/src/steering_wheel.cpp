@@ -24,15 +24,22 @@ int setup(void)
     if (CtrlNum == 1)
         JOYSTICKID1 = 0;
     else{
-        cout << "There are " << CtrlNum << " controllers found..." << endl;
-        for(int i=0;i<CtrlNum;i++)
-        {
-            joy = SDL_JoystickOpen(i);
-            printf("%s\n", SDL_JoystickName(joy));
+        if (CtrlNum == 0) {
+		    cout << "There is 0 physical controllers found..." << endl;
+		    JOYSTICKID1 = -2;
+	    }
+	    else {
+            cout << "There are " << CtrlNum << " physical controllers found..." << endl;
+            for(int i=0;i<CtrlNum;i++)
+            {
+                joy = SDL_JoystickOpen(i);
+                printf("%s\n", SDL_JoystickName(joy));
+            }
+            cout << "Choose the one you wish to use: " << endl;
+            cin >> JOYSTICKID1;
         }
-        cout << "Choose the one you wish to use: " << endl;
-        cin >> JOYSTICKID1;
     }
+    
     return JOYSTICKID1;
 }
 
@@ -76,15 +83,16 @@ int FFupdate(SDL_Joystick * joystick , unsigned short center)
   return 0; // Success
 }
 
-// 单轮驱动用来显示方向盘示数
-void ActuaterFeedback(const std_msgs::UInt16MultiArray& ActuatorStatus)
+// 单轮驱动用来显示方向盘示数, 以及更新力反馈数据
+void SteerFeedback(const std_msgs::UInt16MultiArray& FFStatus)
 {
     system("clear");
+    int errNum = FFupdate(joy,FFStatus.data[0]);
     if (isOneWheelDebug)
 	{
-	    int errNum = FFupdate(joy,ActuatorStatus.data[0]);
-	    cout << "ActualSteer: " << ActuatorStatus.data[0] << endl;
-	    cout << "ActualDrive: " << ActuatorStatus.data[1] << endl;
+	    int errNum = FFupdate(joy,FFStatus.data[0]);
+	    cout << "ActualSteer: " << FFStatus.data[0] << endl;
+	    cout << "ActualDrive: " << FFStatus.data[1] << endl;
 	    cout << "HapticsUpdateStatus: " << errNum << endl;
 	}
 	cout << "Joystick: " << joyinfo.dwXpos << endl;
@@ -93,38 +101,17 @@ void ActuaterFeedback(const std_msgs::UInt16MultiArray& ActuatorStatus)
 	return;
 }
 
-double SteeringWheel2Radius (int SteeringWheelVal, int mode)
-{
-    double value;
-	switch (mode){
-    	case 0:			//Default is using a y=kx+1/x model to cast -32767~32767 to -inf~inf
-	    {
-	    	value = 1.0/SteeringWheelVal-SteeringWheelVal/32767.0;
-	    	break;
-	    }
-	    case 1:			//Using y=k/[x(+-)b] model
-	    {
-	    	if (SteeringWheelVal>=0)
-	    		value = 1.0/SteeringWheelVal-1/32767.0;
-	    	else
-	    		value = 1.0/SteeringWheelVal+1/32767.0;
-	    	break;
-	    }
-    }
-    return value;
-}
 
 int main(int argc, char* argv[])
 {
 // connect the COM
     ros::init(argc, argv, "steering_wheel");
-
     ros::NodeHandle handle;
+    
+    int JOYSTICKID1 = setup();
 
     ros::Publisher steering_wheel_pub = handle.advertise<steering_wheel::joyinfoex>("SteeringWheel",10);
-	
-    int JOYSTICKID1 = setup();
-	
+    ros::Subscriber steer_feedback = handle.subscribe("SteeringWheelFeedBack", 10, SteerFeedback);
 /*
     if (isOneWheelDebug)
     ros::Subscriber actuator_feedback0 = handle.subscribe("WheelActual00", 10, ActuaterFeedback);
@@ -179,18 +166,22 @@ int main(int argc, char* argv[])
 */
 
 //joystick initialize***********************
-
-    joy=SDL_JoystickOpen(JOYSTICKID1);
-    if (joy) {
-        printf("Opened Joystick %d\n",JOYSTICKID1);
-        printf("Name: %s\n", SDL_JoystickNameForIndex(0));
-        printf("Number of Axes: %d\n", SDL_JoystickNumAxes(joy));
-        printf("Number of Buttons: %d\n", SDL_JoystickNumButtons(joy));
-        printf("Number of Balls: %d\n", SDL_JoystickNumBalls(joy));
-    } else {
-        printf("Couldn't open Joystick %d\n", JOYSTICKID1);
-        return -1*JOYSTICKID1;
+    if (JOYSTICKID1>=0){
+        joy=SDL_JoystickOpen(JOYSTICKID1);
+        if (joy) {
+            printf("Opened Joystick %d\n",JOYSTICKID1);
+            printf("Name: %s\n", SDL_JoystickNameForIndex(0));
+            printf("Number of Axes: %d\n", SDL_JoystickNumAxes(joy));
+            printf("Number of Buttons: %d\n", SDL_JoystickNumButtons(joy));
+            printf("Number of Balls: %d\n", SDL_JoystickNumBalls(joy));
+        } else {
+            printf("Couldn't open Joystick %d\n", JOYSTICKID1);
+            return -1*JOYSTICKID1;
+        }
     }
+    else {
+		cout << "Using Keyboard Input as Virtual Control Device..." << endl;
+	}
 
 //button status
 
@@ -211,6 +202,8 @@ int main(int argc, char* argv[])
     bool noAction = 1;
     SDL_Event SysEvent;
     bool NoQuit = true;
+    
+    if (JOYSTICKID1>=0){
     while(NoQuit && ros::ok())
     {
     	if (SDL_PollEvent(&SysEvent)) // 如果游戏杆动了
@@ -333,5 +326,110 @@ int main(int argc, char* argv[])
     
 	SDL_JoystickClose(joy);
 	//system("pause");
+	}
+	else{
+		joyinfo.dwXpos = 32768;
+		joyinfo.dwRpos = 65535;			//Zero Brake
+		joyinfo.dwZpos = 65535;			//Zero Power
+		
+		while(NoQuit && ros::ok())
+		{
+		    //cin >> joyinfo.dwXpos;
+		    //cin >> joyinfo.dwRpos;
+		    //cin >> joyinfo.dwZpos;
+			int delta_x, delta_z;
+			if (SDL_PollEvent(&SysEvent))
+			{
+				switch (SysEvent.type)
+				{
+					case SDL_KEYDOWN:
+					// Check the SDLKey values and move change the coords
+						switch( SysEvent.key.keysym.sym ){
+						case SDLK_LEFT:
+							delta_x = max(delta_x-1, -255);
+							break;
+						case SDLK_RIGHT:
+							delta_x = min(delta_x+1, 255);
+							break;
+						case SDLK_UP:
+							delta_z = max(delta_z-1, -255);
+							break;
+						case SDLK_DOWN:
+							delta_z = min(delta_z+1, 255);
+							break;
+						default:
+							break;
+						}
+						break;
+					// We must also use the SDL_KEYUP events to zero the x 
+					// and y velocity variables. But we must also be       
+					// careful not to zero the velocities when we shouldn't
+					case SDL_KEYUP:
+						switch( SysEvent.key.keysym.sym ){
+						case SDLK_LEFT:
+                        // We check to make sure the alien is moving 
+                        // to the left. If it is then we zero the    
+                        // velocity. If the alien is moving to the   
+                        // right then the right key is still press   
+                        // so we don't tocuh the velocity            
+							if( delta_x < 0 )
+								delta_x = 0;
+							break;
+						case SDLK_RIGHT:
+							if( delta_x > 0 )
+								delta_x = 0;
+							break;
+						case SDLK_UP:
+							if( delta_z < 0 )
+								delta_z = 0;
+							break;
+						case SDLK_DOWN:
+							if( delta_z > 0 )
+								delta_z = 0;
+							break;
+						default:
+							break;
+						}
+						break;
+					case SDL_QUIT:
+	    	        {
+	    	            NoQuit = false;
+	    	            break;
+	    	        }
+					default:
+						break;
+				}
+			}
+			//SDL_FlushEvents(SDL_APP_TERMINATING, SDL_LASTEVENT); //Flush Old Events
+			//cout << "Done" << endl;
+			if (delta_x != 0 | delta_z != 0){
+				joyinfo.dwXpos = max(min(int(joyinfo.dwXpos+delta_x),65535),0);
+				if (delta_z < 0){
+					if (joyinfo.dwRpos==65535)
+						joyinfo.dwZpos = max(min(int(joyinfo.dwZpos)+delta_z,65535),0);
+					else
+						joyinfo.dwRpos = max(min(int(joyinfo.dwRpos)-delta_z,65535),0);
+				}
+				if (delta_z > 0){
+					if (joyinfo.dwZpos==65535)
+						joyinfo.dwRpos = max(min(int(joyinfo.dwRpos)-delta_z,65535),0);
+					else
+						joyinfo.dwZpos = max(min(int(joyinfo.dwZpos)+delta_z,65535),0);
+				}
+				steering_wheel_pub.publish(joyinfo);
+				
+				//GUIUpdateInput();
+	/****/
+	system("clear");
+	cout << "Joystick Status         : " << joyinfo.dwXpos << endl;
+	cout << "                          " << joyinfo.dwRpos << endl;
+	cout << "                          " << joyinfo.dwZpos << endl;
+	/****/
+				
+			}
+			usleep(25000);
+			ros::spinOnce();
+		}
+    }
 	return 0;
 }
