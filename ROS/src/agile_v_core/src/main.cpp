@@ -1,4 +1,5 @@
 #include "ros/ros.h"
+#include "GUI.h"
 #include "kinematicCtrl.h"
 #include "subscribers.h"
 #include "end_publisher.h"
@@ -17,7 +18,9 @@ void Call_back(const agile_v_core::joyinfoex& controlInput)
 	double speed = (65535.0-controlInput.dwZpos)/32767.0*190.0;
 	double radius = SteeringWheel2Radius(steeringIn, 1);
 	
-	cout << "Radius: " << radius << endl;
+	//cout << "Radius: " << radius << endl;
+	
+	GUIUpdateInput(controlInput);
 	
 	KOLCSteering(radius, speed, steerVal, driveVal);
 	//control val calc
@@ -35,6 +38,7 @@ int main(int argc, char* argv[])
 	ros::init(argc, argv, "dynamic_core");
 	ros::NodeHandle handle;
 	GetVehicleData(argc, argv);
+	GUI_Init();
 	
 	//Subscribers
 	ros::Subscriber WheelActual[4];
@@ -85,5 +89,6 @@ int main(int argc, char* argv[])
 		usleep(25000);
 		ros::spinOnce();
 	}
+	SDL_Cleanup();
 }
 

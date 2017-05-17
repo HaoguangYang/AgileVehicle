@@ -36,7 +36,6 @@ void publishToWheels(ros::NodeHandle handle, ros::Publisher* wheel_pub, std_msgs
    	    }
    	}
    	
-   	#pragma omp parallel for num_threads(4)
    	for (int i = 0; i<4; i++){
        	WheelCtrl[i].data[0] = steer[i];
     	WheelCtrl[i].data[1] = drive[i];
@@ -50,8 +49,6 @@ void publishToWheels(ros::NodeHandle handle, ros::Publisher* wheel_pub, std_msgs
     }
     
    	//publish control message
-   	
-    #pragma omp parallel for num_threads(4)
    	for (int i = 0; i<4; i++){
        	wheel_pub[i].publish(WheelCtrl[i]);
     }
@@ -66,7 +63,7 @@ void publishToUser(ros::NodeHandle handle, ros::Publisher kineStat)
 	VehicleKinematics.CM_Velocity[0] = Actual.speed[0];
 	VehicleKinematics.CM_Velocity[1] = Actual.speed[1];
 	VehicleKinematics.CM_AngularVel = Actual.omega;
-	#pragma omp parallel for num_threads(4)
+	
 	for (int i = 0; i<4; i++)
     {
     	VehicleKinematics.Wheel_LinearVel[i] = Enc[1][i].extractDiff()*Vehicle.WheelRadius / step_time;

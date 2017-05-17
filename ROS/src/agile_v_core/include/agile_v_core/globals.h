@@ -1,5 +1,6 @@
 #ifndef GLOBALS_H
 #define GLOBALS_H
+#include "encoder.h"
 
 typedef struct VehiclePhysicalParams {
 	double TrackWidth; // 左右轮间距

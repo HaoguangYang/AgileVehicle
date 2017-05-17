@@ -91,9 +91,9 @@ endif()
 # flag project as catkin-based to distinguish if a find_package()-ed project is a catkin project
 set(agile_v_core_FOUND_CATKIN_PROJECT TRUE)
 
-if(NOT "/mnt/Data/AgileV_dev/ROS/devel/include;/mnt/Data/AgileV_dev/ROS/src/agile_v_core/include " STREQUAL " ")
+if(NOT "/mnt/Data/AgileV_dev/ROS/devel/include;/mnt/Data/AgileV_dev/ROS/src/agile_v_core/include;/usr/include/SDL2 " STREQUAL " ")
   set(agile_v_core_INCLUDE_DIRS "")
-  set(_include_dirs "/mnt/Data/AgileV_dev/ROS/devel/include;/mnt/Data/AgileV_dev/ROS/src/agile_v_core/include")
+  set(_include_dirs "/mnt/Data/AgileV_dev/ROS/devel/include;/mnt/Data/AgileV_dev/ROS/src/agile_v_core/include;/usr/include/SDL2")
   foreach(idir ${_include_dirs})
     if(IS_ABSOLUTE ${idir} AND IS_DIRECTORY ${idir})
       set(include ${idir})
@@ -109,7 +109,7 @@ if(NOT "/mnt/Data/AgileV_dev/ROS/devel/include;/mnt/Data/AgileV_dev/ROS/src/agil
   endforeach()
 endif()
 
-set(libraries "agile_v_core")
+set(libraries "agile_v_core;-L/usr/lib/x86_64-linux-gnu  -lSDL2 ")
 foreach(library ${libraries})
   # keep build configuration keywords, target names and absolute libraries as-is
   if("${library}" MATCHES "^(debug|optimized|general)$")
