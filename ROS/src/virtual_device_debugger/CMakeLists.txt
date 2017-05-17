@@ -210,7 +210,9 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
- add_executable(virtual_vehicle_node src/wheels.cpp)          #Uncomment this when virtual vehicle is ready.
+ add_executable(virtual_vehicle_node src/wheels.cpp
+                                     src/physics_core.cpp
+                                     src/pacejka.cpp)          #Uncomment this when virtual vehicle is ready.
  add_executable(${PROJECT_NAME}_node src/vdd_main.cpp)
 
 ## Rename C++ executable without prefix
