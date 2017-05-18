@@ -15,11 +15,8 @@ sudo apt-get install g++ arduino libsdl2-dev
 
 ## Directory Structure
 
-#### /SteeringWheelControl
-Controlling the suspnsion-motor assembly with Logitech G29 and Arduino. Added force feedback but not tested.
-
-#### /Arduino
-The Arduino code for the function above.
+#### /without_ROS.old
+Deprecated files containing no ROS modules, including the old steering wheel and Arduino utilities.
 
 #### /ROS
 ROS implementation of the system. Catkin workspace.
@@ -41,15 +38,15 @@ ROS based Arduino code able to transmit data at 30Hz. Run `./bootstrap` to prepa
 ##### /ROS/src
 Home to ROS packages and services. Currently including:
 
-> /ROS/src/steering_wheel: Steering Wheel Control Utilities which should read Logitech G29 data and publish it using custom message prescribed in `msg/joyinfoex.msg` under topic `WheelControl` , or in One-Wheel-Debug mode, publish directly to `WheelControl` topic which is an `Int32MultiArray` and directly received by Arduino, see Arduino code for reference (ALL BUT force feedback are **DONE**).
+> /ROS/src/steering_wheel: Steering Wheel Control Utilities which should read Logitech G29 data and publish it using custom message prescribed in `msg/joyinfoex.msg` under topic `WheelControl`, or in a situation where no steering wheel is found, uses keyboard as input device. ALL BUT force feedback are **DONE**.
 
-> /ROS/src/dyna_core: dynamic/kinematic control algorithms which subscribes the data from Arduino at four wheels and topic `WheelControl`, calculates the state of the vehicle, and publish data under `WheelControl` topic. NOT INITIALLIZED YET.
+> /ROS/src/agile_v_core: Core of the Agile-V system, including communication handling, kinematic/dynamic controllers, GUI, etc.
+
+> /ROS/src/virtual_device_debugger: Simulator for the Agile-V system.
 
 > Future packages: setup module which should be breaken away from steering_wheel, and vision navigation packages.
 
-
-#### /libelas
-Integration of OpenCV in libelas, merged libelas-gpu to implement CUDA, merged robotology/stereo-vision and working on migration from yarp to ROS interface. Untested.
+> /ROS/src/agile_v_vision: Integration of OpenCV in libelas, merged libelas-gpu to implement CUDA, merged robotology/stereo-vision and working on migration from yarp to ROS interface. currently in , untested.
 > Reference:
 > 
 > https://github.com/goldbattle/libelas-gpu
