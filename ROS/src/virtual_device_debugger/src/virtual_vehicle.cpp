@@ -210,11 +210,8 @@ void setup() {
         ActuatorStatus[i].layout.dim[0].size = 2;
         ActuatorStatus[i].layout.dim[0].stride = 1*2;
         for (int j = 0; j < 2; j++){
-            PowerStatus[i].data.push_back(0);
+            ActuatorStatus[i].data.push_back(0);
         }
-    }
-    for (int i=0; i<4; i++){
-       //Problematic
         steeringTarget[i] = ActuatorStatus[i].data[0];	//Stop Init Steering of the wheel
     }
     return;
@@ -237,8 +234,8 @@ void loop() {
 	   Publish(i);
 	   gettimeofday(&time_last_publish, NULL); //time_last_publish = micros();
    }
+   else usleep(1);
    }
-   ros::spinOnce();
 }
 
 int main(int argc, char* argv[]){
@@ -260,13 +257,14 @@ int main(int argc, char* argv[]){
     
     while (ros::ok()){
         loop();
+        system("clear");
 		cout << "Control Value:" << endl;
 		printf( "Steering Target >>>>>>>>>>>>>>>>>>\n%d    %d    %d    %d\n", steeringTarget[0], steeringTarget[1], steeringTarget[2], steeringTarget[3] );
 		printf( "Driving Target >>>>>>>>>>>>>>>>>>>\n%d    %d    %d    %d\n", drive_input[0], drive_input[1], drive_input[2], drive_input[3] );
 		printf( "Throttling >>>>>>>>>>>>>>>>>>>>>>>\n%f    %f    %f    %f\n", throttle[0], throttle[1], throttle[2], throttle[3] );
-		
-        ros::spinOnce();
+		ros::spinOnce();
     }
+    ros::shutdown();
     return 0;
 }
 
