@@ -135,11 +135,11 @@ void Actuate3( const std_msgs::UInt16MultiArray& ctrl_var){
 bool V_last = false;
 void Flip(bool direc, uint8_t which_one) {
   if (direc == 0){
-    angle_real[which_one] += 360./1000.;
+    angle_real[which_one] -= 360./1600.;
     printf( "steering angle of wheel %d is %f\n",which_one, angle_real[which_one] );
   }
   else if (direc == 1) {
-    angle_real[which_one] -= 360./1000.;
+    angle_real[which_one] += 360./1600.;
     printf( "steering angle of wheel %d is %f\n",which_one, angle_real[which_one] );
   }
 }
@@ -161,7 +161,7 @@ void Steering(int i){
             else {
                 Flip(1, i);
                 printf( "Flip 1 on %d\n",i );
-            }  
+            }
         }
         //end while loop 
     }
@@ -177,7 +177,7 @@ float dataPower[4][3];
 
 void Query(int i)
 {
-  dataActuator[i][0] = (360.0-angle_real[i])*4096/360+_zero[i];
+  dataActuator[i][0] = (angle_real[i]*4096/360+_zero[i]+4096)%4096;
   dataActuator[i][1] = (uint16_t)(dataActuator[i][1]+vel[i]/4096)%4096;
   Angle[i]=(dataActuator[i][0]-_zero[i]+encoder_resolution)%encoder_resolution;
   
@@ -189,7 +189,7 @@ void Query(int i)
 }
 
 void Publish(int i){
-  ActuatorStatus[i].data[0] = dataActuator[i][0];
+  ActuatorStatus[i].data[0] = (-dataActuator[i][0]+_zero[i]+4096)%4096;
   ActuatorStatus[i].data[1] = dataActuator[i][1];
   PowerStatus[i].data[0] = (float)dataPower[i][0];
   PowerStatus[i].data[1] = (float)dataPower[i][1];

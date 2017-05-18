@@ -36,15 +36,19 @@ void GUIUpdateInput(const agile_v_core::joyinfoex& joyinfo){
     SDL_Rect bar1 = { 10, 10, joyinfo.dwXpos/150 , 10 };
 	SDL_Rect bar2 = { 10, 25, joyinfo.dwZpos/150 , 10 };
 	SDL_Rect bar3 = { 10, 40, joyinfo.dwRpos/150 , 10 };
-	if (std::accumulate(refresh, refresh + 4, 0)==4)
+	if (std::accumulate(refresh, refresh + 4, 0)==4){
 		SDL_RenderClear(renderer);
+		for (int i=0; i<4; i++){
+		    refresh[i] = false;
+		}
+	}
 	SDL_RenderDrawRect(renderer, &frame1);
 	SDL_RenderDrawRect(renderer, &frame2);
 	SDL_RenderDrawRect(renderer, &frame3);
 	SDL_RenderFillRect(renderer, &bar1);
 	SDL_RenderFillRect(renderer, &bar2);
 	SDL_RenderFillRect(renderer, &bar3);
-	SDL_RenderPresent(renderer);
+	//SDL_RenderPresent(renderer);
 	return;
 }
 
