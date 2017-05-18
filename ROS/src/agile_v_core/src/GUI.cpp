@@ -3,6 +3,7 @@
 SDL_Window *window;
 SDL_Renderer *renderer;
 SDL_Point wheel[9];
+bool refresh[4];			//Refresh marker set to prevent the wheels flashing.
 
 int GUI_Init(void){
     /* Initialise SDL */
@@ -35,7 +36,8 @@ void GUIUpdateInput(const agile_v_core::joyinfoex& joyinfo){
     SDL_Rect bar1 = { 10, 10, joyinfo.dwXpos/150 , 10 };
 	SDL_Rect bar2 = { 10, 25, joyinfo.dwZpos/150 , 10 };
 	SDL_Rect bar3 = { 10, 40, joyinfo.dwRpos/150 , 10 };
-	SDL_RenderClear(renderer);
+	if (std::accumulate(refresh, refresh + 4, 0)==4)
+		SDL_RenderClear(renderer);
 	SDL_RenderDrawRect(renderer, &frame1);
 	SDL_RenderDrawRect(renderer, &frame2);
 	SDL_RenderDrawRect(renderer, &frame3);
@@ -72,6 +74,7 @@ void DrawWheel0(const std_msgs::UInt16MultiArray& WheelStatus0){
     pointsRotTrans(9, wheel, angle, 1, position, draw);
     SDL_RenderDrawLines(renderer, draw, 9);
     SDL_RenderPresent(renderer);
+	refresh[0] = true;
 }
 void DrawWheel1(const std_msgs::UInt16MultiArray& WheelStatus1){
     float angle = Enc[0][1].extractAngle()/2.0;
@@ -80,6 +83,7 @@ void DrawWheel1(const std_msgs::UInt16MultiArray& WheelStatus1){
     pointsRotTrans(9, wheel, angle+M_PI, 1, position, draw);
     SDL_RenderDrawLines(renderer, draw, 9);
     SDL_RenderPresent(renderer);
+	refresh[1] = true;
 }
 void DrawWheel2(const std_msgs::UInt16MultiArray& WheelStatus2){
     float angle = Enc[0][2].extractAngle()/2.0;
@@ -88,6 +92,7 @@ void DrawWheel2(const std_msgs::UInt16MultiArray& WheelStatus2){
     pointsRotTrans(9, wheel, angle, 1, position, draw);
     SDL_RenderDrawLines(renderer, draw, 9);
     SDL_RenderPresent(renderer);
+	refresh[2] = true;
 }
 void DrawWheel3(const std_msgs::UInt16MultiArray& WheelStatus3){
     float angle = Enc[0][3].extractAngle()/2.0;
@@ -96,6 +101,7 @@ void DrawWheel3(const std_msgs::UInt16MultiArray& WheelStatus3){
     pointsRotTrans(9, wheel, angle+M_PI, 1, position, draw);
     SDL_RenderDrawLines(renderer, draw, 9);
     SDL_RenderPresent(renderer);
+	refresh[3] = true;
 }
 
 

@@ -56,16 +56,16 @@ void Actuate0( const std_msgs::UInt16MultiArray& ctrl_var){
     //Send Signals to stepper motor and BLDC according to messages subscribed
     drive_input[i] = ctrl_var.data[1];
 	if(ctrl_var.data[3]>0){ // 倒车
-        vel[i] = vel[i] - (float)drive_input[i]*throttle[i];
+        vel[i] = vel[i] - drive_input[i]*throttle[i];
 	}//adjust for the switch
     else{
-		vel[i] = vel[i] + (float)drive_input[i]*throttle[i];
+		vel[i] = vel[i] + drive_input[i]*throttle[i];
 	}
 	if (ctrl_var.data[2]==0){
 	    vel[i] = vel[i]*0.98;
 	}
 	else{											//Breaking
-		vel[i] = vel[i]*(0.98-ctrl_var.data[2]*0.7/255);
+		vel[i] = vel[i]*(0.98-ctrl_var.data[2]*0.7/255.0);
 	}
     // As the first version has only one encoder (for the angle), only the angle part has the close loop control.
    steeringTarget[i] = ctrl_var.data[0];
@@ -85,7 +85,7 @@ void Actuate1( const std_msgs::UInt16MultiArray& ctrl_var){
 	    vel[i] = vel[i]*0.98;
 	}
 	else{											//Breaking
-		vel[i] = vel[i]*(0.98-ctrl_var.data[2]*0.7/255);
+		vel[i] = vel[i]*(0.98-ctrl_var.data[2]*0.7/255.0);
 	}
     // As the first version has only one encoder (for the angle), only the angle part has the close loop control.
    steeringTarget[i] = ctrl_var.data[0];
@@ -105,7 +105,7 @@ void Actuate2( const std_msgs::UInt16MultiArray& ctrl_var){
 	    vel[i] = vel[i]*0.98;
 	}
 	else{											//Breaking
-		vel[i] = vel[i]*(0.98-ctrl_var.data[2]*0.7/255);
+		vel[i] = vel[i]*(0.98-ctrl_var.data[2]*0.7/255.0);
 	}
     // As the first version has only one encoder (for the angle), only the angle part has the close loop control.
    steeringTarget[i] = ctrl_var.data[0];
@@ -125,7 +125,7 @@ void Actuate3( const std_msgs::UInt16MultiArray& ctrl_var){
 	    vel[i] = vel[i]*0.98;
 	}
 	else{											//Breaking
-		vel[i] = vel[i]*(0.98-ctrl_var.data[2]*0.7/255);
+		vel[i] = vel[i]*(0.98-ctrl_var.data[2]*0.7/255.0);
 	}
     // As the first version has only one encoder (for the angle), only the angle part has the close loop control.
    steeringTarget[i] = ctrl_var.data[0];
@@ -177,7 +177,7 @@ float dataPower[4][3];
 
 void Query(int i)
 {
-  dataActuator[i][0] = angle_real[i]*4096/360+_zero[i];
+  dataActuator[i][0] = (360.0-angle_real[i])*4096/360+_zero[i];
   dataActuator[i][1] = (uint16_t)(dataActuator[i][1]+vel[i]/4096)%4096;
   Angle[i]=(dataActuator[i][0]-_zero[i]+encoder_resolution)%encoder_resolution;
   
@@ -232,11 +232,11 @@ void loop() {
    if ((unsigned long)(time_now.tv_usec - time_last_query.tv_usec) > queryTime){
        Query(i);
        Throttling(i);
-       gettimeofday(&time_last_query, NULL); //time_last_query = micros();
+       if (i==2) gettimeofday(&time_last_query, NULL); //time_last_query = micros();
    }
    if ((unsigned long)(time_now.tv_usec - time_last_publish.tv_usec) > updateTime){
 	   Publish(i);
-	   gettimeofday(&time_last_publish, NULL); //time_last_publish = micros();
+	   if (i==3) gettimeofday(&time_last_publish, NULL); //time_last_publish = micros();
    }
    }
 }
