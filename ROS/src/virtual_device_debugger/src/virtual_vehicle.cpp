@@ -56,10 +56,10 @@ void Actuate0( const std_msgs::UInt16MultiArray& ctrl_var){
     //Send Signals to stepper motor and BLDC according to messages subscribed
     drive_input[i] = ctrl_var.data[1];
 	if(ctrl_var.data[3]>0){ // 倒车
-        vel[i] = vel[i] - drive_input[i]*throttle[i];
+        vel[i] = vel[i] - (float)drive_input[i]*throttle[i];
 	}//adjust for the switch
     else{
-		vel[i] = vel[i] + drive_input[i]*throttle[i];
+		vel[i] = vel[i] + (float)drive_input[i]*throttle[i];
 	}
 	if (ctrl_var.data[2]==0){
 	    vel[i] = vel[i]*0.98;
@@ -135,10 +135,12 @@ void Actuate3( const std_msgs::UInt16MultiArray& ctrl_var){
 bool V_last = false;
 void Flip(bool direc, uint8_t which_one) {
   if (direc == 0){
-    angle_real[which_one] += 360/3000;
+    angle_real[which_one] += 360./1000.;
+    printf( "steering angle of wheel %d is %f\n",which_one, angle_real[which_one] );
   }
   else if (direc == 1) {
-    angle_real[which_one] -= 360/3000;
+    angle_real[which_one] -= 360./1000.;
+    printf( "steering angle of wheel %d is %f\n",which_one, angle_real[which_one] );
   }
 }
 
@@ -154,9 +156,11 @@ void Steering(int i){
 			pulseTime[i] = 7000/(1.1*abs(err)+5);	//Need Modification
             if (err<0) {
                 Flip(0, i);
+                printf( "Flip 0 on %d\n",i );
             }
             else {
                 Flip(1, i);
+                printf( "Flip 1 on %d\n",i );
             }  
         }
         //end while loop 
@@ -173,8 +177,8 @@ float dataPower[4][3];
 
 void Query(int i)
 {
-  dataActuator[i][0] = angle_real[i]/360*4096+_zero[i];
-  dataActuator[i][1] = dataActuator[i][1]+vel[i]/4096;
+  dataActuator[i][0] = angle_real[i]*4096/360+_zero[i];
+  dataActuator[i][1] = (uint16_t)(dataActuator[i][1]+vel[i]/4096)%4096;
   Angle[i]=(dataActuator[i][0]-_zero[i]+encoder_resolution)%encoder_resolution;
   
   dataPower[i][0] = 50*(0.02892+0.00002576*50)+2.99;
@@ -234,7 +238,6 @@ void loop() {
 	   Publish(i);
 	   gettimeofday(&time_last_publish, NULL); //time_last_publish = micros();
    }
-   else usleep(1);
    }
 }
 

@@ -97,12 +97,12 @@ public:
     
     double extractAngle()
     {
-        return (2*M_PI*(_value/_resolution+_cycle));    //Return angle in RAD.
+        return (2.0*M_PI*(_value/(double)_resolution+_cycle));    //Return angle in RAD.
     }
     
     double extractAngle_OneCycle()
     {
-        return (2*M_PI*_value/_resolution);
+        return (2*M_PI*_value/(double)_resolution);
     }
     
     uint16_t reverseAngleLookup(double angle_in)

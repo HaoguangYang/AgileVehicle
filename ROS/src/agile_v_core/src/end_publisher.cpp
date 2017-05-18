@@ -1,6 +1,6 @@
 #include "end_publisher.h"
 
-uint16_t reverse_MotorPerformance(double AngSpeed, double Torque)
+int reverse_MotorPerformance(double AngSpeed, double Torque)
 {
 	const double gain1 = 0.09549296586;
 	const double gain2 = 10.33;		//N.m/V
@@ -24,7 +24,7 @@ void publishToWheels(ros::NodeHandle handle, ros::Publisher* wheel_pub, std_msgs
    	if (IsBrake)
    	{
    	    for (int i = 0; i<4; i++){
-   	        brake[i] = reverse_MotorPerformance(-driveVal[i], -Torque[i]);
+   	        brake[i] = max(min(reverse_MotorPerformance(-driveVal[i], -Torque[i]), 255),0);
    	        drive[i] = 0;
    	    }
    	}
@@ -32,14 +32,14 @@ void publishToWheels(ros::NodeHandle handle, ros::Publisher* wheel_pub, std_msgs
    	{
    	    for (int i = 0; i<4; i++){
    	        brake[i] = 0;
-   	        drive[i] = reverse_MotorPerformance(driveVal[i], Torque[i]);
+   	        drive[i] = max(min(reverse_MotorPerformance(driveVal[i], Torque[i]),255),0);
    	    }
    	}
    	
    	for (int i = 0; i<4; i++){
        	WheelCtrl[i].data[0] = steer[i];
     	WheelCtrl[i].data[1] = drive[i];
-    	WheelCtrl[i].data[2] = 0;//brake[i];
+    	WheelCtrl[i].data[2] = brake[i];
     	WheelCtrl[i].data[3] = 0;
     }
     

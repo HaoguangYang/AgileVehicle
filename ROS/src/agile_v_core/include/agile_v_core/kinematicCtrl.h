@@ -7,6 +7,10 @@
 #include "encoder.h"
 #include "globals.h"
 
+template <typename T> int sgn(T val) {
+    return (T(0) < val) - (val < T(0));
+}
+
 void GetVehicleData(int argc, char* argv[]);
 //Assess vehicle physical data: mass, size, etc.
 

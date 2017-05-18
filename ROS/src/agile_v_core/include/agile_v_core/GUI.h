@@ -15,7 +15,7 @@ int GUI_Init(void);
 
 void GUIUpdateInput(const agile_v_core::joyinfoex& joyinfo);
 
-SDL_Point* pointsRotTrans(int n, SDL_Point *actual, float angle, bool isRAD, int *Trans);
+void pointsRotTrans(int n, SDL_Point *actual, float angle, bool isRAD, int *Trans, SDL_Point *rotated);
 
 void DrawWheel0(const std_msgs::UInt16MultiArray& WheelStatus0);
 

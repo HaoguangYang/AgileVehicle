@@ -80,8 +80,8 @@ void KOLCSteering(double radius, double speed, double* steerVal, double* driveVa
         //}
 		
 		double omega = speed/radius;
-		double Rleft = sqrt(leftBase*leftBase+Vehicle.WheelBase*Vehicle.WheelBase/4); // 左轮的转弯半径
-		double Rright = sqrt(rightBase*rightBase+Vehicle.WheelBase*Vehicle.WheelBase/4);
+		double Rleft = sgn(leftBase)*sqrt(leftBase*leftBase+Vehicle.WheelBase*Vehicle.WheelBase/4); // 左轮的转弯半径
+		double Rright = sgn(rightBase)*sqrt(rightBase*rightBase+Vehicle.WheelBase*Vehicle.WheelBase/4);
 		driveVal[0] = omega*Rleft;
 		driveVal[1] = omega*Rright;
 		driveVal[2] = driveVal[0];

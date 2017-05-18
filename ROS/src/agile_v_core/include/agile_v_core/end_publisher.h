@@ -8,7 +8,7 @@
 #include "agile_v_core/electric.h"
 #include "agile_v_core/kinematics.h"
 
-uint16_t reverse_MotorPerformance(double Speed, double Torque);
+int reverse_MotorPerformance(double Speed, double Torque);
 /***********************************
 Given current motor speed and / or Torque desired for a BLDC (Brushless DC) motor
 Generate BLDC Driver input signal value (0~255)

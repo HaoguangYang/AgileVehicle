@@ -6,7 +6,7 @@
     <!-- The navigation stack and associated parameters -->
     
     <!--Simulator-->
-	<node pkg="virtual_device_debugger" type="virtual_device_debugger_node" name="agile_v_simulator" />
+	<node pkg="virtual_device_debugger" type="virtual_device_debugger_node" name="agile_v_simulator" output="screen"/>
     
     <!--Core-->
     <node pkg="agile_v_core" type="agile_v_core_node" name="dyna_core"

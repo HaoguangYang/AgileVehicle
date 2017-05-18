@@ -1,4 +1,5 @@
-#include "subscribers.h" 
+#include "subscribers.h"
+#include "GUI.h"
 
 ElectricStat ElectricMon[4];
 bool IsInit[2][4]={false};
@@ -14,6 +15,7 @@ void readFromWheelsDrv00(const std_msgs::UInt16MultiArray& wheelData)
         encodersInit(0,0,wheelData.data[0]);
         encodersInit(1,0,wheelData.data[1]);
     }
+    DrawWheel0(wheelData);
     return;
 }
 
@@ -28,6 +30,7 @@ void readFromWheelsDrv01(const std_msgs::UInt16MultiArray& wheelData)
         encodersInit(0,1,wheelData.data[0]);
         encodersInit(1,1,wheelData.data[1]);
     }
+    DrawWheel1(wheelData);
     return;
 }
 
@@ -42,6 +45,7 @@ void readFromWheelsDrv02(const std_msgs::UInt16MultiArray& wheelData)
         encodersInit(0,2,wheelData.data[0]);
         encodersInit(1,2,wheelData.data[1]);
     }
+    DrawWheel2(wheelData);
     return;
 }
 
@@ -56,6 +60,7 @@ void readFromWheelsDrv03(const std_msgs::UInt16MultiArray& wheelData)
         encodersInit(0,2,wheelData.data[0]);
         encodersInit(1,2,wheelData.data[1]);
     }
+    DrawWheel3(wheelData);
     return;
 }
 

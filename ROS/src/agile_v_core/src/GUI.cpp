@@ -23,7 +23,7 @@ int GUI_Init(void){
     
     window = SDL_CreateWindow("SDL2 Vehicle Moniitor",
                               SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, 0);
-    renderer = SDL_CreateRenderer(window, -1, 0);
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     return 0;
 }
@@ -47,7 +47,7 @@ void GUIUpdateInput(const agile_v_core::joyinfoex& joyinfo){
 }
 
 
-SDL_Point* pointsRotTrans(int n, SDL_Point *actual, float angle, bool isRAD, int *Trans) {
+void pointsRotTrans(int n, SDL_Point *actual, float angle, bool isRAD, int *Trans, SDL_Point *rotated) {
   const double DEG2RAD = 2.0*M_PI/360.0;
   float radians;
   if (!isRAD){
@@ -56,38 +56,46 @@ SDL_Point* pointsRotTrans(int n, SDL_Point *actual, float angle, bool isRAD, int
   else{
     radians = angle;
   }
-  SDL_Point rotated[n];
+  //SDL_Point rotated[n];
   for  (int i=0; i<n; i++){
       rotated[i].x = actual[i].x * cos(radians) - actual[i].y * sin(radians) + Trans[0];
       rotated[i].y = actual[i].x * sin(radians) + actual[i].y * cos(radians) + Trans[1];
   }
-  return rotated;
+  return;
 }
 
 
 void DrawWheel0(const std_msgs::UInt16MultiArray& WheelStatus0){
     float angle = Enc[0][0].extractAngle()/2.0;
     static int position[2] = {50, 100};
-    const SDL_Point *draw = pointsRotTrans(9, wheel, angle, 1, position);
+    SDL_Point draw[9];
+    pointsRotTrans(9, wheel, angle, 1, position, draw);
     SDL_RenderDrawLines(renderer, draw, 9);
+    SDL_RenderPresent(renderer);
 }
 void DrawWheel1(const std_msgs::UInt16MultiArray& WheelStatus1){
     float angle = Enc[0][1].extractAngle()/2.0;
     static int position[2] = {182, 100};
-    const SDL_Point *draw = pointsRotTrans(9, wheel, angle, 1, position);
+    SDL_Point draw[9];
+    pointsRotTrans(9, wheel, angle+M_PI, 1, position, draw);
     SDL_RenderDrawLines(renderer, draw, 9);
+    SDL_RenderPresent(renderer);
 }
 void DrawWheel2(const std_msgs::UInt16MultiArray& WheelStatus2){
     float angle = Enc[0][2].extractAngle()/2.0;
     static int position[2] = {50, 252};
-    const SDL_Point *draw = pointsRotTrans(9, wheel, angle, 1, position);
+    SDL_Point draw[9];
+    pointsRotTrans(9, wheel, angle, 1, position, draw);
     SDL_RenderDrawLines(renderer, draw, 9);
+    SDL_RenderPresent(renderer);
 }
 void DrawWheel3(const std_msgs::UInt16MultiArray& WheelStatus3){
     float angle = Enc[0][3].extractAngle()/2.0;
     static int position[2] = {182, 252};
-    const SDL_Point *draw = pointsRotTrans(9, wheel, angle, 1, position);
+    SDL_Point draw[9];
+    pointsRotTrans(9, wheel, angle+M_PI, 1, position, draw);
     SDL_RenderDrawLines(renderer, draw, 9);
+    SDL_RenderPresent(renderer);
 }
 
 
