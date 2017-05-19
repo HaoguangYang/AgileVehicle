@@ -150,7 +150,7 @@ void Steering(int i){
         //Serial.println("bad DesiredAngle input.");
     }
     else {
-		int err = (steeringTarget[i]-Angle[i]+uint16_t(0.5*encoder_resolution))%(encoder_resolution)-(encoder_resolution*0.5);
+		int err = (steeringTarget[i]-Angle[i]+(uint16_t)(0.5*encoder_resolution))%(encoder_resolution)-(encoder_resolution/2);
 		//min(min(abs(steeringTarget-Angle),abs(steeringTarget-Angle+encoder_resolution)),abs(steeringTarget-Angle-encoder_resolution));
         if(!(abs(err)<40)) {
 			pulseTime[i] = 7000/(1.1*abs(err)+5);	//Need Modification
@@ -177,7 +177,7 @@ float dataPower[4][3];
 
 void Query(int i)
 {
-  dataActuator[i][0] = (angle_real[i]*4096/360+_zero[i]+4096)%4096;
+  dataActuator[i][0] = (uint16_t)(angle_real[i]*4096/360+_zero[i]+4096)%4096;
   dataActuator[i][1] = (uint16_t)(dataActuator[i][1]+vel[i]/4096)%4096;
   Angle[i]=(dataActuator[i][0]-_zero[i]+encoder_resolution)%encoder_resolution;
   
