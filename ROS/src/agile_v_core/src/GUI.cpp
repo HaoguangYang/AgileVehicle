@@ -75,7 +75,8 @@ void DrawWheel0(const std_msgs::UInt16MultiArray& WheelStatus0){
     float angle = Enc[0][0].extractAngle()/2.0;
     static int position[2] = {50, 100};
     SDL_Point draw[9];
-    pointsRotTrans(9, wheel, angle, 1, position, draw);
+    pointsRotTrans(9, wheel, angle+M_PI, 1, position, draw);
+    //printf("Angle Watch: %f\n", (angle)/M_PI*180.0);
     SDL_RenderDrawLines(renderer, draw, 9);
     SDL_RenderPresent(renderer);
 	refresh[0] = true;
@@ -84,7 +85,8 @@ void DrawWheel1(const std_msgs::UInt16MultiArray& WheelStatus1){
     float angle = Enc[0][1].extractAngle()/2.0;
     static int position[2] = {182, 100};
     SDL_Point draw[9];
-    pointsRotTrans(9, wheel, angle+M_PI, 1, position, draw);
+    pointsRotTrans(9, wheel, angle, 1, position, draw);
+    //printf("Angle Watch: %f\n", (angle)/M_PI*180.0);
     SDL_RenderDrawLines(renderer, draw, 9);
     SDL_RenderPresent(renderer);
 	refresh[1] = true;
@@ -93,7 +95,8 @@ void DrawWheel2(const std_msgs::UInt16MultiArray& WheelStatus2){
     float angle = Enc[0][2].extractAngle()/2.0;
     static int position[2] = {50, 252};
     SDL_Point draw[9];
-    pointsRotTrans(9, wheel, angle, 1, position, draw);
+    pointsRotTrans(9, wheel, angle+M_PI, 1, position, draw);
+    //printf("Angle Watch: %f\n", (angle)/M_PI*180.0);
     SDL_RenderDrawLines(renderer, draw, 9);
     SDL_RenderPresent(renderer);
 	refresh[2] = true;
@@ -102,7 +105,8 @@ void DrawWheel3(const std_msgs::UInt16MultiArray& WheelStatus3){
     float angle = Enc[0][3].extractAngle()/2.0;
     static int position[2] = {182, 252};
     SDL_Point draw[9];
-    pointsRotTrans(9, wheel, angle+M_PI, 1, position, draw);
+    pointsRotTrans(9, wheel, angle, 1, position, draw);
+    //printf("Angle Watch: %f\n", (angle)/M_PI*180.0);
     SDL_RenderDrawLines(renderer, draw, 9);
     SDL_RenderPresent(renderer);
 	refresh[3] = true;

@@ -23,10 +23,14 @@ public:
     int32_t _cycle;
     
     // 构造函数
-    Encoder(uint16_t resolution=4096, int32_t cycle=0, bool noNewData=true):_resolution(resolution),_cycle(cycle),_noNewData(noNewData){};
+    Encoder(uint16_t resolution=4096, int32_t cycle=0, bool noNewData=true):_resolution(resolution),_cycle(cycle),_noNewData(noNewData){
+        _value = 0;
+        _cycle = 0;
+    }
     
     Encoder(uint16_t res, bool noNewData=true):_noNewData(noNewData){
         _resolution = res;
+        _value = 0;
         _cycle = 0;
     }
     
@@ -102,7 +106,7 @@ public:
     
     double extractAngle_OneCycle()
     {
-        return (2*M_PI*_value/(double)_resolution);
+        return (2.0*M_PI*_value/(double)_resolution);
     }
     
     uint16_t reverseAngleLookup(double angle_in)
