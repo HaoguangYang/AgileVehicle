@@ -10,6 +10,7 @@
 #include <sys/ioctl.h>
 #include <errno.h>
 #include "agile_v_core/joyinfoex.h"
+#include <math.h>
 
 int GUI_Init(void);
 

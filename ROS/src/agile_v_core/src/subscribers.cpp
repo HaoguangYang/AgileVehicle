@@ -51,14 +51,14 @@ void readFromWheelsDrv02(const std_msgs::UInt16MultiArray& wheelData)
 
 void readFromWheelsDrv03(const std_msgs::UInt16MultiArray& wheelData)
 {
-    if (IsInit[0][2] && IsInit[1][2]){
+    if (IsInit[0][3] && IsInit[1][3]){
         Enc[0][3].update(Enc[0][3].getRes()-wheelData.data[0]);
         Enc[1][3].update_value(wheelData.data[1]);
     }
     else if (IsZeroCorrect[3])
     {
-        encodersInit(0,2,wheelData.data[0]);
-        encodersInit(1,2,wheelData.data[1]);
+        encodersInit(0,3,wheelData.data[0]);
+        encodersInit(1,3,wheelData.data[1]);
     }
     DrawWheel3(wheelData);
     return;
