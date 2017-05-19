@@ -83,11 +83,13 @@ int main(int argc, char* argv[])
     
 	
 	//ROS Loop
-	while (ros::ok()){
+	bool NoQuit = true;
+	while (NoQuit && ros::ok()){
 		publishToWheels(handle, wheel_pub, WheelCtrl, steerVal, driveVal, Torque);
 		publishToUser(handle, kineStat);
 		usleep(25000);
 		ros::spinOnce();
+		if (SysEvent.type==SDL_QUIT) NoQuit = false;
 	}
 	SDL_Cleanup();
 }

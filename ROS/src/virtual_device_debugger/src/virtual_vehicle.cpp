@@ -135,11 +135,11 @@ void Actuate3( const std_msgs::UInt16MultiArray& ctrl_var){
 bool V_last = false;
 void Flip(bool direc, uint8_t which_one) {
   if (direc == 0){
-    angle_real[which_one] -= 360./1600.;
+    angle_real[which_one] -= 360./3200.;
     printf( "steering angle of wheel %d is %f\n",which_one, angle_real[which_one] );
   }
   else if (direc == 1) {
-    angle_real[which_one] += 360./1600.;
+    angle_real[which_one] += 360./3200.;
     printf( "steering angle of wheel %d is %f\n",which_one, angle_real[which_one] );
   }
 }
@@ -257,8 +257,9 @@ int main(int argc, char* argv[]){
     sub[2] = handle.subscribe("WheelControl02", 2, &Actuate2);
     sub[3] = handle.subscribe("WheelControl03", 2, &Actuate3);
     setup();
-    
-    while (ros::ok()){
+	
+    bool NoQuit = true;
+    while (NoQuit && ros::ok()){
         loop();
         system("clear");
 		cout << "Control Value:" << endl;
@@ -266,8 +267,10 @@ int main(int argc, char* argv[]){
 		printf( "Driving Target >>>>>>>>>>>>>>>>>>>\n%d    %d    %d    %d\n", drive_input[0], drive_input[1], drive_input[2], drive_input[3] );
 		printf( "Throttling >>>>>>>>>>>>>>>>>>>>>>>\n%f    %f    %f    %f\n", throttle[0], throttle[1], throttle[2], throttle[3] );
 		ros::spinOnce();
+		if (SysEvent.type==SDL_QUIT) NoQuit = false;
     }
     ros::shutdown();
+	SDL_Cleanup();
     return 0;
 }
 
