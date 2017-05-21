@@ -23,9 +23,10 @@ int GUI_Init(void){
     wheel[8] = {-10,10};
     
     window = SDL_CreateWindow("SDL2 Vehicle Moniitor",
-                              SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, 0);
+                              SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, SDL_WINDOW_OPENGL);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+    SDL_RenderPresent(renderer);
     return 0;
 }
 
@@ -49,6 +50,8 @@ void GUIUpdateInput(const agile_v_core::joyinfoex& joyinfo){
 	SDL_RenderFillRect(renderer, &bar2);
 	SDL_RenderFillRect(renderer, &bar3);
 	//SDL_RenderPresent(renderer);
+	SDL_Event SysEvent;
+	SDL_PollEvent(&SysEvent);
 	return;
 }
 

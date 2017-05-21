@@ -331,8 +331,8 @@ int main(int argc, char* argv[])
 	    SDL_Init(SDL_INIT_VIDEO);
         SDL_Window * window = SDL_CreateWindow("SDL2 Keyboard/Mouse events Detector",
                                            SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 500, 0, 0);
-        SDL_Renderer * renderer = SDL_CreateRenderer(window, -1, 0);
-        SDL_SetRenderDrawColor(renderer, 0,0,0,0);
+        //SDL_Renderer * renderer = SDL_CreateRenderer(window, -1, 0);
+        //SDL_SetRenderDrawColor(renderer, 0,0,0,0);
 		joyinfo.dwXpos = 32768;
 		joyinfo.dwRpos = 65535;			//Zero Brake
 		joyinfo.dwZpos = 65535;			//Zero Power
@@ -435,7 +435,7 @@ int main(int argc, char* argv[])
 			usleep(25000);
 			ros::spinOnce();
 		}
-		SDL_DestroyRenderer(renderer);
+		//SDL_DestroyRenderer(renderer);
         SDL_DestroyWindow(window);
     }
     SDL_Quit();
