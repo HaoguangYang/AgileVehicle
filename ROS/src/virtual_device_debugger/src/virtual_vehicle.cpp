@@ -101,11 +101,11 @@ bool V_last = false;
 void Flip(bool direc, uint8_t which_one) {
   if (direc == 0){
     angle_real[which_one] -= 360./3200.;
-    printf( "steering angle of wheel %d is %f\n",which_one, angle_real[which_one] );
+    //printf( "steering angle of wheel %d is %f\n",which_one, angle_real[which_one] );
   }
   else if (direc == 1) {
     angle_real[which_one] += 360./3200.;
-    printf( "steering angle of wheel %d is %f\n",which_one, angle_real[which_one] );
+    //printf( "steering angle of wheel %d is %f\n",which_one, angle_real[which_one] );
   }
 }
 
@@ -115,17 +115,17 @@ void Steering(int i){
         //Serial.println("bad DesiredAngle input.");
     }
     else {
-		int err = (steeringTarget[i]-Angle[i]+uint16_t(0.5*encoder_resolution))%(encoder_resolution)-(encoder_resolution*0.5);
+		int err = (uint16_t)(steeringTarget[i]-Angle[i]+(uint16_t)(0.5*encoder_resolution))%(encoder_resolution)-(encoder_resolution/2);
 		//min(min(abs(steeringTarget-Angle),abs(steeringTarget-Angle+encoder_resolution)),abs(steeringTarget-Angle-encoder_resolution));
         if(!(abs(err)<40)) {
 			pulseTime[i] = 7000/(1.1*abs(err)+5);	//Need Modification
             if (err<0) {
                 Flip(0, i);
-                printf( "Flip 0 on %d\n",i );
+                //printf( "Flip 0 on %d\n",i );
             }
             else {
                 Flip(1, i);
-                printf( "Flip 1 on %d\n",i );
+                //printf( "Flip 1 on %d\n",i );
             }
         }
         //end while loop 
@@ -142,7 +142,7 @@ float dataPower[4][3];
 
 void Query(int i)
 {
-  dataActuator[i][0] = (angle_real[i]*4096/360+_zero[i]+4096)%4096;
+  dataActuator[i][0] = (uint16_t)(angle_real[i]*4096/360+_zero[i]+4096)%4096;
   dataActuator[i][1] = (uint16_t)(dataActuator[i][1]+vel[i]/4096)%4096;
   Angle[i]=(dataActuator[i][0]-_zero[i]+encoder_resolution)%encoder_resolution;
   
@@ -223,8 +223,9 @@ int main(int argc, char* argv[]){
     sub[3] = handle.subscribe("WheelControl03", 2, &Actuate3);
     setup();
 	
-    while (NoQuit && ros::ok()){
+    while (ros::ok()){
         loop();
+        
         system("clear");
 		cout << "Control Value:" << endl;
 		printf( "Steering Target >>>>>>>>>>>>>>>>>>\n%d    %d    %d    %d\n", \
@@ -233,6 +234,9 @@ int main(int argc, char* argv[]){
 			drive_input[0], drive_input[1], drive_input[2], drive_input[3] );
 		printf( "Throttling >>>>>>>>>>>>>>>>>>>>>>>\n%f    %f    %f    %f\n", \
 			throttle[0], throttle[1], throttle[2], throttle[3] );
+		printf( "Driving Actual >>>>>>>>>>>>>>>>>>>\n%d    %d    %d    %d\n", \
+			Angle[0], Angle[1], Angle[2], Angle[3] );
+		//usleep(10);
 		ros::spinOnce();
     }
     ros::shutdown();
