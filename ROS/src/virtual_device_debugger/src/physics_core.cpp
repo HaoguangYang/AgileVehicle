@@ -7,11 +7,13 @@
 #include <boost/numeric/ublas/vector_proxy.hpp>
 #include <boost/numeric/ublas/triangular.hpp>
 #include <boost/numeric/ublas/lu.hpp>
+//#include <thread>
 
 #include "pacejka.h"
 #define R_W 0.315
 
 using namespace boost::numeric::ublas;
+bool no_quit = true;
 
 bool getTireForces(float load, float omega, float v_wx,
                   float v_wy, float F_lat, float F_long, float T_ali)
@@ -103,12 +105,12 @@ bool getTireForces(float load, float omega, float v_wx,
 	return 0;
 }
 
-template<class T>
-bool InvertMatrix? (const ublas::matrix<T>& input, ublas::matrix<T>& inverse) {
- 	using namespace boost::numeric::ublas;
+//template<class T>
+bool InvertMatrix (const matrix<double>& input, matrix<double>& inverse) {
+ 	//using namespace boost::numeric::ublas;
  	typedef permutation_matrix<std::size_t> pmatrix;
  	// create a working copy of the input
- 	matrix<T> A(input);
+ 	matrix<double> A(input);
  	// create a permutation matrix for the LU-factorization
  	pmatrix pm(A.size1());
 
@@ -117,7 +119,7 @@ bool InvertMatrix? (const ublas::matrix<T>& input, ublas::matrix<T>& inverse) {
         if( res != 0 ) return false;
 
  	// create identity matrix of "inverse"
- 	inverse.assign(ublas::identity_matrix<T>(A.size1()));
+ 	inverse.assign(identity_matrix<double>(A.size1()));
 
  	// backsubstitute to get the inverse
  	lu_substitute(A, pm, inverse);
@@ -125,18 +127,18 @@ bool InvertMatrix? (const ublas::matrix<T>& input, ublas::matrix<T>& inverse) {
  	return true;
  }
 
-void compute_main(matrix<T>& K, matrix<T>& M, matrix<T>& C, matrix<T>& Q, matrix<T>& invM, \
-				  const double c0, const double c1, const double c2, vector<T>& d0, vector<T>& d1, vector<T>& d2){
+void compute_main(matrix<double>& K, matrix<double>& M, matrix<double>& C, vector<double>& Q, matrix<double>& invM, \
+				  const double c0, const double c1, const double c2, vector<double>& d0, vector<double>& d1, vector<double>& d2){
 	
 }
 
-void update_param(matrix<T>& K, matrix<T>& C, matrix<T>& Q, matrix<T>& invM){
+void update_param(matrix<double>& K, matrix<double>& C, vector<double>& Q, matrix<double>& invM){
 	
 }
 
 //Solution of dynamic model using central difference with explicit integration
-int dyna_core(matrix<T>& K, matrix<T>& M, matrix<T>& C, vector<T>& Q, \
-			   const vector<T>& d0, const vector<T>& v0, const vector<T>& a0, const double dt){
+int dyna_core(matrix<double>& K, matrix<double>& M, matrix<double>& C, vector<double>& Q, \
+			  vector<double>& d0, vector<double>& v0, vector<double>& a0, const double dt){
 	int nDOF=23;
 	//vector<double> d0(nDOF), v0(nDOF), a0(nDOF), d1(nDOF);
 	//Integration constants
@@ -145,18 +147,21 @@ int dyna_core(matrix<T>& K, matrix<T>& M, matrix<T>& C, vector<T>& Q, \
 	const double c2 = 2*c0;
 	const double c3 = 1/c2;
 	//Displacement at -dt
-	vector<double> d1(nDOF) = d0 - dt*v0 + c3*a0;
-	vector<double> d2(nDOF) = d0;
+	vector<double> d1(nDOF);
+	d1 = d0 - dt*v0 + c3*a0;
+	vector<double> d2(nDOF);
+	d2 = d0;
 	//Form Equivilant Mass Matrix
 	//diagonal_matrix<double> M_mat(nDOF, M.data());
-	matrix<double> M_eff(nDOF, nDOF) = c0*M + c1*C;
+	matrix<double> M_eff(nDOF, nDOF);
+	M_eff = c0*M + c1*C;
 	matrix<double> invM(nDOF,nDOF);
 	int err = InvertMatrix(M_eff, invM);
 	
 	//Compute the motion and update the parameters.
-	std::thread loop = std::thread(compute_main, K, M, C, Q, invM, c0, c1, c2, d0, d1, d2);
-	std::thread update = std::thread(update_param, K, C, Q, invM);
-	loop.join();
-	update.join();
-	return EXIT_SUCCESS;
+	while (no_quit){
+    	compute_main (K, M, C, Q, invM, c0, c1, c2, d0, d1, d2);
+	    update_param (K, C, Q, invM);
+	}
+	return 0;
 }

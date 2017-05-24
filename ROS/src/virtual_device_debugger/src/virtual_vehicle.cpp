@@ -50,7 +50,7 @@ struct timeval time_last[4];              //for Buffer flushing
 struct timeval time_last_query;           //for Query
 struct timeval time_last_publish;
 
-void naive_driving_controller(int i){
+void naive_driving_controller(int i, const std_msgs::UInt16MultiArray& ctrl_var){
 	if(ctrl_var.data[3]>0){ // 倒车
         vel[i] = vel[i] - drive_input[i]*throttle[i];
 	}//adjust for the switch
@@ -72,28 +72,28 @@ void Actuate0( const std_msgs::UInt16MultiArray& ctrl_var){
     int i=0;
     //Send Signals to stepper motor and BLDC according to messages subscribed
     drive_input[i] = ctrl_var.data[1];
-	naive_driving_controller(i);
+	naive_driving_controller(i, ctrl_var);
 }
 
 void Actuate1( const std_msgs::UInt16MultiArray& ctrl_var){
     int i=1;
     //Send Signals to stepper motor and BLDC according to messages subscribed
     drive_input[i] = ctrl_var.data[1];
-	naive_driving_controller(i);
+	naive_driving_controller(i, ctrl_var);
 }
 
 void Actuate2( const std_msgs::UInt16MultiArray& ctrl_var){
     int i=2;
     //Send Signals to stepper motor and BLDC according to messages subscribed
     drive_input[i] = ctrl_var.data[1];
-	naive_driving_controller(i);
+	naive_driving_controller(i, ctrl_var);
 }
 
 void Actuate3( const std_msgs::UInt16MultiArray& ctrl_var){
     int i=3;
     //Send Signals to stepper motor and BLDC according to messages subscribed
     drive_input[i] = ctrl_var.data[1];
-	naive_driving_controller(i);
+	naive_driving_controller(i, ctrl_var);
 }
 
 // the function to determine the wave pattern to servo
