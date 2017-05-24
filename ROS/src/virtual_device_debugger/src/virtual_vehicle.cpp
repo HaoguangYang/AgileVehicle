@@ -50,11 +50,7 @@ struct timeval time_last[4];              //for Buffer flushing
 struct timeval time_last_query;           //for Query
 struct timeval time_last_publish;
 
-
-void Actuate0( const std_msgs::UInt16MultiArray& ctrl_var){
-    int i=0;
-    //Send Signals to stepper motor and BLDC according to messages subscribed
-    drive_input[i] = ctrl_var.data[1];
+void naive_driving_controller(int i){
 	if(ctrl_var.data[3]>0){ // 倒车
         vel[i] = vel[i] - drive_input[i]*throttle[i];
 	}//adjust for the switch
@@ -68,67 +64,36 @@ void Actuate0( const std_msgs::UInt16MultiArray& ctrl_var){
 		vel[i] = vel[i]*(0.98-ctrl_var.data[2]*0.7/255.0);
 	}
     // As the first version has only one encoder (for the angle), only the angle part has the close loop control.
-   steeringTarget[i] = ctrl_var.data[0];
+	steeringTarget[i] = ctrl_var.data[0];
+	return;
+}
+
+void Actuate0( const std_msgs::UInt16MultiArray& ctrl_var){
+    int i=0;
+    //Send Signals to stepper motor and BLDC according to messages subscribed
+    drive_input[i] = ctrl_var.data[1];
+	naive_driving_controller(i);
 }
 
 void Actuate1( const std_msgs::UInt16MultiArray& ctrl_var){
     int i=1;
     //Send Signals to stepper motor and BLDC according to messages subscribed
     drive_input[i] = ctrl_var.data[1];
-	if(ctrl_var.data[3]>0){ // 倒车
-        vel[i] = vel[i] - drive_input[i]*throttle[i];
-	}//adjust for the switch
-    else{
-		vel[i] = vel[i] + drive_input[i]*throttle[i];
-	}
-	if (ctrl_var.data[2]==0){
-	    vel[i] = vel[i]*0.98;
-	}
-	else{											//Breaking
-		vel[i] = vel[i]*(0.98-ctrl_var.data[2]*0.7/255.0);
-	}
-    // As the first version has only one encoder (for the angle), only the angle part has the close loop control.
-   steeringTarget[i] = ctrl_var.data[0];
+	naive_driving_controller(i);
 }
 
 void Actuate2( const std_msgs::UInt16MultiArray& ctrl_var){
     int i=2;
     //Send Signals to stepper motor and BLDC according to messages subscribed
     drive_input[i] = ctrl_var.data[1];
-	if(ctrl_var.data[3]>0){ // 倒车
-        vel[i] = vel[i] - drive_input[i]*throttle[i];
-	}//adjust for the switch
-    else{
-		vel[i] = vel[i] + drive_input[i]*throttle[i];
-	}
-	if (ctrl_var.data[2]==0){
-	    vel[i] = vel[i]*0.98;
-	}
-	else{											//Breaking
-		vel[i] = vel[i]*(0.98-ctrl_var.data[2]*0.7/255.0);
-	}
-    // As the first version has only one encoder (for the angle), only the angle part has the close loop control.
-   steeringTarget[i] = ctrl_var.data[0];
+	naive_driving_controller(i);
 }
 
 void Actuate3( const std_msgs::UInt16MultiArray& ctrl_var){
     int i=3;
     //Send Signals to stepper motor and BLDC according to messages subscribed
     drive_input[i] = ctrl_var.data[1];
-	if(ctrl_var.data[3]>0){ // 倒车
-        vel[i] = vel[i] - drive_input[i]*throttle[i];
-	}//adjust for the switch
-    else{
-		vel[i] = vel[i] + drive_input[i]*throttle[i];
-	}
-	if (ctrl_var.data[2]==0){
-	    vel[i] = vel[i]*0.98;
-	}
-	else{											//Breaking
-		vel[i] = vel[i]*(0.98-ctrl_var.data[2]*0.7/255.0);
-	}
-    // As the first version has only one encoder (for the angle), only the angle part has the close loop control.
-   steeringTarget[i] = ctrl_var.data[0];
+	naive_driving_controller(i);
 }
 
 // the function to determine the wave pattern to servo
@@ -263,15 +228,17 @@ int main(int argc, char* argv[]){
         
         system("clear");
 		cout << "Control Value:" << endl;
-		printf( "Steering Target >>>>>>>>>>>>>>>>>>\n%d    %d    %d    %d\n", steeringTarget[0], steeringTarget[1], steeringTarget[2], steeringTarget[3] );
-		printf( "Driving Target >>>>>>>>>>>>>>>>>>>\n%d    %d    %d    %d\n", drive_input[0], drive_input[1], drive_input[2], drive_input[3] );
-		printf( "Throttling >>>>>>>>>>>>>>>>>>>>>>>\n%f    %f    %f    %f\n", throttle[0], throttle[1], throttle[2], throttle[3] );
-		printf( "Driving Actual >>>>>>>>>>>>>>>>>>>\n%d    %d    %d    %d\n", Angle[0], Angle[1], Angle[2], Angle[3] );
-		usleep(10);
-		
+		printf( "Steering Target >>>>>>>>>>>>>>>>>>\n%d    %d    %d    %d\n", \
+			steeringTarget[0], steeringTarget[1], steeringTarget[2], steeringTarget[3] );
+		printf( "Driving Target >>>>>>>>>>>>>>>>>>>\n%d    %d    %d    %d\n", \
+			drive_input[0], drive_input[1], drive_input[2], drive_input[3] );
+		printf( "Throttling >>>>>>>>>>>>>>>>>>>>>>>\n%f    %f    %f    %f\n", \
+			throttle[0], throttle[1], throttle[2], throttle[3] );
+		printf( "Driving Actual >>>>>>>>>>>>>>>>>>>\n%d    %d    %d    %d\n", \
+			Angle[0], Angle[1], Angle[2], Angle[3] );
+		//usleep(10);
 		ros::spinOnce();
     }
     ros::shutdown();
     return 0;
 }
-
