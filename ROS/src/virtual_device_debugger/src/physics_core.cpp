@@ -8,6 +8,7 @@
 #include <boost/numeric/ublas/triangular.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <boost/numeric/ublas/lu.hpp>
+#include <boost/array.hpp>
 //#include <thread>
 
 #include "pacejka.h"
@@ -135,8 +136,11 @@ void compute_main(matrix<double>& K, matrix<double>& M, matrix<double>& C, vecto
 
 #define nDOF 23
 void update_param(matrix<double>& K, matrix<double>& C, vector<double>& Q, matrix<double>& invM){
-	symmetric_matrix<double, upper> K1[i](3,3);
-	symmetric_matrix<double, upper> d1[i](3,3);
+    typedef boost::array<matrix<double>, 4> wheel_part_matrix;
+    wheel_part_matrix K1;
+    wheel_part_matrix d1;
+	K1.assign(matrix<double>(3,3));
+	d1.assign(matrix<double>(3,3));
 	identity_matrix<double> I(3);
 	//matrix<double> K_2(6,6);
 	//matrix<double> K_3(6,6);
