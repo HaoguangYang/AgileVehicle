@@ -129,17 +129,29 @@ bool InvertMatrix (const matrix<double>& input, matrix<double>& inverse) {
  	return true;
  }
 
+
+#define nDOF 24
+
 void compute_main(matrix<double>& K, matrix<double>& M, matrix<double>& C, vector<double>& Q, matrix<double>& invM, \
 				  const double c0, const double c1, const double c2, vector<double>& d0, vector<double>& d1, vector<double>& d2){
-	
+	vector<double> f_eff(nDOF);
+	vector<double> d3(nDOF);
+	vector<double> a2(nDOF);
+	vector<double> v2(nDOF);
+	f_eff = Q - prod((K-c2 * M), d2) - prod((c0 * M-c1 * C), d1);
+	d3 = prod(invM, f_eff);
+	a2 = c0 * (d1-2.0*d2+d3);
+	v2 = c1 * (d3-d1);
+	d1 = d2;
+	d2 = d3;
 }
 
-#define nDOF 23
+
 void update_param(matrix<double>& K, matrix<double>& M, matrix<double>& C, vector<double>& Q, \
                   matrix<double>& invM, const double &tc0, const double &tc1){
-    typedef boost::array<symmetric_matrix<double>, 4> wheel_part_matrix;
-    wheel_part_matrix K1;
-    wheel_part_matrix d1;
+    typedef boost::array<symmetric_matrix<double>, 4> wheel_part_matrices;
+    wheel_part_matrices K1;
+    wheel_part_matrices d1;
 	K1.assign(symmetric_matrix<double>(3,3));
 	d1.assign(symmetric_matrix<double>(3,3));
 	identity_matrix<double> I(3);
@@ -170,26 +182,36 @@ void update_param(matrix<double>& K, matrix<double>& M, matrix<double>& C, vecto
 		d1[i](1,2) = d_C*C2*S2;
 		d1[i](2,2) = d_C*S2*S2+2*d_S*S1*S1;
 	}
-	//Assembly: Dims = [wheel0_x wheel0_y wheel0_z wheel0_theta wheel0_roll \
-					wheel1_x ... 								    \
-					... \
-					... 			    wheel3_z wheel3_theta wheel3_roll \
-					chassis_x chassis_y chassis_z ]
+	//Assembly: Dims = [wheel0_x wheel0_y wheel0_z wheel0_theta wheel0_roll     \
+					    wheel1_x ... 								            \
+					    ... \
+					    ... 			    wheel3_z wheel3_theta wheel3_roll   \
+					    chassis_x chassis_y chassis_z chassis_hdg]
 	int scatter[4][6] = {0,	1,	2,	20,	21,	22, \
 						 5,	6,	7,	20,	21,	22, \
 						 10,12,	12,	20,	21,	22, \
 						 15,16,	17,	20,	21,	22};
+	
+	for (int i = 0; i<nDOF; i++)
+	for (int j = 0; j<nDOF; j++){
+	    K(i,j) = 0.0;
+	    C(i,j) = 0.0;
+	}
+	
 	for (int i=0; i<4; i++){
 		for (int j=0; j<3; j++)
 		for (int k=0; k<3; k++){
-			K(scatter[i][j], scatter[i][k]) = K1[i](j,k);
-			K(scatter[i][j+3], scatter[i][k+3]) = K1[i](j,k);
-			K(scatter[i][j], scatter[i][k+3]) = -K1[i](j,k);
-			K(scatter[i][j+3], scatter[i][k]) = -K1[i](j,k);
-			C(scatter[i][j], scatter[i][k]) = d1[i](j,k);
-			C(scatter[i][j+3], scatter[i][k+3]) = d1[i](j,k);
-			C(scatter[i][j], scatter[i][k+3]) = -d1[i](j,k);
-			C(scatter[i][j+3], scatter[i][k]) = -d1[i](j,k);
+		    //Suspensions
+			K(scatter[i][j], scatter[i][k]) += K1[i](j,k);
+			K(scatter[i][j+3], scatter[i][k+3]) += K1[i](j,k);
+			K(scatter[i][j], scatter[i][k+3]) += -K1[i](j,k);
+			K(scatter[i][j+3], scatter[i][k]) += -K1[i](j,k);
+			C(scatter[i][j], scatter[i][k]) += d1[i](j,k);
+			C(scatter[i][j+3], scatter[i][k+3]) += d1[i](j,k);
+			C(scatter[i][j], scatter[i][k+3]) += -d1[i](j,k);
+			C(scatter[i][j+3], scatter[i][k]) += -d1[i](j,k);
+			//Tyres
+			
 		}
 	}
 	symmetric_matrix<double> M_eff(nDOF, nDOF);
@@ -205,23 +227,19 @@ int dyna_core(matrix<double>& K, matrix<double>& M, matrix<double>& C, vector<do
 	const double c0 = 1/dt/dt;
 	const double c1 = 0.5/dt;
 	const double c2 = 2*c0;
-	const double c3 = 1/c2;
 	//Displacement at -dt
 	vector<double> d1(nDOF);
-	d1 = d0 - dt*v0 + c3*a0;
+	d1 = d0 - dt * v0 + a0/c2;
 	vector<double> d2(nDOF);
 	d2 = d0;
 	//Form Equivilant Mass Matrix
 	//diagonal_matrix<double> M_mat(nDOF, M.data());
-	matrix<double> M_eff(nDOF, nDOF);
-	M_eff = c0*M + c1*C;
 	matrix<double> invM(nDOF,nDOF);
-	int err = InvertMatrix(M_eff, invM);
 	
 	//Compute the motion and update the parameters.
 	while (no_quit){
-    	compute_main (K, M, C, Q, invM, c0, c1, c2, d0, d1, d2);
 	    update_param (K, M, C, Q, invM, c0, c1);
+    	compute_main (K, M, C, Q, invM, c0, c1, c2, d0, d1, d2);
 	}
 	return 0;
 }
