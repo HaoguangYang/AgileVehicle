@@ -6,6 +6,7 @@
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
 #include <boost/numeric/ublas/triangular.hpp>
+#include <boost/numeric/ublas/symmetric.hpp>
 #include <boost/numeric/ublas/lu.hpp>
 //#include <thread>
 
@@ -132,14 +133,64 @@ void compute_main(matrix<double>& K, matrix<double>& M, matrix<double>& C, vecto
 	
 }
 
+#define nDOF 23
 void update_param(matrix<double>& K, matrix<double>& C, vector<double>& Q, matrix<double>& invM){
-	
+	symmetric_matrix<double, upper> K1[i](3,3);
+	symmetric_matrix<double, upper> d1[i](3,3);
+	identity_matrix<double> I(3);
+	//matrix<double> K_2(6,6);
+	//matrix<double> K_3(6,6);
+	//matrix<double> K_4(6,6);
+	const double k_t = 2.65e+05;
+	const double d_t = 500.0;
+	const double g = -9.81;
+	double k_S, k_C, k_R1, k_R2, d_S, d_C, d_R1, d_R2;
+	double alpha_1[4] , alpha_2[4];
+	for (int i = 0; i < 4; i++){
+		double C1 = cos(alpha_1[i]);
+		double S1 = sin(alpha_1[i]);
+		double C2 = cos(alpha_2[i]);
+		double S2 = sin(alpha_2[i]);
+		K1[i](0,0) = 2*k_S*C1*C1+k_R2;
+		K1[i](0,1) = 0.0;
+		K1[i](0,2) = 0.0;
+		K1[i](1,1) = k_C*C2*C2+2*k_R1;
+		K1[i](1,2) = k_C*C2*S2;
+		K1[i](2,2) = k_C*S2*S2+2*k_S*S1*S1;
+		d1[i](0,0) = 2*d_S*C1*C1+d_R2;
+		d1[i](0,1) = 0.0;
+		d1[i](0,2) = 0.0;
+		d1[i](1,1) = d_C*C2*C2+2*d_R1;
+		d1[i](1,2) = d_C*C2*S2;
+		d1[i](2,2) = d_C*S2*S2+2*d_S*S1*S1;
+	}
+	//Assembly: Dims = [wheel0_x wheel0_y wheel0_z wheel0_theta wheel0_roll \
+					wheel1_x ... 								    \
+					... \
+					... 			    wheel3_z wheel3_theta wheel3_roll \
+					chassis_x chassis_y chassis_z ]
+	int scatter[4][6] = {0,	1,	2,	20,	21,	22, \
+						 5,	6,	7,	20,	21,	22, \
+						 10,12,	12,	20,	21,	22, \
+						 15,16,	17,	20,	21,	22};
+	for (int i=0; i<4; i++){
+		for (int j=0; j<3; j++)
+		for (int k=0; k<3; k++){
+			K(scatter[i][j], scatter[i][k]) = K1[i](j,k);
+			K(scatter[i][j+3], scatter[i][k+3]) = K1[i](j,k);
+			K(scatter[i][j], scatter[i][k+3]) = -K1[i](j,k);
+			K(scatter[i][j+3], scatter[i][k]) = -K1[i](j,k);
+			C(scatter[i][j], scatter[i][k]) = d1[i](j,k);
+			C(scatter[i][j+3], scatter[i][k+3]) = d1[i](j,k);
+			C(scatter[i][j], scatter[i][k+3]) = -d1[i](j,k);
+			C(scatter[i][j+3], scatter[i][k]) = -d1[i](j,k);
+		}
+	}
 }
 
 //Solution of dynamic model using central difference with explicit integration
 int dyna_core(matrix<double>& K, matrix<double>& M, matrix<double>& C, vector<double>& Q, \
 			  vector<double>& d0, vector<double>& v0, vector<double>& a0, const double dt){
-	int nDOF=23;
 	//vector<double> d0(nDOF), v0(nDOF), a0(nDOF), d1(nDOF);
 	//Integration constants
 	const double c0 = 1/dt/dt;
