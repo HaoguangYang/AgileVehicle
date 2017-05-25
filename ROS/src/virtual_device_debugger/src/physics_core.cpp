@@ -135,12 +135,13 @@ void compute_main(matrix<double>& K, matrix<double>& M, matrix<double>& C, vecto
 }
 
 #define nDOF 23
-void update_param(matrix<double>& K, matrix<double>& C, vector<double>& Q, matrix<double>& invM){
-    typedef boost::array<matrix<double>, 4> wheel_part_matrix;
+void update_param(matrix<double>& K, matrix<double>& M, matrix<double>& C, vector<double>& Q, \
+                  matrix<double>& invM, const double &tc0, const double &tc1){
+    typedef boost::array<symmetric_matrix<double>, 4> wheel_part_matrix;
     wheel_part_matrix K1;
     wheel_part_matrix d1;
-	K1.assign(matrix<double>(3,3));
-	d1.assign(matrix<double>(3,3));
+	K1.assign(symmetric_matrix<double>(3,3));
+	d1.assign(symmetric_matrix<double>(3,3));
 	identity_matrix<double> I(3);
 	//matrix<double> K_2(6,6);
 	//matrix<double> K_3(6,6);
@@ -150,6 +151,7 @@ void update_param(matrix<double>& K, matrix<double>& C, vector<double>& Q, matri
 	const double g = -9.81;
 	double k_S, k_C, k_R1, k_R2, d_S, d_C, d_R1, d_R2;
 	double alpha_1[4] , alpha_2[4];
+	//Submatrices
 	for (int i = 0; i < 4; i++){
 		double C1 = cos(alpha_1[i]);
 		double S1 = sin(alpha_1[i]);
@@ -190,6 +192,9 @@ void update_param(matrix<double>& K, matrix<double>& C, vector<double>& Q, matri
 			C(scatter[i][j+3], scatter[i][k]) = -d1[i](j,k);
 		}
 	}
+	symmetric_matrix<double> M_eff(nDOF, nDOF);
+	M_eff = tc0*M + tc1*C;
+	int err = InvertMatrix(M_eff, invM);
 }
 
 //Solution of dynamic model using central difference with explicit integration
@@ -216,7 +221,7 @@ int dyna_core(matrix<double>& K, matrix<double>& M, matrix<double>& C, vector<do
 	//Compute the motion and update the parameters.
 	while (no_quit){
     	compute_main (K, M, C, Q, invM, c0, c1, c2, d0, d1, d2);
-	    update_param (K, C, Q, invM);
+	    update_param (K, M, C, Q, invM, c0, c1);
 	}
 	return 0;
 }
