@@ -4,6 +4,7 @@ SDL_Window *window;
 SDL_Renderer *renderer;
 SDL_Point wheel[9];
 bool refresh[4];			//Refresh marker set to prevent the wheels flashing.
+extern int mode;
 
 int GUI_Init(void){
     /* Initialise SDL */
@@ -51,7 +52,21 @@ void GUIUpdateInput(const agile_v_core::joyinfoex& joyinfo){
 	SDL_RenderFillRect(renderer, &bar3);
 	//SDL_RenderPresent(renderer);
 	SDL_Event SysEvent;
-	SDL_PollEvent(&SysEvent);
+	if (SDL_PollEvent(&SysEvent)){
+	    switch (SysEvent.type){
+	        case SDL_KEYDOWN:
+	            switch( SysEvent.key.keysym.sym ){
+					case SDLK_m:
+						mode ++;
+						break;
+					default:
+						break;
+				}
+				break;
+			default:
+			    break;
+		}
+	}
 	return;
 }
 

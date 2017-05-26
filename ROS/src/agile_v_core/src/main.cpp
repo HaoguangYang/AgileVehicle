@@ -11,21 +11,39 @@ double driveVal[4] = {0};
 double Torque[4] = {0};
 Encoder Enc[2][4];      //[0][*] - Steering; [1][*] - Driving
 bool IsZeroCorrect[4] = {false, false, false, false};
+int mode = 0;
 
 void Call_back(const agile_v_core::joyinfoex& controlInput)
 {
 	int16_t steeringIn = controlInput.dwXpos-32768;     //from uint to int
 	double speed = (65535.0-controlInput.dwZpos)/32767.0*190.0;
-	double radius = SteeringWheel2Radius(steeringIn, 1);
+	double radius;
 	
 	//cout << "Radius: " << radius << endl;
 	
 	GUIUpdateInput(controlInput);
 	
-	KOLCSteering(radius, speed, steerVal, driveVal);
 	//control val calc
-	
-	//KOLHSteering(steeringIn, speed, steerVal, driveVal);
+	switch (mode%4){
+	    case 0:
+	        radius = SteeringWheel2Radius(steeringIn, 1);
+	        KOLCSteering(radius, speed, steerVal, driveVal);
+	        break;
+	    case 1:
+	        KOLHSteering(steeringIn, speed, steerVal, driveVal);
+	        break;
+	    case 2:
+	        radius = SteeringWheel2Radius(steeringIn, 1);
+	        KCLCSteering(radius, speed, steerVal, driveVal);
+	        break;
+	    case 3:
+	        KCLHSteering(steeringIn, speed, steerVal, driveVal);
+	        break;
+	    default:
+	        radius = SteeringWheel2Radius(steeringIn, 1);
+	        KOLCSteering(radius, speed, steerVal, driveVal);
+	        break;
+	}
 }
 
 int main(int argc, char* argv[])
