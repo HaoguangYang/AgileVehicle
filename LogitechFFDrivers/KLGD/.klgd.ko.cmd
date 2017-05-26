@@ -1,1 +1,0 @@
-cmd_/mnt/Data/AgileV_dev/LogitechFFDrivers/KLGD/klgd.ko := ld -r -m elf_x86_64 -T ./scripts/module-common.lds --build-id  -o /mnt/Data/AgileV_dev/LogitechFFDrivers/KLGD/klgd.ko /mnt/Data/AgileV_dev/LogitechFFDrivers/KLGD/klgd.o /mnt/Data/AgileV_dev/LogitechFFDrivers/KLGD/klgd.mod.o
