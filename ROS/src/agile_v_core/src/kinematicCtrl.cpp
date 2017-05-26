@@ -79,7 +79,7 @@ void KOLCSteering(double radius, double speed, double* steerVal, double* driveVa
     	//    cout << "Steering Angle of Wheel " << i << " :    " << steerVal[i] << endl;
         //}
 		
-		double omega = speed/radius;
+		double omega = sgn(speed/radius) * min(fabs(speed/radius), fabs(speed));                    //Avoiding the Infinity when r-> 0
 		double Rleft = sgn(leftBase)*sqrt(leftBase*leftBase+Vehicle.WheelBase*Vehicle.WheelBase/4); // 左轮的转弯半径
 		double Rright = sgn(rightBase)*sqrt(rightBase*rightBase+Vehicle.WheelBase*Vehicle.WheelBase/4);
 		driveVal[0] = omega*Rleft;
@@ -104,7 +104,7 @@ void KCLCSteering(double radius, double speed, double* steerVal, double* driveVa
 	}
 	else
 	{
-		Target.omega = speed/radius;
+		Target.omega = sgn(speed/radius) * min(fabs(speed/radius), fabs(speed));
 	}
 	double steerActual[4];
 	double driveActual[4];
