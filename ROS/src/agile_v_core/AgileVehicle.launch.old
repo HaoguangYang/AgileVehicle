@@ -23,12 +23,13 @@
 <param name='~port' value='/dev/ttyUSB3' />
 	  <param name="~baud" value="57600" />
     </node>
-    <node pkg="agile_v_core" type="agile_v_core_node" name="dyna_core" >
-      <arg name='-TW 1.315' />
-      <arg name='-WB 1.520' />
-      <arg name='-M 400.0' />
-      <arg name='-WB 1.520' />
-      <arg name='-ST 0.04' />
-    </node>
+    
+    <!--Core-->
+    <node pkg="agile_v_core" type="agile_v_core_node" name="dyna_core"
+       args='-TW 1.315  \
+             -WB 1.520  \
+             -M 400.0   \
+             -WR 0.305  \
+             -ST 0.04' />
   </group>
 </launch>

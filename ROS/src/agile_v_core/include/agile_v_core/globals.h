@@ -30,7 +30,7 @@ public:
 };
 
 extern double step_time;            //Arduino refresh time
-
+extern int mode;
 extern Encoder Enc[2][4];           //[0][*] - Steering; [1][*] - Driving
 extern Kinematic Actual;
 extern double steerVal[4];          // 四个轮子转弯角度

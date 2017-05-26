@@ -1,0 +1,128 @@
+#include <linux/module.h>
+#include <linux/vermagic.h>
+#include <linux/compiler.h>
+
+MODULE_INFO(vermagic, VERMAGIC_STRING);
+
+__visible struct module __this_module
+__attribute__((section(".gnu.linkonce.this_module"))) = {
+	.name = KBUILD_MODNAME,
+	.init = init_module,
+#ifdef CONFIG_MODULE_UNLOAD
+	.exit = cleanup_module,
+#endif
+	.arch = MODULE_ARCH_INIT,
+};
+
+static const struct modversion_info ____versions[]
+__used
+__attribute__((section("__versions"))) = {
+	{ 0x3df5362e, __VMLINUX_SYMBOL_STR(module_layout) },
+	{ 0x2d3385d3, __VMLINUX_SYMBOL_STR(system_wq) },
+	{ 0x17d01653, __VMLINUX_SYMBOL_STR(bus_register) },
+	{ 0xbdf3a0bf, __VMLINUX_SYMBOL_STR(device_remove_file) },
+	{ 0x6db118c1, __VMLINUX_SYMBOL_STR(device_remove_bin_file) },
+	{ 0x80321fcd, __VMLINUX_SYMBOL_STR(cdev_del) },
+	{ 0xf8a96516, __VMLINUX_SYMBOL_STR(kmalloc_caches) },
+	{ 0xd2b09ce5, __VMLINUX_SYMBOL_STR(__kmalloc) },
+	{ 0xc4b11a73, __VMLINUX_SYMBOL_STR(cdev_init) },
+	{ 0x72f241fa, __VMLINUX_SYMBOL_STR(driver_register) },
+	{ 0xc0fecb5e, __VMLINUX_SYMBOL_STR(debugfs_create_dir) },
+	{ 0x6bf1c17f, __VMLINUX_SYMBOL_STR(pv_lock_ops) },
+	{ 0xc111a16e, __VMLINUX_SYMBOL_STR(single_open) },
+	{ 0xa2e59924, __VMLINUX_SYMBOL_STR(param_ops_int) },
+	{ 0x754d539c, __VMLINUX_SYMBOL_STR(strlen) },
+	{ 0x2175a04e, __VMLINUX_SYMBOL_STR(single_release) },
+	{ 0xe17f52d9, __VMLINUX_SYMBOL_STR(power_supply_unregister) },
+	{ 0x8526c35a, __VMLINUX_SYMBOL_STR(remove_wait_queue) },
+	{ 0x23fc350b, __VMLINUX_SYMBOL_STR(input_ff_event) },
+	{ 0x5ea4c414, __VMLINUX_SYMBOL_STR(input_alloc_absinfo) },
+	{ 0x6dc0c9dc, __VMLINUX_SYMBOL_STR(down_interruptible) },
+	{ 0x56d4ca56, __VMLINUX_SYMBOL_STR(seq_printf) },
+	{ 0x88bfa7e, __VMLINUX_SYMBOL_STR(cancel_work_sync) },
+	{ 0xe62b1e32, __VMLINUX_SYMBOL_STR(device_destroy) },
+	{ 0x93d9baaf, __VMLINUX_SYMBOL_STR(power_supply_powers) },
+	{ 0x6729d3df, __VMLINUX_SYMBOL_STR(__get_user_4) },
+	{ 0x448eac3e, __VMLINUX_SYMBOL_STR(kmemdup) },
+	{ 0x347cd1b3, __VMLINUX_SYMBOL_STR(mutex_unlock) },
+	{ 0x7485e15e, __VMLINUX_SYMBOL_STR(unregister_chrdev_region) },
+	{ 0x999e8297, __VMLINUX_SYMBOL_STR(vfree) },
+	{ 0x28bece2a, __VMLINUX_SYMBOL_STR(debugfs_create_file) },
+	{ 0x91715312, __VMLINUX_SYMBOL_STR(sprintf) },
+	{ 0x106fc501, __VMLINUX_SYMBOL_STR(debugfs_remove_recursive) },
+	{ 0x55dee550, __VMLINUX_SYMBOL_STR(seq_read) },
+	{ 0x368807e2, __VMLINUX_SYMBOL_STR(input_set_abs_params) },
+	{ 0x733c3b54, __VMLINUX_SYMBOL_STR(kasprintf) },
+	{ 0x26074d82, __VMLINUX_SYMBOL_STR(input_event) },
+	{ 0x9e88526, __VMLINUX_SYMBOL_STR(__init_waitqueue_head) },
+	{ 0x4f8b5ddb, __VMLINUX_SYMBOL_STR(_copy_to_user) },
+	{ 0xffd5a395, __VMLINUX_SYMBOL_STR(default_wake_function) },
+	{ 0xfb578fc5, __VMLINUX_SYMBOL_STR(memset) },
+	{ 0xc66ce0c9, __VMLINUX_SYMBOL_STR(device_del) },
+	{ 0xd33ee5d5, __VMLINUX_SYMBOL_STR(dev_err) },
+	{ 0x834f7c07, __VMLINUX_SYMBOL_STR(power_supply_get_drvdata) },
+	{ 0x1916e38c, __VMLINUX_SYMBOL_STR(_raw_spin_unlock_irqrestore) },
+	{ 0x9b6340b6, __VMLINUX_SYMBOL_STR(current_task) },
+	{ 0x156a8a59, __VMLINUX_SYMBOL_STR(down_trylock) },
+	{ 0x17d070c2, __VMLINUX_SYMBOL_STR(__mutex_init) },
+	{ 0x27e1a049, __VMLINUX_SYMBOL_STR(printk) },
+	{ 0x20c55ae0, __VMLINUX_SYMBOL_STR(sscanf) },
+	{ 0x479c3c86, __VMLINUX_SYMBOL_STR(find_next_zero_bit) },
+	{ 0xa45efc0c, __VMLINUX_SYMBOL_STR(driver_unregister) },
+	{ 0x119a8a78, __VMLINUX_SYMBOL_STR(fasync_helper) },
+	{ 0x3af1c5d2, __VMLINUX_SYMBOL_STR(debugfs_remove) },
+	{ 0x16305289, __VMLINUX_SYMBOL_STR(warn_slowpath_null) },
+	{ 0x11761f56, __VMLINUX_SYMBOL_STR(mutex_lock) },
+	{ 0x3714565d, __VMLINUX_SYMBOL_STR(noop_llseek) },
+	{ 0xde5c79ca, __VMLINUX_SYMBOL_STR(device_create) },
+	{ 0xe1a00c83, __VMLINUX_SYMBOL_STR(device_add) },
+	{ 0xe68faa30, __VMLINUX_SYMBOL_STR(bus_unregister) },
+	{ 0xf733060, __VMLINUX_SYMBOL_STR(device_create_file) },
+	{ 0xf1629318, __VMLINUX_SYMBOL_STR(cdev_add) },
+	{ 0x84552a6f, __VMLINUX_SYMBOL_STR(_dev_info) },
+	{ 0x40a9b349, __VMLINUX_SYMBOL_STR(vzalloc) },
+	{ 0xb2fd5ceb, __VMLINUX_SYMBOL_STR(__put_user_4) },
+	{ 0x134e92f0, __VMLINUX_SYMBOL_STR(driver_create_file) },
+	{ 0x9d9cec6f, __VMLINUX_SYMBOL_STR(put_device) },
+	{ 0xdb7305a1, __VMLINUX_SYMBOL_STR(__stack_chk_fail) },
+	{ 0x466d08ce, __VMLINUX_SYMBOL_STR(input_register_device) },
+	{ 0x1000e51, __VMLINUX_SYMBOL_STR(schedule) },
+	{ 0x8148229a, __VMLINUX_SYMBOL_STR(input_free_device) },
+	{ 0x7b6f5714, __VMLINUX_SYMBOL_STR(device_create_bin_file) },
+	{ 0xbdfb6dbb, __VMLINUX_SYMBOL_STR(__fentry__) },
+	{ 0xd6aa1fed, __VMLINUX_SYMBOL_STR(kmem_cache_alloc_trace) },
+	{ 0xe259ae9e, __VMLINUX_SYMBOL_STR(_raw_spin_lock) },
+	{ 0x63445f1, __VMLINUX_SYMBOL_STR(__dynamic_dev_dbg) },
+	{ 0x680ec266, __VMLINUX_SYMBOL_STR(_raw_spin_lock_irqsave) },
+	{ 0xa6bbd805, __VMLINUX_SYMBOL_STR(__wake_up) },
+	{ 0x2c256e1f, __VMLINUX_SYMBOL_STR(input_scancode_to_scalar) },
+	{ 0xc9fef317, __VMLINUX_SYMBOL_STR(add_wait_queue) },
+	{ 0xe3b0a403, __VMLINUX_SYMBOL_STR(seq_lseek) },
+	{ 0x37a0cba, __VMLINUX_SYMBOL_STR(kfree) },
+	{ 0x69acdf38, __VMLINUX_SYMBOL_STR(memcpy) },
+	{ 0xce494771, __VMLINUX_SYMBOL_STR(input_unregister_device) },
+	{ 0x9db4f1b1, __VMLINUX_SYMBOL_STR(device_initialize) },
+	{ 0x78e739aa, __VMLINUX_SYMBOL_STR(up) },
+	{ 0x5f13b39a, __VMLINUX_SYMBOL_STR(class_destroy) },
+	{ 0xac4d7c6a, __VMLINUX_SYMBOL_STR(kill_fasync) },
+	{ 0x7cd1e218, __VMLINUX_SYMBOL_STR(dev_warn) },
+	{ 0x1a37c1fa, __VMLINUX_SYMBOL_STR(driver_attach) },
+	{ 0xb16cf5d5, __VMLINUX_SYMBOL_STR(driver_remove_file) },
+	{ 0x2e0d2f7f, __VMLINUX_SYMBOL_STR(queue_work_on) },
+	{ 0x28318305, __VMLINUX_SYMBOL_STR(snprintf) },
+	{ 0x74821488, __VMLINUX_SYMBOL_STR(dev_set_name) },
+	{ 0x342cd7ab, __VMLINUX_SYMBOL_STR(power_supply_register) },
+	{ 0x4f6b400b, __VMLINUX_SYMBOL_STR(_copy_from_user) },
+	{ 0xeb751375, __VMLINUX_SYMBOL_STR(__class_create) },
+	{ 0x29537c9e, __VMLINUX_SYMBOL_STR(alloc_chrdev_region) },
+	{ 0x6c07d933, __VMLINUX_SYMBOL_STR(add_uevent_var) },
+	{ 0xa52e62b0, __VMLINUX_SYMBOL_STR(input_allocate_device) },
+};
+
+static const char __module_depends[]
+__used
+__attribute__((section(".modinfo"))) =
+"depends=";
+
+
+MODULE_INFO(srcversion, "6F0F068C4B889A8B88210F9");
