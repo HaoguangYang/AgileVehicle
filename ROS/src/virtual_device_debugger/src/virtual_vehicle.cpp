@@ -68,6 +68,18 @@ void naive_driving_controller(int i, const std_msgs::UInt16MultiArray& ctrl_var)
 	return;
 }
 
+void BLDC_model(double ctrlVolt, double AngSpeed, double Torque)
+{
+	const double gain1 = 0.09549296586;
+	const double gain2 = 10.33;		//N.m/V
+	const double gain3 = 0.6;		//Friction-induced Torque
+    double Torque = (ctrlVolt-1.2)*gain2-gain1*AngSpeed-gain3   //ctrlVolt in (0,5)
+}
+
+void modeled_driving controller(int i, const std_msgs::UInt16MultiArray& ctrl_var){
+    
+}
+
 void Actuate0( const std_msgs::UInt16MultiArray& ctrl_var){
     int i=0;
     //Send Signals to stepper motor and BLDC according to messages subscribed
