@@ -69,7 +69,7 @@ void naive_driving_controller(int i, const std_msgs::UInt16MultiArray& ctrl_var)
 }
 
 
-void modeled_driving controller(int i, const std_msgs::UInt16MultiArray& ctrl_var){
+void modeled_driving_controller(int i, const std_msgs::UInt16MultiArray& ctrl_var){
     
 }
 

@@ -9,8 +9,6 @@
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <boost/numeric/ublas/lu.hpp>
 #include <boost/array.hpp>
-#include <boost/geometry/strategies/transform.hpp>
-#include <boost/geometry/strategies/transform/matrix_transformers.hpp>
 //#include <thread>
 
 #include "pacejka.h"
@@ -158,13 +156,12 @@ void BLDC_model(double ctrlVolt, double AngSpeed, double Torque)
 	const double gain1 = 0.09549296586;
 	const double gain2 = 10.33;		//N.m/V
 	const double gain3 = 0.6;		//Friction-induced Torque
-    double Torque = (ctrlVolt-1.2)*gain2-gain1*AngSpeed-gain3   //ctrlVolt in (0,5)
+    Torque = (ctrlVolt-1.2)*gain2-gain1*AngSpeed-gain3;   //ctrlVolt in (0,5)
 }
 
 
 void update_param(matrix<double>& K, matrix<double>& M, matrix<double>& C, vector<double>& Q, \
                   matrix<double>& invM, const double &tc0, const double &tc1){
-    namespace trans = boost::geometry::strategy::transform;
 	typedef boost::array<matrix<double>, 4> wheel_part_matrices;
 	typedef boost::array<vector<double>, 4> wheel_part_vectors;
     wheel_part_matrices K1;
@@ -247,10 +244,13 @@ void update_param(matrix<double>& K, matrix<double>& M, matrix<double>& C, vecto
 		float load = k_t * d3(scatter_tyre[i]) + d_t * v2(scatter_tyre[i]) + \
 					 M(scatter_tyre[i], scatter_tyre[i]) * a2(scatter_tyre[i]);
 		//Transform global wheel movement to wheel axis systems for the calculation of slip ratio and therefore tyre forces. Alignment Moments are also considered.
-		trans::rotate_transformer<rad, double, 2, 2> steer(-d3(scatter_steer[i]));
-		vector<double> v_wi_glob(2);
-		v_wi_glob = v2(scatter_wheel_movement[i]);
-		boost::geometry::transform(v_wi_glob, v_w[i], steer);
+		double v_wi_glob[2];
+		double S = sin(d3(scatter_steer[i]));
+		double C = cos(d3(scatter_steer[i]));
+		v_wi_glob[0] = v2(scatter_wheel_movement[i][0]);
+		v_wi_glob[1] = v2(scatter_wheel_movement[i][1]);
+		v_w[i](0) = v_wi_glob[0]*C+v_wi_glob[1]*S;
+		v_w[i](1) = -v_wi_glob[0]*S+v_wi_glob[1]*C;
 		getTireForces(load, AngSpeed[i], v_w[i](0), v_w[i](1), Q(scatter_wheel_movement[i][1]),\
 					  Q(scatter_wheel_movement[i][0]), Q(scatter_steer[i]));
 	}
