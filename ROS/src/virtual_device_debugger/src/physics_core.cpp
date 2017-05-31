@@ -9,6 +9,8 @@
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <boost/numeric/ublas/lu.hpp>
 #include <boost/array.hpp>
+#include <boost/geometry/strategies/transform.hpp>
+#include <boost/geometry/strategies/transform/matrix_transformers.hpp>
 //#include <thread>
 
 #include "pacejka.h"
@@ -89,10 +91,11 @@ bool getTireForces(float load, float omega, float v_wx,
 	pacejka.setCamber(0.0f);
 	pacejka.setLoad(load);
 
-	std::cout << "> Calculating Tire Contact (Friction) Forces.. ";
-
-	float slipRatio = 0;//getSlipRatio(omega, v_wx);
-	float slipAngle = 0;//getSlipAngle(v_wx, v_wy);
+	//std::cout << "> Calculating Tire Contact (Friction) Forces.. ";
+	
+	//See the definitions about the tyre terms.
+	float slipRatio = (omega*R_W/v_wx - 1)*100.0;//More precisely, R_W should be R_W-x(wheel_z)
+	float slipAngle = -atan(v_wy/v_wx);
 	pacejka.setSlipRatio(slipRatio);
     pacejka.setSlipAngle(slipAngle);
 	pacejka.calculate();
@@ -102,7 +105,7 @@ bool getTireForces(float load, float omega, float v_wx,
 	T_ali = pacejka.getAligningForce();
 
     printf("F_long= %f    ; F_lat= %f  (N)    ; T_ali= %f  (Nm)", F_long, F_lat, T_ali);
-	std::cout << "done!" << std::endl;
+	//std::cout << "done!" << std::endl;
 	
 	return 0;
 }
@@ -131,13 +134,16 @@ bool InvertMatrix (const matrix<double>& input, matrix<double>& inverse) {
 
 
 #define nDOF 24
-
+vector<double> d1(nDOF);
+vector<double> d2(nDOF);
+vector<double> d3(nDOF);
+vector<double> v2(nDOF);
+vector<double> a2(nDOF);
+	
 void compute_main(matrix<double>& K, matrix<double>& M, matrix<double>& C, vector<double>& Q, matrix<double>& invM, \
-				  const double c0, const double c1, const double c2, vector<double>& d0, vector<double>& d1, vector<double>& d2){
+				  const double c0, const double c1, const double c2, vector<double>& d1, vector<double>& d2,\
+				  vector<double>& d3, vector<double>& v2, vector<double>& a2){
 	vector<double> f_eff(nDOF);
-	vector<double> d3(nDOF);
-	vector<double> a2(nDOF);
-	vector<double> v2(nDOF);
 	f_eff = Q - prod((K-c2 * M), d2) - prod((c0 * M-c1 * C), d1);
 	d3 = prod(invM, f_eff);
 	a2 = c0 * (d1-2.0*d2+d3);
@@ -147,13 +153,26 @@ void compute_main(matrix<double>& K, matrix<double>& M, matrix<double>& C, vecto
 }
 
 
+void BLDC_model(double ctrlVolt, double AngSpeed, double Torque)
+{
+	const double gain1 = 0.09549296586;
+	const double gain2 = 10.33;		//N.m/V
+	const double gain3 = 0.6;		//Friction-induced Torque
+    double Torque = (ctrlVolt-1.2)*gain2-gain1*AngSpeed-gain3   //ctrlVolt in (0,5)
+}
+
+
 void update_param(matrix<double>& K, matrix<double>& M, matrix<double>& C, vector<double>& Q, \
                   matrix<double>& invM, const double &tc0, const double &tc1){
-    typedef boost::array<symmetric_matrix<double>, 4> wheel_part_matrices;
+    namespace trans = boost::geometry::strategy::transform;
+	typedef boost::array<matrix<double>, 4> wheel_part_matrices;
+	typedef boost::array<vector<double>, 4> wheel_part_vectors;
     wheel_part_matrices K1;
     wheel_part_matrices d1;
+	wheel_part_vectors v_w;
 	K1.assign(symmetric_matrix<double>(3,3));
 	d1.assign(symmetric_matrix<double>(3,3));
+	v_w.assign(vector<double>(2));
 	identity_matrix<double> I(3);
 	//matrix<double> K_2(6,6);
 	//matrix<double> K_3(6,6);
@@ -163,6 +182,11 @@ void update_param(matrix<double>& K, matrix<double>& M, matrix<double>& C, vecto
 	const double g = -9.81;
 	double k_S, k_C, k_R1, k_R2, d_S, d_C, d_R1, d_R2;
 	double alpha_1[4] , alpha_2[4];
+	
+	//These variables are to be fulfilled. Places temporaily here.
+	double ctrlVolt[4];
+	double AngSpeed[4];
+	
 	//Submatrices
 	for (int i = 0; i < 4; i++){
 		double C1 = cos(alpha_1[i]);
@@ -182,20 +206,23 @@ void update_param(matrix<double>& K, matrix<double>& M, matrix<double>& C, vecto
 		d1[i](1,2) = d_C*C2*S2;
 		d1[i](2,2) = d_C*S2*S2+2*d_S*S1*S1;
 	}
-	//Assembly: Dims = [wheel0_x wheel0_y wheel0_z wheel0_theta wheel0_roll     \
-					    wheel1_x ... 								            \
-					    ... \
-					    ... 			    wheel3_z wheel3_theta wheel3_roll   \
-					    chassis_x chassis_y chassis_z chassis_hdg]
-	int scatter[4][6] = {0,	1,	2,	20,	21,	22, \
-						 5,	6,	7,	20,	21,	22, \
-						 10,12,	12,	20,	21,	22, \
-						 15,16,	17,	20,	21,	22};
-	
+	//Assembly: Dims = [wheel0_x wheel0_y wheel0_z wheel0_theta wheel0_roll		\
+					 wheel1_x ... 										\
+					 ... \
+					 ... 			wheel3_z wheel3_theta wheel3_roll		\
+					 chassis_x chassis_y chassis_z chassis_hdg]
+	const int scatter[4][6] =  {0,	1,	2,	20,	21,	22, \
+								5,	6,	7,	20,	21,	22, \
+								10,	11,	12,	20,	21,	22, \
+								15,	16,	17,	20,	21,	22};
+	const int scatter_tyre[4] = {2, 7, 12, 17};
+	const int scatter_steer[4] = {3, 8, 13, 18};
+	const int scatter_wheel_movement[4][2] = {0, 1, 5, 6, 10, 11, 15, 16};
+	//Re-init the matrices
 	for (int i = 0; i<nDOF; i++)
 	for (int j = 0; j<nDOF; j++){
-	    K(i,j) = 0.0;
-	    C(i,j) = 0.0;
+			K(i,j) = 0.0;
+			C(i,j) = 0.0;
 	}
 	
 	for (int i=0; i<4; i++){
@@ -210,11 +237,25 @@ void update_param(matrix<double>& K, matrix<double>& M, matrix<double>& C, vecto
 			C(scatter[i][j+3], scatter[i][k+3]) += d1[i](j,k);
 			C(scatter[i][j], scatter[i][k+3]) += -d1[i](j,k);
 			C(scatter[i][j+3], scatter[i][k]) += -d1[i](j,k);
-			//Tyres
-			
 		}
+		//Tyres
+		K(scatter_tyre[i], scatter_tyre[i]) += k_t;
+		C(scatter_tyre[i], scatter_tyre[i]) += d_t;
+		//BLDC Driving Forces
+		BLDC_model(ctrlVolt[i], AngSpeed[i], Q(scatter_tyre[i]));
+		//Tire Loads
+		float load = k_t * d3(scatter_tyre[i]) + d_t * v2(scatter_tyre[i]) + \
+					 M(scatter_tyre[i], scatter_tyre[i]) * a2(scatter_tyre[i]);
+		//Transform global wheel movement to wheel axis systems for the calculation of slip ratio and therefore tyre forces. Alignment Moments are also considered.
+		trans::rotate_transformer<rad, double, 2, 2> steer(-d3(scatter_steer[i]));
+		vector<double> v_wi_glob(2);
+		v_wi_glob = v2(scatter_wheel_movement[i]);
+		boost::geometry::transform(v_wi_glob, v_w[i], steer);
+		getTireForces(load, AngSpeed[i], v_w[i](0), v_w[i](1), Q(scatter_wheel_movement[i][1]),\
+					  Q(scatter_wheel_movement[i][0]), Q(scatter_steer[i]));
 	}
 	symmetric_matrix<double> M_eff(nDOF, nDOF);
+	//Update Effective Mass Matrix.
 	M_eff = tc0*M + tc1*C;
 	int err = InvertMatrix(M_eff, invM);
 }
@@ -239,7 +280,7 @@ int dyna_core(matrix<double>& K, matrix<double>& M, matrix<double>& C, vector<do
 	//Compute the motion and update the parameters.
 	while (no_quit){
 	    update_param (K, M, C, Q, invM, c0, c1);
-    	compute_main (K, M, C, Q, invM, c0, c1, c2, d0, d1, d2);
+    	compute_main (K, M, C, Q, invM, c0, c1, c2, d1, d2, d3, v2, a2);
 	}
 	return 0;
 }
