@@ -3,6 +3,7 @@
 #include <string>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/banded.hpp>
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/numeric/ublas/vector_proxy.hpp>
 #include <boost/numeric/ublas/triangular.hpp>
@@ -138,7 +139,6 @@ vector<double> d3(nDOF);
 vector<double> v2(nDOF);
 vector<double> a2(nDOF);
 symmetric_matrix<double> K(nDOF, nDOF);
-diagonal_matrix<double> M(nDOF, nDOF);
 symmetric_matrix<double> C(nDOF, nDOF);
 vector<double> Q(nDOF);
 vector<double> d0(nDOF);
@@ -158,8 +158,7 @@ void compute_main(matrix<double>& K, matrix<double>& M, matrix<double>& C, vecto
 	d2 = d3;
 }
 
-void assem_M_matrix(matrix<double>& M){
-	using namespace boost::assign;
+void assem_M_matrix(diagonal_matrix<double> Mass){
 	const double M_t = 30.0;
 	const double M_v = 400.0;
 	//Temporary Values Below!
@@ -168,13 +167,14 @@ void assem_M_matrix(matrix<double>& M){
 	const double I_vy = 1.0;//Pitch
 	const double I_tz = 1.0;//Wheel Alignment
 	const double I_ty = 1.0;//Wheel Roll
-	vector<double> m_vec(nDOF);
-	m_vec += M_t, M_t, M_t, I_tz, I_ty, \
-			 M_t, M_t, M_t, I_tz, I_ty, \
-			 M_t, M_t, M_t, I_tz, I_ty, \
-			 M_t, M_t, M_t, I_tz, I_ty, \
-			 M_v, M_v, M_v, I_vz;
-	M = diagm(m_vec);
+	double m_vec[nDOF] = {M_t, M_t, M_t, I_tz, I_ty, \
+			              M_t, M_t, M_t, I_tz, I_ty, \
+			              M_t, M_t, M_t, I_tz, I_ty, \
+			              M_t, M_t, M_t, I_tz, I_ty, \
+			              M_v, M_v, M_v, I_vz};
+	for (int i=0; i<nDOF; i++){
+	    Mass(i,i) = m_vec[i];
+	}
 }
 
 void BLDC_model(double ctrlVolt, double AngSpeed, double Torque)
