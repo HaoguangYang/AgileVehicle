@@ -137,6 +137,14 @@ vector<double> d2(nDOF);
 vector<double> d3(nDOF);
 vector<double> v2(nDOF);
 vector<double> a2(nDOF);
+symmetric_matrix<double> K(nDOF, nDOF);
+diagonal_matrix<double> M(nDOF, nDOF);
+symmetric_matrix<double> C(nDOF, nDOF);
+vector<double> Q(nDOF);
+vector<double> d0(nDOF);
+vector<double> v0(nDOF);
+vector<double> a0(nDOF);
+const double dt = 0.025;
 	
 void compute_main(matrix<double>& K, matrix<double>& M, matrix<double>& C, vector<double>& Q, matrix<double>& invM, \
 				  const double c0, const double c1, const double c2, vector<double>& d1, vector<double>& d2,\
@@ -150,6 +158,24 @@ void compute_main(matrix<double>& K, matrix<double>& M, matrix<double>& C, vecto
 	d2 = d3;
 }
 
+void assem_M_matrix(matrix<double>& M){
+	using namespace boost::assign;
+	const double M_t = 30.0;
+	const double M_v = 400.0;
+	//Temporary Values Below!
+	const double I_vz = 1.0;//Yaw/Heading
+	const double I_vx = 1.0;//Roll
+	const double I_vy = 1.0;//Pitch
+	const double I_tz = 1.0;//Wheel Alignment
+	const double I_ty = 1.0;//Wheel Roll
+	vector<double> m_vec(nDOF);
+	m_vec += M_t, M_t, M_t, I_tz, I_ty, \
+			 M_t, M_t, M_t, I_tz, I_ty, \
+			 M_t, M_t, M_t, I_tz, I_ty, \
+			 M_t, M_t, M_t, I_tz, I_ty, \
+			 M_v, M_v, M_v, I_vz;
+	M = diagm(m_vec);
+}
 
 void BLDC_model(double ctrlVolt, double AngSpeed, double Torque)
 {
@@ -177,8 +203,7 @@ void update_param(matrix<double>& K, matrix<double>& M, matrix<double>& C, vecto
 	const double k_t = 2.65e+05;
 	const double d_t = 500.0;
 	const double g = -9.81;
-	const double M_t = 30.0;
-	const double M_v = 400.0;
+	const double d_St = 100.0;
 	
 	double k_S, k_C, k_R1, k_R2, d_S, d_C, d_R1, d_R2;
 	double alpha_1[4] , alpha_2[4];
@@ -214,7 +239,7 @@ void update_param(matrix<double>& K, matrix<double>& M, matrix<double>& C, vecto
 	const int scatter[4][6] =  {0,	1,	2,	20,	21,	22, \
 								5,	6,	7,	20,	21,	22, \
 								10,	11,	12,	20,	21,	22, \
-								15,	16,	17,	20,	21,	22};
+								15,	16,	17,	20,	21,	22};//Suspensions
 	const int scatter_tyre[4] = {2, 7, 12, 17};
 	const int scatter_steer[4] = {3, 8, 13, 18};
 	const int scatter_wheel_movement[4][2] = {0, 1, 5, 6, 10, 11, 15, 16};
@@ -244,6 +269,11 @@ void update_param(matrix<double>& K, matrix<double>& M, matrix<double>& C, vecto
 		//Tyres
 		K(scatter_tyre[i], scatter_tyre[i]) += k_t;
 		C(scatter_tyre[i], scatter_tyre[i]) += d_t;
+		//Steering Pod Friction
+		C(scatter_steer[i], scatter_steer[i]) += d_St;
+		C(scatter_steer[i], 24) -= d_St;
+		C(24, scatter_steer[i]) -= d_St;
+		C(24, 24) += d_St;
 		//BLDC Driving Forces
 		BLDC_model(ctrlVolt[i], AngSpeed[i], Q(scatter_tyre[i]));
 		//Tire Loads
@@ -264,6 +294,9 @@ void update_param(matrix<double>& K, matrix<double>& M, matrix<double>& C, vecto
 	//Update Effective Mass Matrix.
 	M_eff = tc0*M + tc1*C;
 	int err = InvertMatrix(M_eff, invM);
+	for (int i = 0; i<5; i++){
+		Q(scatter_mass[i]) -= M(scatter_mass[i], scatter_mass[i]) * g;	//Gravity
+	}
 }
 
 //Solution of dynamic model using central difference with explicit integration
@@ -282,7 +315,7 @@ int dyna_core(matrix<double>& K, matrix<double>& M, matrix<double>& C, vector<do
 	//Form Equivilant Mass Matrix
 	//diagonal_matrix<double> M_mat(nDOF, M.data());
 	matrix<double> invM(nDOF,nDOF);
-	
+	assem_M_matrix(M);
 	//Compute the motion and update the parameters.
 	while (no_quit){
 	    update_param (K, M, C, Q, invM, c0, c1);
