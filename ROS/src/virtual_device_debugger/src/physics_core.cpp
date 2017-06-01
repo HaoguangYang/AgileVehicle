@@ -177,6 +177,9 @@ void update_param(matrix<double>& K, matrix<double>& M, matrix<double>& C, vecto
 	const double k_t = 2.65e+05;
 	const double d_t = 500.0;
 	const double g = -9.81;
+	const double M_t = 30.0;
+	const double M_v = 400.0;
+	
 	double k_S, k_C, k_R1, k_R2, d_S, d_C, d_R1, d_R2;
 	double alpha_1[4] , alpha_2[4];
 	
@@ -215,6 +218,9 @@ void update_param(matrix<double>& K, matrix<double>& M, matrix<double>& C, vecto
 	const int scatter_tyre[4] = {2, 7, 12, 17};
 	const int scatter_steer[4] = {3, 8, 13, 18};
 	const int scatter_wheel_movement[4][2] = {0, 1, 5, 6, 10, 11, 15, 16};
+	const int scatter_mass[5] = {2, 7, 12, 17, 22};
+	const int scatter_ang_inert[5] = {4, 9, 14, 19, 24}; //Rolling inertia of each wheel and the inertia of vehicle heading.
+	
 	//Re-init the matrices
 	for (int i = 0; i<nDOF; i++)
 	for (int j = 0; j<nDOF; j++){
