@@ -187,7 +187,8 @@ void BLDC_model(double ctrlVolt, double AngSpeed, double Torque)
 
 
 void update_param(matrix<double>& K, matrix<double>& M, matrix<double>& C, vector<double>& Q, \
-                  matrix<double>& invM, const double &tc0, const double &tc1){
+                  matrix<double>& invM, const double &tc0, const double &tc1, \
+                  const vector<double> d3, const vector<double> v2, const vector<double> a2){
 	typedef boost::array<matrix<double>, 4> wheel_part_matrices;
 	typedef boost::array<vector<double>, 4> wheel_part_vectors;
     wheel_part_matrices K1;
@@ -196,10 +197,14 @@ void update_param(matrix<double>& K, matrix<double>& M, matrix<double>& C, vecto
 	K1.assign(symmetric_matrix<double>(3,3));
 	d1.assign(symmetric_matrix<double>(3,3));
 	v_w.assign(vector<double>(2));
-	identity_matrix<double> I(3);
+	//identity_matrix<double> I(3);
 	//matrix<double> K_2(6,6);
 	//matrix<double> K_3(6,6);
 	//matrix<double> K_4(6,6);
+	//Constriaint Matries on displacements, velocity, and acceleration
+	//symmetric_matrix<double> constrA(nDOF, nDOF);
+	//symmetric_matrix<double> constrV(nDOF, nDOF);
+	//symmetric_matrix<double> constrX(nDOF, nDOF);
 	const double k_t = 2.65e+05;
 	const double d_t = 500.0;
 	const double g = -9.81;
@@ -247,10 +252,12 @@ void update_param(matrix<double>& K, matrix<double>& M, matrix<double>& C, vecto
 	const int scatter_ang_inert[5] = {4, 9, 14, 19, 24}; //Rolling inertia of each wheel and the inertia of vehicle heading.
 	
 	//Re-init the matrices
-	for (int i = 0; i<nDOF; i++)
-	for (int j = 0; j<nDOF; j++){
+	for (int i = 0; i<nDOF; i++){
+	    for (int j = 0; j<nDOF; j++){
 			K(i,j) = 0.0;
 			C(i,j) = 0.0;
+	    }
+	    Q(i) = 0.0;
 	}
 	
 	for (int i=0; i<4; i++){
@@ -275,7 +282,9 @@ void update_param(matrix<double>& K, matrix<double>& M, matrix<double>& C, vecto
 		C(24, scatter_steer[i]) -= d_St;
 		C(24, 24) += d_St;
 		//BLDC Driving Forces
-		BLDC_model(ctrlVolt[i], AngSpeed[i], Q(scatter_tyre[i]));
+		double Qtmp1, Qtmp2, Qtmp3;
+		BLDC_model(ctrlVolt[i], AngSpeed[i], Qtmp1);
+		Q(scatter_tyre[i]) += Qtmp1;
 		//Tire Loads
 		float load = k_t * d3(scatter_tyre[i]) + d_t * v2(scatter_tyre[i]) + \
 					 M(scatter_tyre[i], scatter_tyre[i]) * a2(scatter_tyre[i]);
@@ -287,8 +296,15 @@ void update_param(matrix<double>& K, matrix<double>& M, matrix<double>& C, vecto
 		v_wi_glob[1] = v2(scatter_wheel_movement[i][1]);
 		v_w[i](0) = v_wi_glob[0]*C+v_wi_glob[1]*S;
 		v_w[i](1) = -v_wi_glob[0]*S+v_wi_glob[1]*C;
-		getTireForces(load, AngSpeed[i], v_w[i](0), v_w[i](1), Q(scatter_wheel_movement[i][1]),\
-					  Q(scatter_wheel_movement[i][0]), Q(scatter_steer[i]));
+		getTireForces(load, AngSpeed[i], v_w[i](0), v_w[i](1), Qtmp1, Qtmp2, Qtmp3);
+		Q(scatter_wheel_movement[i][1]) += Qtmp1;
+		Q(scatter_wheel_movement[i][0]) += Qtmp2;
+		Q(scatter_steer[i]) += Qtmp3;
+		//Inertial Forces added to Q
+		Q(scatter[i][0]) += M(scatter[i][0], scatter[i][0])*a2(scatter[i][3]);
+		Q(scatter[i][1]) += M(scatter[i][1], scatter[i][1])*a2(scatter[i][4]);
+		Q(scatter[i][2]) += M(scatter[i][2], scatter[i][2])*a2(scatter[i][5]);
+		Q(scatter_ang_inert[i]) += M(scatter_ang_inert[i], scatter_ang_inert[i]) * a2(scatter_ang_inert[i]);
 	}
 	symmetric_matrix<double> M_eff(nDOF, nDOF);
 	//Update Effective Mass Matrix.
@@ -316,9 +332,13 @@ int dyna_core(matrix<double>& K, matrix<double>& M, matrix<double>& C, vector<do
 	//diagonal_matrix<double> M_mat(nDOF, M.data());
 	matrix<double> invM(nDOF,nDOF);
 	assem_M_matrix(M);
+	//Constriaint Matries on displacements, velocity, and acceleration
+	symmetric_matrix<double> constrA(nDOF, nDOF);
+	symmetric_matrix<double> constrV(nDOF, nDOF);
+	symmetric_matrix<double> constrX(nDOF, nDOF);
 	//Compute the motion and update the parameters.
 	while (no_quit){
-	    update_param (K, M, C, Q, invM, c0, c1);
+	    update_param (K, M, C, Q, invM, c0, c1, d3, v2, a2);
     	compute_main (K, M, C, Q, invM, c0, c1, c2, d1, d2, d3, v2, a2);
 	}
 	return 0;
