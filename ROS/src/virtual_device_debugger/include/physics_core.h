@@ -15,6 +15,9 @@
 #include <boost/array.hpp>
 
 using namespace boost::numeric::ublas;
+extern double ctrlVolt[4];
+extern double AngSpeed[4];
+extern bool no_quit;
 
 bool getTireForces(float load, float omega, float v_wx,
                   float v_wy, float F_lat, float F_long, float T_ali);
@@ -28,9 +31,9 @@ void assem_M_matrix(diagonal_matrix<double> Mass);
 
 void BLDC_model(double ctrlVolt, double AngSpeed, double Torque);
 
-void update_param(matrix<double>& invM, const double &tc0, const double &tc1, const double *ctrlVolt, const double *AngSpeed,\
+void update_param(matrix<double>& invM, const double &tc0, const double &tc1, \
                   const vector<double> d3, const vector<double> v2, const vector<double> a2);
 
-int dyna_core(double *ctrlV, double *angV);
+int dyna_core(void);
 
 #endif

@@ -5,7 +5,7 @@
 #define R_W 0.315
 
 using namespace boost::numeric::ublas;
-bool no_quit = true;
+//bool no_quit = true;
 
 bool getTireForces(float load, float omega, float v_wx,
                   float v_wy, float F_lat, float F_long, float T_ali)
@@ -135,7 +135,9 @@ vector<double> d0(nDOF);
 vector<double> v0(nDOF);
 vector<double> a0(nDOF);
 const double dt = 0.025;
-	
+//double ctrlVolt[4];
+//double AngSpeed[4];
+
 void compute_main(matrix<double>& invM, const double c0, const double c1, const double c2, vector<double>& d1, vector<double>& d2,\
 				  vector<double>& d3, vector<double>& v2, vector<double>& a2){
 	vector<double> f_eff(nDOF);
@@ -178,7 +180,7 @@ void BLDC_model(double ctrlVolt, double AngSpeed, double Torque)
 }
 
 
-void update_param(matrix<double>& invM, const double &tc0, const double &tc1, const double *ctrlVolt, const double *AngSpeed,\
+void update_param(matrix<double>& invM, const double &tc0, const double &tc1, \
                   const vector<double> d3, const vector<double> v2, const vector<double> a2){
 	typedef boost::array<matrix<double>, 4> wheel_part_matrices;
 	typedef boost::array<vector<double>, 4> wheel_part_vectors;
@@ -314,7 +316,7 @@ void update_param(matrix<double>& invM, const double &tc0, const double &tc1, co
 }
 
 //Solution of dynamic model using central difference with explicit integration
-int dyna_core(double *ctrlV, double *angV){
+int dyna_core(void){
 	//vector<double> d0(nDOF), v0(nDOF), a0(nDOF), d1(nDOF);
 	//Integration constants
 	
@@ -336,7 +338,7 @@ int dyna_core(double *ctrlV, double *angV){
 	symmetric_matrix<double> constrX(nDOF, nDOF);
 	//Compute the motion and update the parameters.
 	while (no_quit){
-	    update_param (invM, c0, c1, ctrlV, angV, d3, v2, a2);
+	    update_param (invM, c0, c1, d3, v2, a2);
     	compute_main (invM, c0, c1, c2, d1, d2, d3, v2, a2);
 	}
 	return 0;

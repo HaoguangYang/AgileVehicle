@@ -70,43 +70,55 @@ void naive_driving_controller(int i, const std_msgs::UInt16MultiArray& ctrl_var)
 	return;
 }
 
-double ctrlV[4] = {0.};
-double angV[4] = {0.};
+double ctrlVolt[4] = {0.};
+double AngSpeed[4] = {0.};
+bool no_quit = false;
+#define R_W 0.315
+bool start = false;
 void modeled_driving_controller(int i, const std_msgs::UInt16MultiArray& ctrl_var){
     if (ctrl_var.data[3]>0)
-        ctrlV[i] = -ctrl_var.data[2]*5.0/255.0;
+        ctrlVolt[i] = -ctrl_var.data[2]*5.0/255.0;
     else
-        ctrlV[i] = ctrl_var.data[2]*5.0/255.0;
-    std::thread Sim(dyna_core, std::ref(ctrlV), std::ref(angV));
-    Sim.join();
+        ctrlVolt[i] = ctrl_var.data[2]*5.0/255.0;
+    if (start) {}
+    else {
+        std::thread Sim(dyna_core);
+        Sim.join();
+        start = true;
+    }
+    vel[i] = AngSpeed[i]*R_W;
 }
 
 void Actuate0( const std_msgs::UInt16MultiArray& ctrl_var){
     int i=0;
     //Send Signals to stepper motor and BLDC according to messages subscribed
     drive_input[i] = ctrl_var.data[1];
-	naive_driving_controller(i, ctrl_var);
+	//naive_driving_controller(i, ctrl_var);
+    modeled_driving_controller(i, ctrl_var);
 }
 
 void Actuate1( const std_msgs::UInt16MultiArray& ctrl_var){
     int i=1;
     //Send Signals to stepper motor and BLDC according to messages subscribed
     drive_input[i] = ctrl_var.data[1];
-	naive_driving_controller(i, ctrl_var);
+	//naive_driving_controller(i, ctrl_var);
+    modeled_driving_controller(i, ctrl_var);
 }
 
 void Actuate2( const std_msgs::UInt16MultiArray& ctrl_var){
     int i=2;
     //Send Signals to stepper motor and BLDC according to messages subscribed
     drive_input[i] = ctrl_var.data[1];
-	naive_driving_controller(i, ctrl_var);
+	//naive_driving_controller(i, ctrl_var);
+    modeled_driving_controller(i, ctrl_var);
 }
 
 void Actuate3( const std_msgs::UInt16MultiArray& ctrl_var){
     int i=3;
     //Send Signals to stepper motor and BLDC according to messages subscribed
     drive_input[i] = ctrl_var.data[1];
-	naive_driving_controller(i, ctrl_var);
+	//naive_driving_controller(i, ctrl_var);
+    modeled_driving_controller(i, ctrl_var);
 }
 
 // the function to determine the wave pattern to servo
@@ -252,6 +264,7 @@ int main(int argc, char* argv[]){
 		//usleep(10);
 		ros::spinOnce();
     }
+    no_quit = false;
     ros::shutdown();
     return 0;
 }
