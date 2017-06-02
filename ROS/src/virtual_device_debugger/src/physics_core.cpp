@@ -134,6 +134,7 @@ vector<double> Q(nDOF);
 vector<double> d0(nDOF);
 vector<double> v0(nDOF);
 vector<double> a0(nDOF);
+float sim_time = 0.0;
 const double dt = 0.025;
 //double ctrlVolt[4];
 //double AngSpeed[4];
@@ -340,6 +341,17 @@ int dyna_core(void){
 	while (no_quit){
 	    update_param (invM, c0, c1, d3, v2, a2);
     	compute_main (invM, c0, c1, c2, d1, d2, d3, v2, a2);
+	    sim_time += dt;
+	    printf("Time: %f \n Disp: %f  %f  %f  %f  %f\n\
+	  %f  %f  %f  %f  %f\n\
+	  %f  %f  %f  %f  %f\n\
+	  %f  %f  %f  %f  %f\n\
+	  %f  %f  %f  %f\nVelo: %f  %f  %f  %f  %f\n\
+	  %f  %f  %f  %f  %f\n\
+	  %f  %f  %f  %f  %f\n\
+	  %f  %f  %f  %f  %f\n\
+	  %f  %f  %f  %f\n" , sim_time, d3, v2);
+	  
 	}
 	return 0;
 }

@@ -87,6 +87,8 @@ void modeled_driving_controller(int i, const std_msgs::UInt16MultiArray& ctrl_va
         start = true;
     }
     vel[i] = AngSpeed[i]*R_W;
+    steeringTarget[i] = ctrl_var.data[0];
+    return;
 }
 
 void Actuate0( const std_msgs::UInt16MultiArray& ctrl_var){
@@ -259,8 +261,10 @@ int main(int argc, char* argv[]){
 			drive_input[0], drive_input[1], drive_input[2], drive_input[3] );
 		printf( "Throttling >>>>>>>>>>>>>>>>>>>>>>>\n%f    %f    %f    %f\n", \
 			throttle[0], throttle[1], throttle[2], throttle[3] );
-		printf( "Driving Actual >>>>>>>>>>>>>>>>>>>\n%d    %d    %d    %d\n", \
+		printf( "Steering Actual >>>>>>>>>>>>>>>>>>\n%d    %d    %d    %d\n", \
 			Angle[0], Angle[1], Angle[2], Angle[3] );
+		printf( "Driving Actual >>>>>>>>>>>>>>>>>>>\n%f    %f    %f    %f\n", \
+			vel[0], vel[1], vel[2], vel[3] );
 		//usleep(10);
 		ros::spinOnce();
     }
