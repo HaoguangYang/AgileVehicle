@@ -4,6 +4,8 @@
 #include <std_msgs/Float32MultiArray.h>
 #include <std_msgs/Int32MultiArray.h>
 #include <math.h>
+#include <thread>
+#include "physics_core.h"
 using namespace std;
 
 const uint16_t encoder_resolution = 4096;
@@ -68,9 +70,15 @@ void naive_driving_controller(int i, const std_msgs::UInt16MultiArray& ctrl_var)
 	return;
 }
 
-
+double ctrlV[4] = {0.};
+double angV[4] = {0.};
 void modeled_driving_controller(int i, const std_msgs::UInt16MultiArray& ctrl_var){
-    
+    if (ctrl_var.data[3]>0)
+        ctrlV[i] = -ctrl_var.data[2]*5.0/255.0;
+    else
+        ctrlV[i] = ctrl_var.data[2]*5.0/255.0;
+    std::thread Sim(dyna_core, std::ref(ctrlV), std::ref(angV));
+    Sim.join();
 }
 
 void Actuate0( const std_msgs::UInt16MultiArray& ctrl_var){

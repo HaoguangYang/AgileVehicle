@@ -1,15 +1,4 @@
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <boost/numeric/ublas/vector.hpp>
-#include <boost/numeric/ublas/matrix.hpp>
-#include <boost/numeric/ublas/banded.hpp>
-#include <boost/numeric/ublas/io.hpp>
-#include <boost/numeric/ublas/vector_proxy.hpp>
-#include <boost/numeric/ublas/triangular.hpp>
-#include <boost/numeric/ublas/symmetric.hpp>
-#include <boost/numeric/ublas/lu.hpp>
-#include <boost/array.hpp>
+#include "physics_core.h"
 //#include <thread>
 
 #include "pacejka.h"
@@ -140,14 +129,14 @@ vector<double> v2(nDOF);
 vector<double> a2(nDOF);
 symmetric_matrix<double> K(nDOF, nDOF);
 symmetric_matrix<double> C(nDOF, nDOF);
+diagonal_matrix<double> M(nDOF);
 vector<double> Q(nDOF);
 vector<double> d0(nDOF);
 vector<double> v0(nDOF);
 vector<double> a0(nDOF);
 const double dt = 0.025;
 	
-void compute_main(matrix<double>& K, matrix<double>& M, matrix<double>& C, vector<double>& Q, matrix<double>& invM, \
-				  const double c0, const double c1, const double c2, vector<double>& d1, vector<double>& d2,\
+void compute_main(matrix<double>& invM, const double c0, const double c1, const double c2, vector<double>& d1, vector<double>& d2,\
 				  vector<double>& d3, vector<double>& v2, vector<double>& a2){
 	vector<double> f_eff(nDOF);
 	f_eff = Q - prod((K-c2 * M), d2) - prod((c0 * M-c1 * C), d1);
@@ -182,12 +171,14 @@ void BLDC_model(double ctrlVolt, double AngSpeed, double Torque)
 	const double gain1 = 0.09549296586;
 	const double gain2 = 10.33;		//N.m/V
 	const double gain3 = 0.6;		//Friction-induced Torque
-    Torque = (ctrlVolt-1.2)*gain2-gain1*AngSpeed-gain3;   //ctrlVolt in (0,5)
+    if (ctrlVolt >=0)
+        Torque = std::max((ctrlVolt-1.2)*gain2-gain1*AngSpeed-gain3, 0.0);   //ctrlVolt in (0,5)
+    else
+        Torque = std::min((ctrlVolt-1.2)*gain2-gain1*AngSpeed-gain3, 0.0);
 }
 
 
-void update_param(matrix<double>& K, matrix<double>& M, matrix<double>& C, vector<double>& Q, \
-                  matrix<double>& invM, const double &tc0, const double &tc1, \
+void update_param(matrix<double>& invM, const double &tc0, const double &tc1, const double *ctrlVolt, const double *AngSpeed,\
                   const vector<double> d3, const vector<double> v2, const vector<double> a2){
 	typedef boost::array<matrix<double>, 4> wheel_part_matrices;
 	typedef boost::array<vector<double>, 4> wheel_part_vectors;
@@ -197,6 +188,7 @@ void update_param(matrix<double>& K, matrix<double>& M, matrix<double>& C, vecto
 	K1.assign(symmetric_matrix<double>(3,3));
 	d1.assign(symmetric_matrix<double>(3,3));
 	v_w.assign(vector<double>(2));
+	double Qtmp1, Qtmp2, Qtmp3, Qtmp4; //Use as needed
 	//identity_matrix<double> I(3);
 	//matrix<double> K_2(6,6);
 	//matrix<double> K_3(6,6);
@@ -212,10 +204,6 @@ void update_param(matrix<double>& K, matrix<double>& M, matrix<double>& C, vecto
 	
 	double k_S, k_C, k_R1, k_R2, d_S, d_C, d_R1, d_R2;
 	double alpha_1[4] , alpha_2[4];
-	
-	//These variables are to be fulfilled. Places temporaily here.
-	double ctrlVolt[4];
-	double AngSpeed[4];
 	
 	//Submatrices
 	for (int i = 0; i < 4; i++){
@@ -282,7 +270,7 @@ void update_param(matrix<double>& K, matrix<double>& M, matrix<double>& C, vecto
 		C(24, scatter_steer[i]) -= d_St;
 		C(24, 24) += d_St;
 		//BLDC Driving Forces
-		double Qtmp1, Qtmp2, Qtmp3;
+		
 		BLDC_model(ctrlVolt[i], AngSpeed[i], Qtmp1);
 		Q(scatter_tyre[i]) += Qtmp1;
 		//Tire Loads
@@ -301,10 +289,20 @@ void update_param(matrix<double>& K, matrix<double>& M, matrix<double>& C, vecto
 		Q(scatter_wheel_movement[i][0]) += Qtmp2;
 		Q(scatter_steer[i]) += Qtmp3;
 		//Inertial Forces added to Q
-		Q(scatter[i][0]) += M(scatter[i][0], scatter[i][0])*a2(scatter[i][3]);
-		Q(scatter[i][1]) += M(scatter[i][1], scatter[i][1])*a2(scatter[i][4]);
-		Q(scatter[i][2]) += M(scatter[i][2], scatter[i][2])*a2(scatter[i][5]);
-		Q(scatter_ang_inert[i]) += M(scatter_ang_inert[i], scatter_ang_inert[i]) * a2(scatter_ang_inert[i]);
+		Qtmp1 = M(scatter[i][0], scatter[i][0])*a2(scatter[i][3]);
+		Qtmp2 = M(scatter[i][1], scatter[i][1])*a2(scatter[i][4]);
+		Qtmp3 = M(scatter[i][2], scatter[i][2])*a2(scatter[i][5]);
+		Qtmp4 = M(scatter_ang_inert[i], scatter_ang_inert[i]) * a2(scatter_ang_inert[i]);
+		Q(scatter[i][0]) += Qtmp1;
+		Q(scatter[i][1]) += Qtmp2;
+		Q(scatter[i][2]) += Qtmp3;
+		Q(scatter_ang_inert[i]) += Qtmp4; 
+		Q(scatter[i][3]) -= Qtmp1;
+		Q(scatter[i][4]) -= Qtmp2;
+		Q(scatter[i][5]) -= Qtmp3;
+		Q(scatter_ang_inert[5]) -= Qtmp4;
+		//Damping Forces added to Q
+		
 	}
 	symmetric_matrix<double> M_eff(nDOF, nDOF);
 	//Update Effective Mass Matrix.
@@ -316,10 +314,10 @@ void update_param(matrix<double>& K, matrix<double>& M, matrix<double>& C, vecto
 }
 
 //Solution of dynamic model using central difference with explicit integration
-int dyna_core(matrix<double>& K, matrix<double>& M, matrix<double>& C, vector<double>& Q, \
-			  vector<double>& d0, vector<double>& v0, vector<double>& a0, const double dt){
+int dyna_core(double *ctrlV, double *angV){
 	//vector<double> d0(nDOF), v0(nDOF), a0(nDOF), d1(nDOF);
 	//Integration constants
+	
 	const double c0 = 1/dt/dt;
 	const double c1 = 0.5/dt;
 	const double c2 = 2*c0;
@@ -338,8 +336,8 @@ int dyna_core(matrix<double>& K, matrix<double>& M, matrix<double>& C, vector<do
 	symmetric_matrix<double> constrX(nDOF, nDOF);
 	//Compute the motion and update the parameters.
 	while (no_quit){
-	    update_param (K, M, C, Q, invM, c0, c1, d3, v2, a2);
-    	compute_main (K, M, C, Q, invM, c0, c1, c2, d1, d2, d3, v2, a2);
+	    update_param (invM, c0, c1, ctrlV, angV, d3, v2, a2);
+    	compute_main (invM, c0, c1, c2, d1, d2, d3, v2, a2);
 	}
 	return 0;
 }
