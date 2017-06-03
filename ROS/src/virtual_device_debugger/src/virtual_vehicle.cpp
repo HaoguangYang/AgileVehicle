@@ -92,7 +92,6 @@ void modeled_driving_controller(int i, const std_msgs::UInt16MultiArray& ctrl_va
     
     vel[i] = AngSpeed[i]*R_W;
     steeringTarget[i] = ctrl_var.data[0];
-    return;
 }
 
 void Actuate0( const std_msgs::UInt16MultiArray& ctrl_var){
