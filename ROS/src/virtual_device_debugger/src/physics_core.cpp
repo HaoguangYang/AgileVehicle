@@ -92,7 +92,7 @@ bool getTireForces(float load, float omega, float v_wx,
 	F_lat = pacejka.getLateralForce();
 	T_ali = pacejka.getAligningForce();
 
-    printf("F_long= %f    ; F_lat= %f  (N)    ; T_ali= %f  (Nm)", F_long, F_lat, T_ali);
+    printf("F_long= %f    ; F_lat= %f  (N)    ; T_ali= %f  (Nm)\n", F_long, F_lat, T_ali);
 	//std::cout << "done!" << std::endl;
 	
 	return 0;
@@ -139,8 +139,7 @@ const double dt = 0.025;
 //double ctrlVolt[4];
 //double AngSpeed[4];
 
-void compute_main(matrix<double>& invM, const double c0, const double c1, const double c2, vector<double>& d1, vector<double>& d2,\
-				  vector<double>& d3, vector<double>& v2, vector<double>& a2){
+void compute_main(matrix<double>& invM, const double c0, const double c1, const double c2, vector<double>& d1, vector<double>& d2){
 	vector<double> f_eff(nDOF);
 	f_eff = Q - prod((K-c2 * M), d2) - prod((c0 * M-c1 * C), d1);
 	d3 = prod(invM, f_eff);
@@ -181,8 +180,7 @@ void BLDC_model(double ctrlVolt, double AngSpeed, double Torque)
 }
 
 
-void update_param(matrix<double>& invM, const double &tc0, const double &tc1, \
-                  const vector<double> d3, const vector<double> v2, const vector<double> a2){
+void update_param(matrix<double>& invM, const double &tc0, const double &tc1){
 	typedef boost::array<matrix<double>, 4> wheel_part_matrices;
 	typedef boost::array<vector<double>, 4> wheel_part_vectors;
     wheel_part_matrices K1;
@@ -227,6 +225,7 @@ void update_param(matrix<double>& invM, const double &tc0, const double &tc1, \
 		d1[i](1,2) = d_C*C2*S2;
 		d1[i](2,2) = d_C*S2*S2+2*d_S*S1*S1;
 	}
+	
 	//Assembly: Dims = [wheel0_x wheel0_y wheel0_z wheel0_theta wheel0_roll		\
 					 wheel1_x ... 										\
 					 ... \
@@ -240,7 +239,7 @@ void update_param(matrix<double>& invM, const double &tc0, const double &tc1, \
 	const int scatter_steer[4] = {3, 8, 13, 18};
 	const int scatter_wheel_movement[4][2] = {0, 1, 5, 6, 10, 11, 15, 16};
 	const int scatter_mass[5] = {2, 7, 12, 17, 22};
-	const int scatter_ang_inert[5] = {4, 9, 14, 19, 24}; //Rolling inertia of each wheel and the inertia of vehicle heading.
+	const int scatter_ang_inert[5] = {3, 8, 13, 18, 23}; //Rolling inertia of each wheel and the inertia of vehicle heading.
 	
 	//Re-init the matrices
 	for (int i = 0; i<nDOF; i++){
@@ -250,7 +249,6 @@ void update_param(matrix<double>& invM, const double &tc0, const double &tc1, \
 	    }
 	    Q(i) = 0.0;
 	}
-	
 	for (int i=0; i<4; i++){
 		for (int j=0; j<3; j++)
 		for (int k=0; k<3; k++){
@@ -269,9 +267,9 @@ void update_param(matrix<double>& invM, const double &tc0, const double &tc1, \
 		C(scatter_tyre[i], scatter_tyre[i]) += d_t;
 		//Steering Pod Friction
 		C(scatter_steer[i], scatter_steer[i]) += d_St;
-		C(scatter_steer[i], 24) -= d_St;
-		C(24, scatter_steer[i]) -= d_St;
-		C(24, 24) += d_St;
+		C(scatter_steer[i], 23) -= d_St;
+		C(23, scatter_steer[i]) -= d_St;
+		C(23, 23) += d_St;
 		//BLDC Driving Forces
 		
 		BLDC_model(ctrlVolt[i], AngSpeed[i], Qtmp1);
@@ -288,9 +286,13 @@ void update_param(matrix<double>& invM, const double &tc0, const double &tc1, \
 		v_w[i](0) = v_wi_glob[0]*C+v_wi_glob[1]*S;
 		v_w[i](1) = -v_wi_glob[0]*S+v_wi_glob[1]*C;
 		getTireForces(load, AngSpeed[i], v_w[i](0), v_w[i](1), Qtmp1, Qtmp2, Qtmp3);
+		if (Qtmp1 == NAN) Qtmp1 = 0.;
+		if (Qtmp2 == NAN) Qtmp2 = 0.;
+		if (Qtmp3 == NAN) Qtmp3 = 0.;
 		Q(scatter_wheel_movement[i][1]) += Qtmp1;
 		Q(scatter_wheel_movement[i][0]) += Qtmp2;
 		Q(scatter_steer[i]) += Qtmp3;
+		
 		//Inertial Forces added to Q
 		Qtmp1 = M(scatter[i][0], scatter[i][0])*a2(scatter[i][3]);
 		Qtmp2 = M(scatter[i][1], scatter[i][1])*a2(scatter[i][4]);
@@ -303,10 +305,11 @@ void update_param(matrix<double>& invM, const double &tc0, const double &tc1, \
 		Q(scatter[i][3]) -= Qtmp1;
 		Q(scatter[i][4]) -= Qtmp2;
 		Q(scatter[i][5]) -= Qtmp3;
-		Q(scatter_ang_inert[5]) -= Qtmp4;
+		Q(scatter_ang_inert[4]) -= Qtmp4;
 		//Damping Forces added to Q
 		
 	}
+	
 	symmetric_matrix<double> M_eff(nDOF, nDOF);
 	//Update Effective Mass Matrix.
 	M_eff = tc0*M + tc1*C;
@@ -334,24 +337,26 @@ int dyna_core(void){
 	matrix<double> invM(nDOF,nDOF);
 	assem_M_matrix(M);
 	//Constriaint Matries on displacements, velocity, and acceleration
-	symmetric_matrix<double> constrA(nDOF, nDOF);
-	symmetric_matrix<double> constrV(nDOF, nDOF);
-	symmetric_matrix<double> constrX(nDOF, nDOF);
 	//Compute the motion and update the parameters.
+	compute_main (invM, c0, c1, c2, d1, d2);
 	while (no_quit){
-	    update_param (invM, c0, c1, d3, v2, a2);
-    	compute_main (invM, c0, c1, c2, d1, d2, d3, v2, a2);
+	    
+	    update_param (invM, c0, c1);
+	    
+    	compute_main (invM, c0, c1, c2, d1, d2);
+    	
 	    sim_time += dt;
-	    printf("Time: %f \n Disp: %f  %f  %f  %f  %f\n\
+	    printf("Time: %f \n Disp:\t  %f  %f  %f  %f  %f\n\
 	  %f  %f  %f  %f  %f\n\
 	  %f  %f  %f  %f  %f\n\
 	  %f  %f  %f  %f  %f\n\
-	  %f  %f  %f  %f\nVelo: %f  %f  %f  %f  %f\n\
+	  %f  %f  %f  %f\nVelo:\t  %f  %f  %f  %f  %f\n\
 	  %f  %f  %f  %f  %f\n\
 	  %f  %f  %f  %f  %f\n\
 	  %f  %f  %f  %f  %f\n\
 	  %f  %f  %f  %f\n" , sim_time, d3, v2);
 	  
+	    usleep (25000);
 	}
 	return 0;
 }

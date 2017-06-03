@@ -54,16 +54,17 @@ struct timeval time_last_publish;
 
 void naive_driving_controller(int i, const std_msgs::UInt16MultiArray& ctrl_var){
 	if(ctrl_var.data[3]>0){ // 倒车
-        vel[i] = vel[i] - drive_input[i]*throttle[i];
+        vel[i] = vel[i]*0.9998 - std::max(drive_input[i]-64, 0)*throttle[i]/1500.0;
 	}//adjust for the switch
     else{
-		vel[i] = vel[i] + drive_input[i]*throttle[i];
+		vel[i] = vel[i]*0.9998 + std::max(drive_input[i]-64, 0)*throttle[i]/1500.0;
 	}
 	if (ctrl_var.data[2]==0){
-	    vel[i] = vel[i]*0.98;
+	    vel[i] = vel[i]*0.9998;
 	}
 	else{											//Breaking
-		vel[i] = vel[i]*(0.98-ctrl_var.data[2]*0.7/255.0);
+		if (vel[i]> 0.) vel[i] = vel[i]*0.9998-ctrl_var.data[2]*0.7/1500.0;
+		if (vel[i]<-0.) vel[i] = vel[i]*0.9998+ctrl_var.data[2]*0.7/1500.0;
 	}
     // As the first version has only one encoder (for the angle), only the angle part has the close loop control.
 	steeringTarget[i] = ctrl_var.data[0];
@@ -72,7 +73,7 @@ void naive_driving_controller(int i, const std_msgs::UInt16MultiArray& ctrl_var)
 
 double ctrlVolt[4] = {0.};
 double AngSpeed[4] = {0.};
-bool no_quit = false;
+bool no_quit = true;
 #define R_W 0.315
 bool start = false;
 void modeled_driving_controller(int i, const std_msgs::UInt16MultiArray& ctrl_var){
@@ -86,6 +87,9 @@ void modeled_driving_controller(int i, const std_msgs::UInt16MultiArray& ctrl_va
         Sim.join();
         start = true;
     }
+    
+    //dyna_core();
+    
     vel[i] = AngSpeed[i]*R_W;
     steeringTarget[i] = ctrl_var.data[0];
     return;
@@ -95,32 +99,32 @@ void Actuate0( const std_msgs::UInt16MultiArray& ctrl_var){
     int i=0;
     //Send Signals to stepper motor and BLDC according to messages subscribed
     drive_input[i] = ctrl_var.data[1];
-	//naive_driving_controller(i, ctrl_var);
-    modeled_driving_controller(i, ctrl_var);
+	naive_driving_controller(i, ctrl_var);
+    //modeled_driving_controller(i, ctrl_var);
 }
 
 void Actuate1( const std_msgs::UInt16MultiArray& ctrl_var){
     int i=1;
     //Send Signals to stepper motor and BLDC according to messages subscribed
     drive_input[i] = ctrl_var.data[1];
-	//naive_driving_controller(i, ctrl_var);
-    modeled_driving_controller(i, ctrl_var);
+	naive_driving_controller(i, ctrl_var);
+    //modeled_driving_controller(i, ctrl_var);
 }
 
 void Actuate2( const std_msgs::UInt16MultiArray& ctrl_var){
     int i=2;
     //Send Signals to stepper motor and BLDC according to messages subscribed
     drive_input[i] = ctrl_var.data[1];
-	//naive_driving_controller(i, ctrl_var);
-    modeled_driving_controller(i, ctrl_var);
+	naive_driving_controller(i, ctrl_var);
+    //modeled_driving_controller(i, ctrl_var);
 }
 
 void Actuate3( const std_msgs::UInt16MultiArray& ctrl_var){
     int i=3;
     //Send Signals to stepper motor and BLDC according to messages subscribed
     drive_input[i] = ctrl_var.data[1];
-	//naive_driving_controller(i, ctrl_var);
-    modeled_driving_controller(i, ctrl_var);
+	naive_driving_controller(i, ctrl_var);
+    //modeled_driving_controller(i, ctrl_var);
 }
 
 // the function to determine the wave pattern to servo
@@ -161,7 +165,7 @@ void Steering(int i){
 }
 
 void Throttling(int i){
-    throttle[i] = min(throttle[i] * 1050.0 / max(PowerStatus[i].data[0]*PowerStatus[i].data[2],(float)0.001),1.0);
+    throttle[i] = min(throttle[i] * 1050.0 / max(PowerStatus[i].data[0]*PowerStatus[i].data[2]*10000.0,(double)0.001),1.0);
 }
 
 uint16_t dataActuator[4][2] = {0};
@@ -173,7 +177,7 @@ void Query(int i)
   dataActuator[i][1] = (uint16_t)(dataActuator[i][1]+vel[i]/4096)%4096;
   Angle[i]=(dataActuator[i][0]-_zero[i]+encoder_resolution)%encoder_resolution;
   
-  dataPower[i][0] = 50*(0.02892+0.00002576*50)+2.99;
+  dataPower[i][0] = (50*(0.02892+0.00002576*50)+2.99);
   dataPower[i][1] = 5.0;
   dataPower[i][2] = drive_input[i]*vel[i]/62500;
   
@@ -249,7 +253,7 @@ int main(int argc, char* argv[]){
     sub[2] = handle.subscribe("WheelControl02", 2, &Actuate2);
     sub[3] = handle.subscribe("WheelControl03", 2, &Actuate3);
     setup();
-	
+    
     while (ros::ok()){
         loop();
         

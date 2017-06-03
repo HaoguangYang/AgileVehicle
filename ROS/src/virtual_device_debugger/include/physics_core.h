@@ -24,15 +24,13 @@ bool getTireForces(float load, float omega, float v_wx,
 
 bool InvertMatrix (const matrix<double>& input, matrix<double>& inverse);
 
-void compute_main(matrix<double>& invM, const double c0, const double c1, const double c2, vector<double>& d1, vector<double>& d2,\
-				  vector<double>& d3, vector<double>& v2, vector<double>& a2);
+void compute_main(matrix<double>& invM, const double c0, const double c1, const double c2, vector<double>& d1, vector<double>& d2);
 
 void assem_M_matrix(diagonal_matrix<double> Mass);
 
 void BLDC_model(double ctrlVolt, double AngSpeed, double Torque);
 
-void update_param(matrix<double>& invM, const double &tc0, const double &tc1, \
-                  const vector<double> d3, const vector<double> v2, const vector<double> a2);
+void update_param(matrix<double>& invM, const double &tc0, const double &tc1);
 
 int dyna_core(void);
 
