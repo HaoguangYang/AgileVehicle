@@ -1,11 +1,15 @@
 #include "physics_core.h"
 //#include <thread>
+#include <limits>
 
 #include "pacejka.h"
 #define R_W 0.315
 
 using namespace boost::numeric::ublas;
 //bool no_quit = true;
+template <typename T> int sgn(T val) {
+    return (T(0) < val) - (val < T(0));
+}
 
 bool getTireForces(float load, float omega, float v_wx,
                   float v_wy, float F_lat, float F_long, float T_ali)
@@ -82,7 +86,7 @@ bool getTireForces(float load, float omega, float v_wx,
 	//std::cout << "> Calculating Tire Contact (Friction) Forces.. ";
 	
 	//See the definitions about the tyre terms.
-	float slipRatio = (omega*R_W/v_wx - 1)*100.0;//More precisely, R_W should be R_W-x(wheel_z)
+	float slipRatio = (omega*R_W/std::max(abs(v_wx), epsilon())*sgn(v_wx) - 1)*100.0;//More precisely, R_W should be R_W-x(wheel_z)
 	float slipAngle = -atan(v_wy/v_wx);
 	pacejka.setSlipRatio(slipRatio);
     pacejka.setSlipAngle(slipAngle);
