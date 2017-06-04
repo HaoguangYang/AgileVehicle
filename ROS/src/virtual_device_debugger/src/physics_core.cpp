@@ -86,7 +86,7 @@ bool getTireForces(float load, float omega, float v_wx,
 	//std::cout << "> Calculating Tire Contact (Friction) Forces.. ";
 	
 	//See the definitions about the tyre terms.
-	float slipRatio = (omega*R_W/std::max(abs(v_wx), epsilon())*sgn(v_wx) - 1)*100.0;//More precisely, R_W should be R_W-x(wheel_z)
+	float slipRatio = (omega*R_W/std::max(fabs(v_wx), std::numeric_limits<double>::epsilon())*sgn(v_wx) - 1)*100.0;//More precisely, R_W should be R_W-x(wheel_z)
 	float slipAngle = -atan(v_wy/v_wx);
 	pacejka.setSlipRatio(slipRatio);
     pacejka.setSlipAngle(slipAngle);

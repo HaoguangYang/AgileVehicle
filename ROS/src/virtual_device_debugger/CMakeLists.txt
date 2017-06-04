@@ -7,6 +7,20 @@ project(virtual_device_debugger)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
+
+##CHRONO
+set(Chrono_DIR /home/Dev/chrono/build/cmake)
+LIST(APPEND CMAKE_PREFIX_PATH "${CMAKE_INSTALL_PREFIX}/../Chrono/lib64")
+find_package(Chrono
+             COMPONENTS Vehicle Irrlicht
+             CONFIG)
+if (NOT Chrono_FOUND)
+  message("Could not find Chrono or one of its required modules")
+  return()
+endif()
+include_directories()
+set(COMPILE_FLAGS ${CHRONO_CXX_FLAGS})
+
 find_package(catkin REQUIRED COMPONENTS
   cv_bridge
   roscpp
@@ -132,6 +146,7 @@ include_directories(
 #  ${SDL2_INCLUDE_DIR}
   ./include/steering_wheel
   ./include
+  ${CHRONO_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
@@ -149,8 +164,15 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
  add_executable(${PROJECT_NAME}_node src/virtual_vehicle.cpp
                                      src/physics_core.cpp
-                                     src/pacejka.cpp)          #Uncomment this when virtual vehicle is ready.
+                                     src/pacejka.cpp           #Uncomment this when virtual vehicle is ready.
+                                     src/dyn.cpp)
  #add_executable(${PROJECT_NAME}_node src/vdd_main.cpp)
+
+##CHRONO
+set_target_properties(${PROJECT_NAME}_node PROPERTIES 
+	    COMPILE_FLAGS "${CHRONO_CXX_FLAGS} ${EXTRA_COMPILE_FLAGS}"
+	    COMPILE_DEFINITIONS "CHRONO_DATA_DIR=\"${CHRONO_DATA_DIR}\""
+	    LINK_FLAGS "${CHRONO_LINKER_FLAGS}")
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -166,6 +188,7 @@ include_directories(
  target_link_libraries(${PROJECT_NAME}_node
 #   ${SDL2_LIBRARY}
    ${catkin_LIBRARIES}
+   ${CHRONO_LIBRARIES}
  )
 # target_link_libraries(virtual_vehicle_node
 #   ${SDL2_LIBRARY}
