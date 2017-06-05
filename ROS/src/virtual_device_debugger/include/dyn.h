@@ -27,8 +27,6 @@ template <typename T> int sgn(T val) {
     return (T(0) < val) - (val < T(0));
 }
 
-class AgileVehicle {};
-
 bool getTireForces(double load, double omega, double def_z, double roll_r, double v_wx, double v_wy, double v_wz, \
 				   double F_vert, double F_lat, double F_long, double T_ali);
 

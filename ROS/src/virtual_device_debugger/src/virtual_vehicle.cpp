@@ -37,9 +37,6 @@ std_msgs::UInt16MultiArray ctrl_var;
     int reverse;
 ************/
 
-//***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
-ros::Subscriber sub[4];
-
 struct timeval time_last[4];              //for Buffer flushing
 struct timeval time_last_query;           //for Query
 struct timeval time_last_publish;
@@ -226,6 +223,9 @@ int sim_vehicle(int argc, char* argv[]){
 	//***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
 	ros::Publisher assessActual[4];
 	ros::Publisher assessPower[4];
+	//***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
+    ros::Subscriber sub[4];
+    
     assessActual[0] = handle.advertise<std_msgs::UInt16MultiArray>("WheelActual00", 2); 
     assessActual[1] = handle.advertise<std_msgs::UInt16MultiArray>("WheelActual01", 2);
     assessActual[2] = handle.advertise<std_msgs::UInt16MultiArray>("WheelActual02", 2);
@@ -263,12 +263,13 @@ int sim_vehicle(int argc, char* argv[]){
     return 0;
 }
 
-void main(int argc, char* argv[]){
+int main(int argc, char* argv[]){
 	#pragma omp sections
 	{
+	    #pragma omp section
 		{sim_vehicle(argc, argv);}
 		#pragma omp section
 		{sim_physics(argc, argv);}
 	}
-	return;
+	return 0;
 }

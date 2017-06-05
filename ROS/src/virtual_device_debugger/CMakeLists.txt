@@ -32,6 +32,13 @@ find_package(catkin REQUIRED COMPONENTS
 )
 #find_package(SDL2 REQUIRED)
 
+#OpenMP
+find_package(OpenMP)
+if (OPENMP_FOUND)
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+endif()
+
 ## System dependencies are found with CMake's conventions
  find_package(Boost REQUIRED COMPONENTS system)
  if(COMPILER_SUPPORTS_CXX11)
