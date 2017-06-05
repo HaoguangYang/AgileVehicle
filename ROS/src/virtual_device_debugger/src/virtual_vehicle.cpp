@@ -1,11 +1,6 @@
-#include <ros/ros.h>
-#include <sys/time.h>
-#include <std_msgs/UInt16MultiArray.h>
-#include <std_msgs/Float32MultiArray.h>
-#include <std_msgs/Int32MultiArray.h>
-#include <math.h>
-#include <thread>
-#include "physics_core.h"
+#include <omp.h>
+#include "virtual_vehicle.h"
+#include "dyn.h"
 using namespace std;
 
 const uint16_t encoder_resolution = 4096;
@@ -43,9 +38,6 @@ std_msgs::UInt16MultiArray ctrl_var;
 ************/
 
 //***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
-ros::Publisher assessActual[4];
-ros::Publisher assessPower[4];
-//***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
 ros::Subscriber sub[4];
 
 struct timeval time_last[4];              //for Buffer flushing
@@ -81,17 +73,9 @@ void modeled_driving_controller(int i, const std_msgs::UInt16MultiArray& ctrl_va
         ctrlVolt[i] = -ctrl_var.data[2]*5.0/255.0;
     else
         ctrlVolt[i] = ctrl_var.data[2]*5.0/255.0;
-    if (start) {}
-    else {
-        std::thread Sim(dyna_core);
-        Sim.join();
-        start = true;
-    }
-    
-    //dyna_core();
-    
-    vel[i] = AngSpeed[i]*R_W;
     steeringTarget[i] = ctrl_var.data[0];
+	vel[i] = AngSpeed[i]*R_W;
+	//SOCKET TO SIMULATOR AND DATA TRANSFER
 }
 
 void Actuate0( const std_msgs::UInt16MultiArray& ctrl_var){
@@ -183,7 +167,7 @@ void Query(int i)
   //Serial.write((const uint8_t*)&to_send,sizeof(serial_format));
 }
 
-void Publish(int i){
+void Publish(int i, ros::Publisher* assessActual, ros::Publisher* assessPower){
   ActuatorStatus[i].data[0] = (-dataActuator[i][0]+_zero[i]+4096)%4096;
   ActuatorStatus[i].data[1] = dataActuator[i][1];
   PowerStatus[i].data[0] = (float)dataPower[i][0];
@@ -216,7 +200,7 @@ void setup() {
     return;
 }
 
-void loop() {
+void loop(ros::Publisher* assessActual, ros::Publisher* assessPower) {
    struct timeval time_now;
    gettimeofday(&time_now, NULL);
    for (int i=0; i<4; i++){
@@ -230,15 +214,18 @@ void loop() {
        if (i==2) gettimeofday(&time_last_query, NULL); //time_last_query = micros();
    }
    if ((unsigned long)(time_now.tv_usec - time_last_publish.tv_usec) > updateTime){
-	   Publish(i);
+	   Publish(i, assessActual, assessPower);
 	   if (i==3) gettimeofday(&time_last_publish, NULL); //time_last_publish = micros();
    }
    }
 }
 
-int main(int argc, char* argv[]){
+int sim_vehicle(int argc, char* argv[]){
     ros::init(argc, argv, "agile_v_simulator");
     ros::NodeHandle handle;
+	//***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
+	ros::Publisher assessActual[4];
+	ros::Publisher assessPower[4];
     assessActual[0] = handle.advertise<std_msgs::UInt16MultiArray>("WheelActual00", 2); 
     assessActual[1] = handle.advertise<std_msgs::UInt16MultiArray>("WheelActual01", 2);
     assessActual[2] = handle.advertise<std_msgs::UInt16MultiArray>("WheelActual02", 2);
@@ -254,7 +241,7 @@ int main(int argc, char* argv[]){
     setup();
     
     while (ros::ok()){
-        loop();
+        loop(assessActual, assessPower);
         
         system("clear");
 		cout << "Control Value:" << endl;
@@ -274,4 +261,14 @@ int main(int argc, char* argv[]){
     no_quit = false;
     ros::shutdown();
     return 0;
+}
+
+void main(int argc, char* argv[]){
+	#pragma omp sections
+	{
+		{sim_vehicle(argc, argv);}
+		#pragma omp section
+		{sim_physics(argc, argv);}
+	}
+	return;
 }

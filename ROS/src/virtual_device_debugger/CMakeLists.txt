@@ -163,8 +163,7 @@ include_directories(
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
  add_executable(${PROJECT_NAME}_node src/virtual_vehicle.cpp
-                                     src/physics_core.cpp
-                                     src/pacejka.cpp           #Uncomment this when virtual vehicle is ready.
+                                     src/pacejka.cpp
                                      src/dyn.cpp)
  #add_executable(${PROJECT_NAME}_node src/vdd_main.cpp)
 
