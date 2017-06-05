@@ -1,6 +1,8 @@
 //Using Chrono to simulate the vehicle.=
 #include "dyn.h"
 
+bool no_quit = true;
+
 bool getTireForces(double load, double omega, double def_z, double roll_r, double v_wx, double v_wy, double v_wz, \
 				   double F_vert, double F_lat, double F_long, double T_ali)
 {
@@ -172,8 +174,8 @@ class AgileVehicle {
 			tmp2.MatrMultiply(RotT,d1);
 			tmp2.MatrMultiplyT(tmp2,RotT);
 			ChVector<> force = 	tmp1*X_r + tmp2*V_r;
-			chassis->Accumulate_force(force, ref->GetPos(), false);
-			motorFrame->Accumulate_force(-force, motorFrame->GetPos(), false);
+			//chassis->Accumulate_force(force, ref->GetPos(), false);
+			//motorFrame->Accumulate_force(-force, motorFrame->GetPos(), false);
         }
         
         void setTyreForce (ChSystemNSC* msystem,        // contains all bodies
@@ -210,60 +212,60 @@ class AgileVehicle {
             
             // --- Motor FL ---
             motorFrameFL = std::make_shared<ChBodyEasyCylinder>(0.09, 0.30, 1600.0, true, true);
-            motorFrameFL->SetPos(ChVector<>(WB/2.0, TW/2.0-0.1, R_W/2.0));
-            motorFrameFL->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
+            motorFrameFL->SetPos(ChVector<>(WB/2.0, TW/2.0-0.1, R_W));
+            motorFrameFL->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Y));
             motorFrameFL->SetBodyFixed(false);
             my_system.AddBody(motorFrameFL);
             
             // --- Motor FR ---
             motorFrameFR = std::make_shared<ChBodyEasyCylinder>(0.09, 0.30, 1600.0, true, true);
-            motorFrameFR->SetPos(ChVector<>(WB/2.0, -TW/2.0+0.1, R_W/2.0));
-            motorFrameFR->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
+            motorFrameFR->SetPos(ChVector<>(WB/2.0, -TW/2.0+0.1, R_W));
+            motorFrameFR->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Y));
             motorFrameFR->SetBodyFixed(false);
             my_system.AddBody(motorFrameFR);
             
             // --- Motor RL ---
             motorFrameRL = std::make_shared<ChBodyEasyCylinder>(0.09, 0.30, 1600.0, true, true);
-            motorFrameRL->SetPos(ChVector<>(-WB/2.0, TW/2.0-0.1, R_W/2.0));
-            motorFrameRL->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
+            motorFrameRL->SetPos(ChVector<>(-WB/2.0, TW/2.0-0.1, R_W));
+            motorFrameRL->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Y));
             motorFrameRL->SetBodyFixed(false);
             my_system.AddBody(motorFrameRL);
             
             // --- Motor RR ---
             motorFrameRR = std::make_shared<ChBodyEasyCylinder>(0.09, 0.30, 1600.0, true, true);
-            motorFrameRR->SetPos(ChVector<>(-WB/2.0, -TW/2.0+0.1, R_W/2.0));
-            motorFrameRR->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
+            motorFrameRR->SetPos(ChVector<>(-WB/2.0, -TW/2.0+0.1, R_W));
+            motorFrameRR->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Y));
             motorFrameRR->SetBodyFixed(false);
             my_system.AddBody(motorFrameRR);
             
             // --- Wheels ---
             wheelFL = std::make_shared<ChBodyEasyCylinder>(0.21, 0.20, 720.0, true, true);
-            wheelFL->SetPos(ChVector<>(WB/2.0, TW/2.0, R_W/2.0));
-            wheelFL->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
+            wheelFL->SetPos(ChVector<>(WB/2.0, TW/2.0, R_W));
+            wheelFL->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Y));
 			wheelFL->SetBodyFixed(false);
             wheelFL->AddAsset(texture);
             my_system.AddBody(wheelFL);
             
             // --- Wheels ---
             wheelFR = std::make_shared<ChBodyEasyCylinder>(0.21, 0.20, 720.0, true, true);
-            wheelFR->SetPos(ChVector<>(WB/2.0, -TW/2.0, R_W/2.0));
-            wheelFR->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
+            wheelFR->SetPos(ChVector<>(WB/2.0, -TW/2.0, R_W));
+            wheelFR->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Y));
 			wheelFR->SetBodyFixed(false);
             wheelFR->AddAsset(texture);
             my_system.AddBody(wheelFR);
             
             // --- Wheels ---
             wheelRL = std::make_shared<ChBodyEasyCylinder>(0.21, 0.20, 720.0, true, true);
-            wheelRL->SetPos(ChVector<>(-WB/2.0, TW/2.0, R_W/2.0));
-            wheelRL->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
+            wheelRL->SetPos(ChVector<>(-WB/2.0, TW/2.0, R_W));
+            wheelRL->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Y));
 			wheelRL->SetBodyFixed(false);
             wheelRL->AddAsset(texture);
             my_system.AddBody(wheelRL);
             
             // --- Wheels ---
             wheelRR = std::make_shared<ChBodyEasyCylinder>(0.21, 0.20, 720.0, true, true);
-            wheelRR->SetPos(ChVector<>(-WB/2.0, -TW/2.0, R_W/2.0));
-            wheelRR->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Z));
+            wheelRR->SetPos(ChVector<>(-WB/2.0, -TW/2.0, R_W));
+            wheelRR->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Y));
 			wheelRR->SetBodyFixed(false);
             wheelRR->AddAsset(texture);
             my_system.AddBody(wheelRR);
@@ -271,42 +273,42 @@ class AgileVehicle {
             // R-joints between wheel and motor frames
             link_revoluteFL = std::make_shared<ChLinkLockRevolute>();
             link_revoluteFL->Initialize(wheelFL, motorFrameFL, \
-                             ChCoordsys<>(ChVector<>(WB/2.0, TW/2.0-0.05, R_W/2.0), Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
+                             ChCoordsys<>(ChVector<>(WB/2.0, TW/2.0-0.05, R_W), Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
             my_system.AddLink(link_revoluteFL);
             
             link_revoluteFR = std::make_shared<ChLinkLockRevolute>();
             link_revoluteFR->Initialize(wheelFR, motorFrameFR, \
-                             ChCoordsys<>(ChVector<>(WB/2.0, -TW/2.0+0.05, R_W/2.0), Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
+                             ChCoordsys<>(ChVector<>(WB/2.0, -TW/2.0+0.05, R_W), Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
             my_system.AddLink(link_revoluteFR);
             
             link_revoluteRL = std::make_shared<ChLinkLockRevolute>();
             link_revoluteRL->Initialize(wheelRL, motorFrameRL, \
-                             ChCoordsys<>(ChVector<>(-WB/2.0, TW/2.0-0.05, R_W/2.0), Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
+                             ChCoordsys<>(ChVector<>(-WB/2.0, TW/2.0-0.05, R_W), Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
             my_system.AddLink(link_revoluteRL);
             
             link_revoluteRR = std::make_shared<ChLinkLockRevolute>();
             link_revoluteRR->Initialize(wheelRR, motorFrameRR, \
-                             ChCoordsys<>(ChVector<>(-WB/2.0, -TW/2.0+0.05, R_W/2.0), Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
+                             ChCoordsys<>(ChVector<>(-WB/2.0, -TW/2.0+0.05, R_W), Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
             my_system.AddLink(link_revoluteRR);
             
 			posFL = std::make_shared<ChMarker>();
 			chassis->AddMarker(posFL);
-			posFL->SetPos(ChVector<>(WB/2.0, TW/2.0, R_W/2.0+0.3));
+			posFL->SetPos(ChVector<>(WB/2.0, TW/2.0, R_W*2.0+0.3));
 			posFL->Impose_Abs_Coord(chassis->GetCoord());
 			
 			posFR = std::make_shared<ChMarker>();
 			chassis->AddMarker(posFR);
-			posFR->SetPos(ChVector<>(WB/2.0, -TW/2.0, R_W/2.0+0.3));
+			posFR->SetPos(ChVector<>(WB/2.0, -TW/2.0, R_W*2.0+0.3));
 			posFR->Impose_Abs_Coord(chassis->GetCoord());
 			
 			posRL = std::make_shared<ChMarker>();
 			chassis->AddMarker(posRL);
-			posRL->SetPos(ChVector<>(-WB/2.0, TW/2.0, R_W/2.0+0.3));
+			posRL->SetPos(ChVector<>(-WB/2.0, TW/2.0, R_W*2.0+0.3));
 			posRL->Impose_Abs_Coord(chassis->GetCoord());
 			
 			posRR = std::make_shared<ChMarker>();
 			chassis->AddMarker(posRR);
-			posRR->SetPos(ChVector<>(-WB/2.0, -TW/2.0, R_W/2.0+0.3));
+			posRR->SetPos(ChVector<>(-WB/2.0, -TW/2.0, R_W*2.0+0.3));
 			posRR->Impose_Abs_Coord(chassis->GetCoord());
 			
             suspFL = std::make_shared<ChLinkMateGeneric>(false, false, false, true, true, false);  // x,y,z,Rx,Ry,Rz constrains
@@ -371,13 +373,25 @@ int sim_physics(int argc, char* argv[]) {
     //
     // 1- Create a ChronoENGINE physical system: all bodies and constraints
     //    will be handled by this ChSystemNSC object.
+    SetChronoDataPath(CHRONO_DATA_DIR);
     ChSystemNSC my_system;
-    my_system.Set_G_acc(ChVector<>(0, 0, -9.81));
+    my_system.Set_G_acc(ChVector<>(0., 0., -0.));
     
     // 2.- Create the Irrlicht visualization.
     ChIrrApp application(&my_system, L"Agile Vehicle Simulator", core::dimension2d<u32>(640, 480), false);
     //ChIrrWizard::add_typical_Logo(application.GetDevice());
-    ChIrrWizard::add_typical_Sky(application.GetDevice());
+    
+    //ChIrrWizard::add_typical_Sky(application.GetDevice()); //with the following lines:
+    std::string mtexturedir = GetChronoDataFile("skybox/");
+    std::string str_lf = mtexturedir + "sky_lf.jpg";
+    std::string str_up = mtexturedir + "sky_up.jpg";
+    std::string str_dn = mtexturedir + "sky_dn.jpg";
+    irr::video::ITexture* map_skybox_side = application.GetVideoDriver()->getTexture(str_lf.c_str());
+    irr::scene::ISceneNode* mbox = application.GetSceneManager()->addSkyBoxSceneNode(
+        application.GetVideoDriver()->getTexture(str_up.c_str()), application.GetVideoDriver()->getTexture(str_dn.c_str()), map_skybox_side,
+        map_skybox_side, map_skybox_side, map_skybox_side);
+    mbox->setRotation(irr::core::vector3df(90, 0, 0));
+    
     ChIrrWizard::add_typical_Lights(application.GetDevice());
     ChIrrWizard::add_typical_Camera(application.GetDevice(), core::vector3df(0, 0, -6));
     application.SetTryRealtime(true);
@@ -390,10 +404,11 @@ int sim_physics(int argc, char* argv[]) {
     texture->SetTextureFilename(GetChronoDataFile("blu.png"));
     
     auto ground = std::make_shared<ChBody>();
-    my_system.AddBody(ground);
     ground->SetIdentifier(-1);
     ground->SetName("ground");
     ground->SetBodyFixed(true);
+    ground->SetCollide(true);
+    my_system.AddBody(ground);
     
     for (int i = 0; i < 6; i++) {
         auto my_obstacle = std::make_shared<ChBodyEasyBox>(1, 0.1, 0.5, 60.0, true, true);
@@ -403,9 +418,12 @@ int sim_physics(int argc, char* argv[]) {
     }
     
     AgileVehicle* AgileV = new AgileVehicle(my_system, application.GetSceneManager(), application.GetVideoDriver());
+    // Bind visualization assets.
+    application.AssetBindAll();
+    application.AssetUpdateAll();
     
     ChRealtimeStepTimer m_realtime_timer;
-    while (application.GetDevice()->run()) {
+    while (application.GetDevice()->run() && no_quit) {
         // Irrlicht must prepare frame to draw
         application.BeginScene(true, true, SColor(255, 140, 161, 192));
         // Irrlicht now draws simple lines in 3D world representing a
@@ -413,18 +431,21 @@ int sim_physics(int argc, char* argv[]) {
         //
         // .. draw solid 3D items (boxes, cylinders, shapes) belonging to Irrlicht scene, if any
         application.DrawAll();
-        // Draw an XZ grid at the global origin to add in visualization.
+        // Draw an XY grid at the global origin to add in visualization.
         ChIrrTools::drawGrid(application.GetVideoDriver(), 1, 1, 20, 20,
-                             ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngX(CH_C_PI_2)),
+                             ChCoordsys<>(ChVector<>(0, 0, 0), Q_from_AngZ(CH_C_PI_2)),
                              video::SColor(255, 80, 100, 100), true);
         // .. draw GUI user interface items (sliders, buttons) belonging to Irrlicht screen, if any
         application.GetIGUIEnvironment()->drawAll();
         // .. draw the distance constraints (the massless rods) as simplified lines
         auto iterlink = my_system.Get_linklist()->begin();
         while (iterlink != my_system.Get_linklist()->end()) {
-            if (auto mylinkdis = std::dynamic_pointer_cast<ChLinkDistance>(*iterlink))
-                ChIrrTools::drawSegment(application.GetVideoDriver(), mylinkdis->GetEndPoint1Abs(), mylinkdis->GetEndPoint2Abs(),
+            if (auto mylinkCustom = std::dynamic_pointer_cast<ChLinkMateGeneric>(*iterlink)){
+                ChIrrTools::drawSegment(application.GetVideoDriver(), (mylinkCustom->GetFrame1()).GetPos(), (mylinkCustom->GetFrame2()).GetPos(),
                                         video::SColor(255, 0, 20, 0), true);
+                ChIrrTools::drawSpring(application.GetVideoDriver(), 0.03, (mylinkCustom->GetFrame1()).GetPos(), (mylinkCustom->GetFrame2()).GetPos(),
+                                       video::SColor(255, 150, 20, 20), 80, 5, true);
+            }
             iterlink++;
         }
         
@@ -453,5 +474,6 @@ int sim_physics(int argc, char* argv[]) {
     
     if (AgileV)
         delete AgileV;
+    
     return 0;
 }        
