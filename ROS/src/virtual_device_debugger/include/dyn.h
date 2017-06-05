@@ -8,6 +8,7 @@
 #include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono/core/ChTimer.h"
 #include "chrono/core/ChQuaternion.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/physics/ChMarker.h"
 #include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
