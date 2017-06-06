@@ -7,7 +7,11 @@
 #include "chrono/physics/ChBodyEasy.h"
 #include "chrono_irrlicht/ChIrrApp.h"
 #include "chrono/core/ChTimer.h"
+#include "chrono/core/ChQuaternion.h"
+#include "chrono/core/ChFrame.h"
 #include "chrono/physics/ChMarker.h"
+#include "chrono_vehicle/wheeled_vehicle/vehicle/WheeledVehicle.h"
+#include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
 #include <limits>
 #include "pacejka.h"
@@ -22,12 +26,13 @@ using namespace irr::scene;
 using namespace irr::video;
 using namespace irr::io;
 using namespace irr::gui;
+using namespace chrono::vehicle;
 
 template <typename T> int sgn(T val) {
     return (T(0) < val) - (val < T(0));
 }
 
-class AgileVehicle {};
+extern bool no_quit;
 
 bool getTireForces(double load, double omega, double def_z, double roll_r, double v_wx, double v_wy, double v_wz, \
 				   double F_vert, double F_lat, double F_long, double T_ali);

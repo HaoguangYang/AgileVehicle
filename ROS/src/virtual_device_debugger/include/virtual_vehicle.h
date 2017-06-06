@@ -26,6 +26,6 @@ void loop(ros::Publisher* assessActual, ros::Publisher* assessPower);
 
 int sim_vehicle(int argc, char* argv[]);
 
-void main(int argc, char* argv[]);
+int main(int argc, char* argv[]);
 
 #endif

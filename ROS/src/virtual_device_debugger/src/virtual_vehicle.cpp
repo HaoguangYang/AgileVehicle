@@ -1,6 +1,6 @@
-#include <omp.h>
 #include "virtual_vehicle.h"
 #include "dyn.h"
+#include <thread>
 using namespace std;
 
 const uint16_t encoder_resolution = 4096;
@@ -37,9 +37,6 @@ std_msgs::UInt16MultiArray ctrl_var;
     int reverse;
 ************/
 
-//***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
-ros::Subscriber sub[4];
-
 struct timeval time_last[4];              //for Buffer flushing
 struct timeval time_last_query;           //for Query
 struct timeval time_last_publish;
@@ -65,7 +62,6 @@ void naive_driving_controller(int i, const std_msgs::UInt16MultiArray& ctrl_var)
 
 double ctrlVolt[4] = {0.};
 double AngSpeed[4] = {0.};
-bool no_quit = true;
 #define R_W 0.315
 bool start = false;
 void modeled_driving_controller(int i, const std_msgs::UInt16MultiArray& ctrl_var){
@@ -226,6 +222,10 @@ int sim_vehicle(int argc, char* argv[]){
 	//***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
 	ros::Publisher assessActual[4];
 	ros::Publisher assessPower[4];
+	//***MODIFY UNIT-SPECIFIC TOPICS AS NECESSARY!!!***//
+    ros::Subscriber sub[4];
+    setup();
+    
     assessActual[0] = handle.advertise<std_msgs::UInt16MultiArray>("WheelActual00", 2); 
     assessActual[1] = handle.advertise<std_msgs::UInt16MultiArray>("WheelActual01", 2);
     assessActual[2] = handle.advertise<std_msgs::UInt16MultiArray>("WheelActual02", 2);
@@ -238,7 +238,6 @@ int sim_vehicle(int argc, char* argv[]){
     sub[1] = handle.subscribe("WheelControl01", 2, &Actuate1);
     sub[2] = handle.subscribe("WheelControl02", 2, &Actuate2);
     sub[3] = handle.subscribe("WheelControl03", 2, &Actuate3);
-    setup();
     
     while (ros::ok()){
         loop(assessActual, assessPower);
@@ -258,17 +257,18 @@ int sim_vehicle(int argc, char* argv[]){
 		//usleep(10);
 		ros::spinOnce();
     }
-    no_quit = false;
+    no_quit = false;    //Quit Physics Simulation
     ros::shutdown();
     return 0;
 }
 
-void main(int argc, char* argv[]){
-	#pragma omp sections
-	{
-		{sim_vehicle(argc, argv);}
-		#pragma omp section
-		{sim_physics(argc, argv);}
-	}
-	return;
+int main(int argc, char* argv[]){
+	std::thread Sim[2];
+	//#pragma omp section
+	Sim[0] = std::thread(sim_vehicle, argc, argv);
+	//#pragma omp section
+	Sim[1] = std::thread(sim_physics, argc, argv);
+	Sim[0].join();
+	Sim[1].join();
+	return 0;
 }
