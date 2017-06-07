@@ -241,7 +241,7 @@ int sim_vehicle(int argc, char* argv[]){
     
     while (ros::ok()){
         loop(assessActual, assessPower);
-        
+        /*
         system("clear");
 		cout << "Control Value:" << endl;
 		printf( "Steering Target >>>>>>>>>>>>>>>>>>\n%d    %d    %d    %d\n", \
@@ -253,7 +253,7 @@ int sim_vehicle(int argc, char* argv[]){
 		printf( "Steering Actual >>>>>>>>>>>>>>>>>>\n%d    %d    %d    %d\n", \
 			Angle[0], Angle[1], Angle[2], Angle[3] );
 		printf( "Driving Actual >>>>>>>>>>>>>>>>>>>\n%f    %f    %f    %f\n", \
-			vel[0], vel[1], vel[2], vel[3] );
+			vel[0], vel[1], vel[2], vel[3] );*/
 		//usleep(10);
 		ros::spinOnce();
     }

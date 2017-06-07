@@ -14,6 +14,8 @@
 #include "chrono_vehicle/wheeled_vehicle/utils/ChWheeledVehicleIrrApp.h"
 
 #include <limits>
+#include <cstdio>
+#include <cmath>
 #include "pacejka.h"
 
 // Use the namespaces of Chrono
