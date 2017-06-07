@@ -3,18 +3,20 @@
 #include <std_msgs/Float32MultiArray.h>
 //#include <std_msgs/Int32MultiArray.h>
 
-#define CONTRL      3 //PWM
-#define BACK        4
-#define BREAK       5 //connecting to driving motor controller, PWM
-#define csn        13 //yellow
-#define datS        2 //green
-#define datD        8 //green
-#define clk         9 //blue
-#define PUL         6
-#define DIR         7 // direction for the angle motor
-#define VOLT        A3
-#define AMPD        A7
-#define AMPS        A6
+#define CONTRL      PH3 //PWM
+#define BACK        PA0
+#define BREAK       PH4 //connecting to driving motor controller, PWM
+#define csn         PA1 //yellow
+#define csn2		PA3
+#define datS        PA2 //green
+#define datD        PA4 //green
+#define clk         PE5 //blue, PWM
+#define clk2		PG5
+#define PUL         PA5
+#define DIR         PA6 // direction for the angle motor
+#define VOLT        PF0
+#define AMPD        PF1
+#define AMPS        PF2
 
 ros::NodeHandle handle;
 const uint16_t encoder_resolution = 4096;
