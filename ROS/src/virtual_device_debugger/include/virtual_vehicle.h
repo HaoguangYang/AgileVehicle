@@ -7,6 +7,11 @@
 #include <std_msgs/Int32MultiArray.h>
 #include <math.h>
 
+extern double ctrlVolt[4];
+extern double AngSpeed[4];
+extern float vel[4];
+extern float angle_real[4];
+
 void naive_driving_controller(int i, const std_msgs::UInt16MultiArray& ctrl_var);
 
 void modeled_driving_controller(int i, const std_msgs::UInt16MultiArray& ctrl_var);

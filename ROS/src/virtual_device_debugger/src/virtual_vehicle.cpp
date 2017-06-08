@@ -70,7 +70,7 @@ void modeled_driving_controller(int i, const std_msgs::UInt16MultiArray& ctrl_va
     else
         ctrlVolt[i] = ctrl_var.data[2]*5.0/255.0;
     steeringTarget[i] = ctrl_var.data[0];
-	vel[i] = AngSpeed[i]*R_W;
+	//vel[i] = AngSpeed[i]*R_W;
 	//SOCKET TO SIMULATOR AND DATA TRANSFER
 }
 

@@ -87,7 +87,10 @@ bool getTireForces(double load, double omega, double def_z, double roll_r, doubl
     pacejka.setSlipAngle(slipAngle);
 	pacejka.calculate();
 	
-	F_vert = k_t * def_z + d_t * v_wz;
+	if (def_z > -0.0005)
+	    F_vert = k_t * def_z + d_t * v_wz;
+	else
+	    F_vert = 0.;
 	F_long = pacejka.getLongitudinalForce();
 	F_lat = pacejka.getLateralForce();
 	T_ali = pacejka.getAligningForce();
@@ -138,6 +141,7 @@ class AgileVehicle {
         const double d_R2 = 100.0;
 	    double alpha_1[4] = {1.4, 1.4, 1.4, 1.4};
 	    double alpha_2[4] = {1.3, 1.3, 1.3, 1.3};
+	    double Torque[4] = {0.};
         // Constructing the suspension by defining force.
         void setSuspensionForce (ChSystemNSC* msystem,  // contains all bodies
                                  std::shared_ptr<ChBody> chassis, std::shared_ptr<ChMarker> ref,
@@ -196,11 +200,25 @@ class AgileVehicle {
         }
         
         void setTyreForce (ChSystemNSC* msystem,        // contains all bodies
+                           std::shared_ptr<ChBody> chassis,
                            std::shared_ptr<ChBody> wheel, int i) {
             wheel->Empty_forces_accumulators();
 			ChVector<> load = wheel->GetContactForce();
 			ChVector<> omega = wheel->GetWvel_loc();
+			double def_z = std::max(R_W-(wheel->GetPos()).z(), -0.0005);
 			//TODO: TO BE POPULATED
+			AngSpeed[i] = omega.y();
+			BLDC_model(ctrlVolt[i], AngSpeed[i], Torque[i]);
+			ChVector<> v_w = ((wheel->GetFrame_COG_to_abs())>>(chassis->GetFrame_COG_to_abs())).GetPos_dt();
+			double C = cos(angle_real[i]/180.0*M_PI);
+			double S = sin(angle_real[i]/180.0*M_PI);
+			double v_wx = v_w.x()*C+v_w.y()*S;
+			double v_wy = v_w.y()*C-v_w.x()*S;
+			double v_wz = v_w.z();
+			double F_vert, F_lat, F_long, T_ali;
+			getTireForces(load.z(), omega.y(), def_z, R_W-def_z, v_wx, v_wy, v_wz, F_vert, F_lat, F_long, T_ali);
+			wheel-> Accumulate_force(ChVector<>(F_vert, F_lat, F_long), ChVector<>(0., 0., 0.), true);
+			wheel->Accumulate_torque(ChVector<>(0., Torque[i]-F_long*(R_W-def_z), T_ali), true);
         }
         
         void BLDC_model(double ctrlVolt, double AngSpeed, double Torque)
@@ -496,14 +514,14 @@ int sim_physics(int argc, char* argv[]) {
         // .. draw GUI user interface items (sliders, buttons) belonging to Irrlicht screen, if any
         application.GetIGUIEnvironment()->drawAll();
         // .. draw the distance constraints (the massless rods) as simplified lines
-        /*ChIrrTools::drawSegment(application.GetVideoDriver(), (AgileV->posFL->GetAbsFrame()).GetPos(), AgileV->motorFrameFL->GetPos(), video::SColor(255, 0, 20, 0), true);
+        ChIrrTools::drawSegment(application.GetVideoDriver(), (AgileV->posFL->GetAbsFrame()).GetPos(), AgileV->motorFrameFL->GetPos(), video::SColor(255, 0, 20, 0), true);
         ChIrrTools::drawSegment(application.GetVideoDriver(), (AgileV->posFR->GetAbsFrame()).GetPos(), AgileV->motorFrameFR->GetPos(), video::SColor(255, 0, 20, 0), true);
         ChIrrTools::drawSegment(application.GetVideoDriver(), (AgileV->posRL->GetAbsFrame()).GetPos(), AgileV->motorFrameRL->GetPos(), video::SColor(255, 0, 20, 0), true);
         ChIrrTools::drawSegment(application.GetVideoDriver(), (AgileV->posRR->GetAbsFrame()).GetPos(), AgileV->motorFrameRR->GetPos(), video::SColor(255, 0, 20, 0), true);
         ChIrrTools::drawSpring(application.GetVideoDriver(), 0.03, (AgileV->posFL->GetAbsFrame()).GetPos(), AgileV->motorFrameFL->GetPos(),video::SColor(255, 150, 20, 20), 80, 5, true);
         ChIrrTools::drawSpring(application.GetVideoDriver(), 0.03, (AgileV->posFR->GetAbsFrame()).GetPos(), AgileV->motorFrameFR->GetPos(),video::SColor(255, 150, 20, 20), 80, 5, true);
         ChIrrTools::drawSpring(application.GetVideoDriver(), 0.03, (AgileV->posRL->GetAbsFrame()).GetPos(), AgileV->motorFrameRL->GetPos(),video::SColor(255, 150, 20, 20), 80, 5, true);
-        ChIrrTools::drawSpring(application.GetVideoDriver(), 0.03, (AgileV->posRR->GetAbsFrame()).GetPos(), AgileV->motorFrameRR->GetPos(),video::SColor(255, 150, 20, 20), 80, 5, true);*/
+        ChIrrTools::drawSpring(application.GetVideoDriver(), 0.03, (AgileV->posRR->GetAbsFrame()).GetPos(), AgileV->motorFrameRR->GetPos(),video::SColor(255, 150, 20, 20), 80, 5, true);
         //ChIrrTools::drawAllLinks(my_system, application.GetVideoDriver()); //BAD EFFECTS.
         
         
@@ -512,14 +530,14 @@ int sim_physics(int argc, char* argv[]) {
         
             //Add Custom Forces to support the system
             AgileV->setSuspensionForce(&my_system, AgileV->chassis, AgileV->posFL, AgileV->motorFrameFL, 0, &application);
-            AgileV->setSuspensionForce(&my_system, AgileV->chassis, AgileV->posRR, AgileV->motorFrameRR, 3, &application);
-            AgileV->setSuspensionForce(&my_system, AgileV->chassis, AgileV->posRL, AgileV->motorFrameRL, 2, &application);
             AgileV->setSuspensionForce(&my_system, AgileV->chassis, AgileV->posFR, AgileV->motorFrameFR, 1, &application);
+            AgileV->setSuspensionForce(&my_system, AgileV->chassis, AgileV->posRL, AgileV->motorFrameRL, 2, &application);
+            AgileV->setSuspensionForce(&my_system, AgileV->chassis, AgileV->posRR, AgileV->motorFrameRR, 3, &application);
             
-            AgileV->setTyreForce(&my_system, AgileV->wheelFL, 0);
-            AgileV->setTyreForce(&my_system, AgileV->wheelFR, 1);
-            AgileV->setTyreForce(&my_system, AgileV->wheelRL, 2);
-            AgileV->setTyreForce(&my_system, AgileV->wheelRR, 3);
+            AgileV->setTyreForce(&my_system, AgileV->chassis, AgileV->wheelFL, 0);
+            AgileV->setTyreForce(&my_system, AgileV->chassis, AgileV->wheelFR, 1);
+            AgileV->setTyreForce(&my_system, AgileV->chassis, AgileV->wheelRL, 2);
+            AgileV->setTyreForce(&my_system, AgileV->chassis, AgileV->wheelRR, 3);
         
         
         // HERE CHRONO INTEGRATION IS PERFORMED: THE

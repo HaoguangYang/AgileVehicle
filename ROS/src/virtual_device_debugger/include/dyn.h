@@ -17,6 +17,7 @@
 #include <cstdio>
 #include <cmath>
 #include "pacejka.h"
+#include "virtual_vehicle.h"
 
 // Use the namespaces of Chrono
 using namespace chrono;
