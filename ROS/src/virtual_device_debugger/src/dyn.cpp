@@ -148,36 +148,42 @@ class AgileVehicle {
 		    double S1 = sin(alpha_1[i]);
 		    double C2 = cos(alpha_2[i]);
 		    double S2 = sin(alpha_2[i]);
-			const ChVector<double> X0 = (0.0, 0.0, -0.30);
+			const ChVector<double> X0 = (0.0, 0.0, 0.30);
             ChMatrix33<> K1;
             ChMatrix33<> d1;
             K1(0,0) = 2*k_S*C1*C1+k_R2;
 		    K1(0,1) = 0.0;
 		    K1(0,2) = 0.0;
+		    K1(1,0) = 0.0;
 		    K1(1,1) = k_C*C2*C2+2*k_R1;
 		    K1(1,2) = k_C*C2*S2;
+		    K1(2,0) = 0.0;
+		    K1(2,1) = K1(1,2);
 		    K1(2,2) = k_C*S2*S2+2*k_S*S1*S1;
 		    d1(0,0) = 2*d_S*C1*C1+d_R2;
 		    d1(0,1) = 0.0;
 		    d1(0,2) = 0.0;
+		    d1(1,0) = 0.0;
 		    d1(1,1) = d_C*C2*C2+2*d_R1;
 		    d1(1,2) = d_C*C2*S2;
+		    d1(2,0) = 0.0;
+		    d1(2,1) = d1(1,2);
 		    d1(2,2) = d_C*S2*S2+2*d_S*S1*S1;
 		    //TO BE POPULATED.
 			//In Absolute Frame
 			ChVector<> V_r = (motorFrame->GetFrame_COG_to_abs()).GetPos_dt()-(ref->GetAbsFrame()).GetPos_dt();
-			ChVector<> X_r = (motorFrame->GetFrame_COG_to_abs()).GetPos()-(ref->GetAbsFrame()).GetPos()-X0;
+			ChVector<> X_r = (motorFrame->GetFrame_COG_to_abs()).GetPos()-(ref->GetAbsFrame()).GetPos()+X0;//TODO: Problematic about X0
 			ChMatrix33<> RotT = motorFrame->GetA();
 			//ChMatrix33<double> RotB = ref->GetA();
-			ChMatrix33<> tmp1, tmp2;
-			tmp1.MatrMultiply(RotT,K1);
-			tmp1.MatrMultiplyT(tmp1,RotT);
-			tmp2.MatrMultiply(RotT,d1);
-			tmp2.MatrMultiplyT(tmp2,RotT);
-			ChVector<> force = 	tmp1*X_r + tmp2*V_r;
-			//chassis->Accumulate_force(force, (ref->GetAbsFrame()).GetPos(), true);
-			//motorFrame->Accumulate_force(-force, motorFrame->GetPos(), false);
-			//TODO: Forces still get issues.
+			//ChMatrix33<> tmp1, tmp2;
+			//tmp1.MatrMultiply(RotT,K1);
+			//tmp1.MatrMultiplyT(tmp1,RotT);
+			//tmp2.MatrMultiply(RotT,d1);
+			//tmp2.MatrMultiplyT(tmp2,RotT);
+			ChVector<> force = 	K1*X_r + d1*V_r;
+			chassis->Accumulate_force(force, (ref->GetAbsFrame()).GetPos(), false);//ChVector<>(100., -100., 2000.0)
+			motorFrame->Accumulate_force(-force, (motorFrame->GetFrame_COG_to_abs()).GetPos(), false);//(motorFrame->GetFrame_COG_to_abs()).GetPos()
+			//TODO: Forces still get issues: Rotation of frames.
         }
         
         void setTyreForce (ChSystemNSC* msystem,        // contains all bodies
@@ -342,7 +348,7 @@ class AgileVehicle {
 			posRR->Impose_Abs_Coord(ChCoordsys<>(ChVector<>(-WB/2.0, -TW/2.0, R_W*2.0+0.3)));//chassis->GetCoord());
 			posRR->SetPos(ChVector<>(-WB/2.0, -TW/2.0, R_W*2.0+0.3));
 			
-            suspFL = std::make_shared<ChLinkMateGeneric>(true, true, false, true, true, false);  // x,y,z,Rx,Ry,Rz constrains, should be (false, false, false, true, true, false)
+            suspFL = std::make_shared<ChLinkMateGeneric>(false, false, false, true, true, false);  // x,y,z,Rx,Ry,Rz constrains, should be (false, false, false, true, true, false)
             suspFL->SetName("SuspensionFL");
             ChFrame<> susp_abs_FL(ChVector<>(WB/2.0, TW/2.0, R_W*2.0+0.3)); //posFL->GetPos()
             suspFL->Initialize(wheelFL,             // the 1st body to connect
@@ -352,7 +358,7 @@ class AgileVehicle {
                                susp_abs_FL);        // the link reference attached to 2nd body
             my_system.Add(suspFL);
             
-            suspFR = std::make_shared<ChLinkMateGeneric>(true, true, false, true, true, false);  // x,y,z,Rx,Ry,Rz constrains
+            suspFR = std::make_shared<ChLinkMateGeneric>(false, false, false, true, true, false);  // x,y,z,Rx,Ry,Rz constrains
             suspFR->SetName("SuspensionFR");
             ChFrame<> susp_abs_FR(ChVector<>(WB/2.0, -TW/2.0, R_W*2.0+0.3));
             suspFR->Initialize(wheelFR,             // the 1st body to connect
@@ -362,7 +368,7 @@ class AgileVehicle {
                                susp_abs_FR);        // the link reference attached to 2nd body
             my_system.Add(suspFR);
             
-            suspRL = std::make_shared<ChLinkMateGeneric>(true, true, false, true, true, false);  // x,y,z,Rx,Ry,Rz constrains
+            suspRL = std::make_shared<ChLinkMateGeneric>(false, false, false, true, true, false);  // x,y,z,Rx,Ry,Rz constrains
             suspRL->SetName("SuspensionRL");
             ChFrame<> susp_abs_RL(ChVector<>(-WB/2.0, TW/2.0, R_W*2.0+0.3));
             suspRL->Initialize(wheelRL,           	// the 1st body to connect
@@ -372,7 +378,7 @@ class AgileVehicle {
                                susp_abs_RL);        // the link reference attached to 2nd body
             my_system.Add(suspRL);
             
-            suspRR = std::make_shared<ChLinkMateGeneric>(true, true, false, true, true, false);  // x,y,z,Rx,Ry,Rz constrains
+            suspRR = std::make_shared<ChLinkMateGeneric>(false, false, false, true, true, false);  // x,y,z,Rx,Ry,Rz constrains
             suspRR->SetName("SuspensionRR");
             ChFrame<> susp_abs_RR(ChVector<>(-WB/2.0, -TW/2.0, R_W*2.0+0.3));
             suspRR->Initialize(wheelRR,           	// the 1st body to connect
@@ -410,7 +416,7 @@ int sim_physics(int argc, char* argv[]) {
     //    will be handled by this ChSystemNSC object.
     SetChronoDataPath(CHRONO_DATA_DIR);
     ChSystemNSC my_system;
-    my_system.Set_G_acc(ChVector<>(0., 0., -9.81));
+    my_system.Set_G_acc(ChVector<>(0., 0., -0.81));
     //ChFrameMoving<> root_frame(ChVector<>(0, 0, 0));
     ChVector<> trackPoint(0.0, 0.0, 1.75);
     // 2.- Create the Irrlicht visualization.
