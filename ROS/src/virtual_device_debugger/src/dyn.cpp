@@ -193,8 +193,8 @@ class AgileVehicle {
 			ChVector<> force = tmp1*X_r + tmp2*V_r;
 			//RotT.MatrInverse();
 			//ChVector<> force1 = RotT*force;
-			chassis->Accumulate_force(force, (ref->GetAbsFrame()).GetPos(), false);//ChVector<>(100., -100., 2000.0)
-			motorFrame->Accumulate_force(-force, (motorFrame->GetFrame_COG_to_abs()).GetPos(), false);//(motorFrame->GetFrame_COG_to_abs()).GetPos()
+			//chassis->Accumulate_force(force, (ref->GetAbsFrame()).GetPos(), false);//ChVector<>(100., -100., 2000.0)
+			//motorFrame->Accumulate_force(-force, (motorFrame->GetFrame_COG_to_abs()).GetPos(), false);//(motorFrame->GetFrame_COG_to_abs()).GetPos()
 			
 			ChIrrTools::drawSegment(application->GetVideoDriver(), (motorFrame->GetFrame_COG_to_abs()).GetPos(), (motorFrame->GetFrame_COG_to_abs()).GetPos()+force*0.001, video::SColor(255, 0, 20, 0), true);
         }
@@ -376,7 +376,7 @@ class AgileVehicle {
 			posRR->Impose_Abs_Coord(ChCoordsys<>(ChVector<>(-WB/2.0, -TW/2.0, R_W)));//chassis->GetCoord());
 			posRR->SetPos(ChVector<>(-WB/2.0, -TW/2.0, R_W));
 			
-            suspFL = std::make_shared<ChLinkMateGeneric>(false, false, true, true, true, false);  // x,y,z,Rx,Ry,Rz constrains, should be (false, false, false, true, true, false)
+            suspFL = std::make_shared<ChLinkMateGeneric>(true, true, true, true, true, false);  // x,y,z,Rx,Ry,Rz constrains, should be (false, false, false, true, true, false)
             suspFL->SetName("SuspensionFL");
             ChFrame<> susp_abs_FL(ChVector<>(WB/2.0, TW/2.0, R_W*2.0+0.3)); //posFL->GetPos()
             suspFL->Initialize(wheelFL,             // the 1st body to connect
@@ -386,7 +386,7 @@ class AgileVehicle {
                                susp_abs_FL);        // the link reference attached to 2nd body
             my_system.Add(suspFL);
             
-            suspFR = std::make_shared<ChLinkMateGeneric>(false, false, true, true, true, false);  // x,y,z,Rx,Ry,Rz constrains
+            suspFR = std::make_shared<ChLinkMateGeneric>(true, true, true, true, true, false);  // x,y,z,Rx,Ry,Rz constrains
             suspFR->SetName("SuspensionFR");
             ChFrame<> susp_abs_FR(ChVector<>(WB/2.0, -TW/2.0, R_W*2.0+0.3));
             suspFR->Initialize(wheelFR,             // the 1st body to connect
@@ -396,7 +396,7 @@ class AgileVehicle {
                                susp_abs_FR);        // the link reference attached to 2nd body
             my_system.Add(suspFR);
             
-            suspRL = std::make_shared<ChLinkMateGeneric>(false, false, true, true, true, false);  // x,y,z,Rx,Ry,Rz constrains
+            suspRL = std::make_shared<ChLinkMateGeneric>(true, true, true, true, true, false);  // x,y,z,Rx,Ry,Rz constrains
             suspRL->SetName("SuspensionRL");
             ChFrame<> susp_abs_RL(ChVector<>(-WB/2.0, TW/2.0, R_W*2.0+0.3));
             suspRL->Initialize(wheelRL,           	// the 1st body to connect
@@ -406,7 +406,7 @@ class AgileVehicle {
                                susp_abs_RL);        // the link reference attached to 2nd body
             my_system.Add(suspRL);
             
-            suspRR = std::make_shared<ChLinkMateGeneric>(false, false, true, true, true, false);  // x,y,z,Rx,Ry,Rz constrains
+            suspRR = std::make_shared<ChLinkMateGeneric>(true, true, true, true, true, false);  // x,y,z,Rx,Ry,Rz constrains
             suspRR->SetName("SuspensionRR");
             ChFrame<> susp_abs_RR(ChVector<>(-WB/2.0, -TW/2.0, R_W*2.0+0.3));
             suspRR->Initialize(wheelRR,           	// the 1st body to connect
