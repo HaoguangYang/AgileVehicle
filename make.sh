@@ -91,12 +91,15 @@ sed -i 's/00"/01"/g' Arduino.ino
 sed -i 's/_zero=231; /_zero=2646; /g' Arduino.ino
 arduino --upload --board arduino:avr:nano:cpu=atmega328 --port $port1 $(pwd)/Arduino.ino
 sed -i 's/01"/02"/g' Arduino.ino
+#sed -i 's/ctrl_var.data[1]*throttle/ctrl_var.data[1]*throttle+15/g' Arduino.ino
 sed -i 's/_zero=2646; /_zero=1895; /g' Arduino.ino
 arduino --upload --board arduino:avr:nano:cpu=atmega328 --port $port2 $(pwd)/Arduino.ino
 sed -i 's/02"/03"/g' Arduino.ino
+#sed -i 's/ctrl_var.data[1]*throttle+15/ctrl_var.data[1]*throttle-10/g' Arduino.ino
 sed -i 's/_zero=1895; /_zero=2297; /g' Arduino.ino
 arduino --upload --board arduino:avr:nano:cpu=atmega328 --port $port3 $(pwd)/Arduino.ino
 sed -i 's/03"/0x"/g' Arduino.ino
+#sed -i 's/ctrl_var.data[1]*throttle-10/ctrl_var.data[1]*throttle/g' Arduino.ino
 sed -i 's/_zero=2297; /_zero=0; /g' Arduino.ino
 
 echo "------------------- COMPILATION DONE ------------------"

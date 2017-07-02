@@ -15,6 +15,7 @@
 #define VOLT        A3
 #define AMPD        A7
 #define AMPS        A6
+#define ENA         11
 
 ros::NodeHandle handle;
 const uint16_t encoder_resolution = 4096;
@@ -68,11 +69,11 @@ void Actuate( const std_msgs::UInt16MultiArray& ctrl_var){
     else{
 		digitalWrite(BACK,LOW);
 	}
-	uint16_t drive_input = ctrl_var.data[1];
+	//uint16_t drive_input = ctrl_var.data[1];
 	if (ctrl_var.data[2]==0){
 		//ctrl_var.data[1] = ctrl_var.data[1] + 75;	//Calibration of controller to elliminate dead zone
 		analogWrite(BREAK,0);
-		analogWrite(CONTRL,drive_input*throttle);	//Normal Driving
+		analogWrite(CONTRL,ctrl_var.data[1]*throttle);	//Normal Driving
 	}
 	else{											//Breaking
 		analogWrite(CONTRL,0);
@@ -94,6 +95,7 @@ void Steering(){
 		int16_t err = (steeringTarget-Angle+(uint16_t)(0.5*encoder_resolution))%(encoder_resolution)-(encoder_resolution*0.5);
 		//min(min(abs(steeringTarget-Angle),abs(steeringTarget-Angle+encoder_resolution)),abs(steeringTarget-Angle-encoder_resolution));
         if(!(abs(err)<40)) {
+            digitalWrite(ENA,LOW);
 			pulseTime = 7000/(1.1*abs(err)+5);	//Need Modification
             if (err<0) {
                 Flip(0);
@@ -102,6 +104,7 @@ void Steering(){
                 Flip(1);
             }  
         }
+        else digitalWrite(ENA,HIGH);
         //end while loop 
     }
 	//----------------end angle control---------------------------------------------  
