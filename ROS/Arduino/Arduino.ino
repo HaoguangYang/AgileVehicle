@@ -111,7 +111,7 @@ void Steering(){
 }
 
 void Throttling(){
-    throttle = min(throttle * 1050.0 / max(PowerStatus.data[0]*PowerStatus.data[2],0.001),1.0);
+    throttle = 1.0;//min(throttle * 1050.0 / max(PowerStatus.data[0]*PowerStatus.data[2],0.001),1.0);
 }
 
 void setup() {

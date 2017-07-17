@@ -143,9 +143,8 @@ class AgileVehicle {
 	    double alpha_2[4] = {1.3, 1.3, 1.3, 1.3};
 	    double Torque[4] = {0.};
         // Constructing the suspension by defining force.
-        void setSuspensionForce (ChSystemNSC* msystem,  // contains all bodies
-                                 std::shared_ptr<ChBody> chassis, std::shared_ptr<ChMarker> ref,
-                                 std::shared_ptr<ChBody> motorFrame, int i, ChIrrApp* application) {
+        void setSuspensionForce (std::shared_ptr<ChBody> chassis, std::shared_ptr<ChMarker> ref,
+                                 std::shared_ptr<ChBody> motorFrame, std::shared_ptr<ChBody> wheel, int i, ChIrrApp* application) {
             chassis->Empty_forces_accumulators ();
 			motorFrame->Empty_forces_accumulators ();
             double C1 = cos(alpha_1[i]);
@@ -173,30 +172,18 @@ class AgileVehicle {
 		    d1(2,0) = 0.0;
 		    d1(2,1) = d1(1,2);
 		    d1(2,2) = d_C*S2*S2+2*d_S*S1*S1;
-		    //TO BE POPULATED.
+		    
 			//In Absolute Frame
-			ChVector<> V_r = (motorFrame->GetFrame_COG_to_abs()).GetPos_dt()-(ref->GetAbsFrame()).GetPos_dt();
-			ChVector<> X_r = (motorFrame->GetFrame_COG_to_abs()).GetPos()-(ref->GetAbsFrame()).GetPos();//-X0.GetPos();//+(X0>>ref->GetAbsFrame()).GetPos();//TODO: Problematic about X0
-			ChMatrix33<> RotT = ((motorFrame->GetFrame_COG_to_abs())).GetA(); //TODO: Forces still get issues: Rotation of frames.
-			//ChMatrix33<> swap(1, 0, 0, 0, 1, 0, 0, 0, 1);
-			//RotT.MatrTMultiply(swap, RotT);
-			//RotT.MatrMultiply(RotT, swap);
-			//ChMatrix33<double> RotB = chassis->GetA();
-			//ChFrameMoving<> wheel_frame(motorFrame->GetFrame_COG_to_abs());
-			//K1 = K1>>wheel_frame;
-			//d1 = d1>>wheel_frame;
-			ChMatrix33<> tmp1, tmp2;
-			tmp1.MatrMultiply(RotT,K1);
-			tmp1.MatrMultiplyT(tmp1,RotT);
-			tmp2.MatrMultiply(RotT,d1);
-			tmp2.MatrMultiplyT(tmp2,RotT);
-			ChVector<> force = tmp1*X_r + tmp2*V_r;
-			//RotT.MatrInverse();
-			//ChVector<> force1 = RotT*force;
-			//chassis->Accumulate_force(force, (ref->GetAbsFrame()).GetPos(), false);//ChVector<>(100., -100., 2000.0)
-			//motorFrame->Accumulate_force(-force, (motorFrame->GetFrame_COG_to_abs()).GetPos(), false);//(motorFrame->GetFrame_COG_to_abs()).GetPos()
-			
-			ChIrrTools::drawSegment(application->GetVideoDriver(), (motorFrame->GetFrame_COG_to_abs()).GetPos(), (motorFrame->GetFrame_COG_to_abs()).GetPos()+force*0.001, video::SColor(255, 0, 20, 0), true);
+			//Seems like it is correct now...
+			ChVector<> V_r = (motorFrame->GetCoord()).TransformDirectionParentToLocal((motorFrame->GetFrame_COG_to_abs()).GetPos_dt()-(ref->GetAbsFrame()).GetPos_dt());
+			ChVector<> X_r = (motorFrame->GetCoord()).TransformDirectionParentToLocal((wheel->GetFrame_COG_to_abs()).GetPos()-(ref->GetAbsFrame()).GetPos());
+			//printf ("%f %f %f %f %f %f \n",V_r.x(), V_r.y(), V_r.z(), X_r.x(), X_r.y(), X_r.z());
+			ChVector<> force = K1*X_r + d1*V_r;
+			force = (motorFrame->GetCoord()).TransformDirectionLocalToParent(force);
+			//printf ("%f %f %f\n",force.x(), force.y(), force.z());
+			chassis->Accumulate_force(force, (ref->GetAbsFrame()).GetPos(), false);
+			motorFrame->Accumulate_force(-force, (motorFrame->GetFrame_COG_to_abs()).GetPos(), false);
+			ChIrrTools::drawSegment(application->GetVideoDriver(), (motorFrame->GetFrame_COG_to_abs()).GetPos(), (motorFrame->GetFrame_COG_to_abs()).GetPos()-force*0.003, video::SColor(255, 0, 20, 0), true);
         }
         
         void setTyreForce (ChSystemNSC* msystem,        // contains all bodies
@@ -230,6 +217,16 @@ class AgileVehicle {
                 Torque = std::max((ctrlVolt-1.2)*gain2-gain1*AngSpeed-gain3, 0.0);   //ctrlVolt in (0,5)
             else
                 Torque = std::min((ctrlVolt-1.2)*gain2-gain1*AngSpeed-gain3, 0.0);
+        }
+        
+        void TestSteering (std::shared_ptr<ChBody> motorFrame,
+                           double Omega) {
+            motorFrame -> SetWvel_par(ChVector<>(0., 0., Omega));
+        }
+        
+        void TestDriving (std::shared_ptr<ChBody> Wheel,
+                          double Omega) {
+            Wheel -> SetWvel_par(ChVector<>(Omega, 0., 0.));
         }
         
         AgileVehicle (ChSystemNSC& my_system,           
@@ -376,7 +373,7 @@ class AgileVehicle {
 			posRR->Impose_Abs_Coord(ChCoordsys<>(ChVector<>(-WB/2.0, -TW/2.0, R_W)));//chassis->GetCoord());
 			posRR->SetPos(ChVector<>(-WB/2.0, -TW/2.0, R_W));
 			
-            suspFL = std::make_shared<ChLinkMateGeneric>(true, true, true, true, true, false);  // x,y,z,Rx,Ry,Rz constrains, should be (false, false, false, true, true, false)
+            suspFL = std::make_shared<ChLinkMateGeneric>(false, false, false, true, true, true);  // x,y,z,Rx,Ry,Rz constrains, should be (false, false, false, true, true, false)
             suspFL->SetName("SuspensionFL");
             ChFrame<> susp_abs_FL(ChVector<>(WB/2.0, TW/2.0, R_W*2.0+0.3)); //posFL->GetPos()
             suspFL->Initialize(wheelFL,             // the 1st body to connect
@@ -386,7 +383,7 @@ class AgileVehicle {
                                susp_abs_FL);        // the link reference attached to 2nd body
             my_system.Add(suspFL);
             
-            suspFR = std::make_shared<ChLinkMateGeneric>(true, true, true, true, true, false);  // x,y,z,Rx,Ry,Rz constrains
+            suspFR = std::make_shared<ChLinkMateGeneric>(false, false, false, true, true, true);  // x,y,z,Rx,Ry,Rz constrains
             suspFR->SetName("SuspensionFR");
             ChFrame<> susp_abs_FR(ChVector<>(WB/2.0, -TW/2.0, R_W*2.0+0.3));
             suspFR->Initialize(wheelFR,             // the 1st body to connect
@@ -396,7 +393,7 @@ class AgileVehicle {
                                susp_abs_FR);        // the link reference attached to 2nd body
             my_system.Add(suspFR);
             
-            suspRL = std::make_shared<ChLinkMateGeneric>(true, true, true, true, true, false);  // x,y,z,Rx,Ry,Rz constrains
+            suspRL = std::make_shared<ChLinkMateGeneric>(false, false, false, true, true, true);  // x,y,z,Rx,Ry,Rz constrains
             suspRL->SetName("SuspensionRL");
             ChFrame<> susp_abs_RL(ChVector<>(-WB/2.0, TW/2.0, R_W*2.0+0.3));
             suspRL->Initialize(wheelRL,           	// the 1st body to connect
@@ -406,7 +403,7 @@ class AgileVehicle {
                                susp_abs_RL);        // the link reference attached to 2nd body
             my_system.Add(suspRL);
             
-            suspRR = std::make_shared<ChLinkMateGeneric>(true, true, true, true, true, false);  // x,y,z,Rx,Ry,Rz constrains
+            suspRR = std::make_shared<ChLinkMateGeneric>(false, false, false, true, true, true);  // x,y,z,Rx,Ry,Rz constrains
             suspRR->SetName("SuspensionRR");
             ChFrame<> susp_abs_RR(ChVector<>(-WB/2.0, -TW/2.0, R_W*2.0+0.3));
             suspRR->Initialize(wheelRR,           	// the 1st body to connect
@@ -499,7 +496,10 @@ int sim_physics(int argc, char* argv[]) {
     my_system.ShowHierarchy(GetLog());
     
     ChRealtimeStepTimer m_realtime_timer;
+    AgileV->TestSteering(AgileV->motorFrameFL, 1.0);
+    AgileV->TestDriving(AgileV->wheelFR, 1.0);
     while (application.GetDevice()->run() && no_quit) {
+        //TODO: When the simulation starts the car flips over, don't know why.
         // Irrlicht must prepare frame to draw
         application.BeginScene(true, true, SColor(255, 140, 161, 192));
         // Irrlicht now draws simple lines in 3D world representing a
@@ -529,21 +529,21 @@ int sim_physics(int argc, char* argv[]) {
         
         
             //Add Custom Forces to support the system
-            AgileV->setSuspensionForce(&my_system, AgileV->chassis, AgileV->posFL, AgileV->motorFrameFL, 0, &application);
-            AgileV->setSuspensionForce(&my_system, AgileV->chassis, AgileV->posFR, AgileV->motorFrameFR, 1, &application);
-            AgileV->setSuspensionForce(&my_system, AgileV->chassis, AgileV->posRL, AgileV->motorFrameRL, 2, &application);
-            AgileV->setSuspensionForce(&my_system, AgileV->chassis, AgileV->posRR, AgileV->motorFrameRR, 3, &application);
+            AgileV->setSuspensionForce(AgileV->chassis, AgileV->posFL, AgileV->motorFrameFL, AgileV->wheelFL, 0, &application);
+            AgileV->setSuspensionForce(AgileV->chassis, AgileV->posFR, AgileV->motorFrameFR, AgileV->wheelFR, 1, &application);
+            AgileV->setSuspensionForce(AgileV->chassis, AgileV->posRL, AgileV->motorFrameRL, AgileV->wheelRL, 2, &application);
+            AgileV->setSuspensionForce(AgileV->chassis, AgileV->posRR, AgileV->motorFrameRR, AgileV->wheelRR, 3, &application);
             
-            AgileV->setTyreForce(&my_system, AgileV->chassis, AgileV->wheelFL, 0);
-            AgileV->setTyreForce(&my_system, AgileV->chassis, AgileV->wheelFR, 1);
-            AgileV->setTyreForce(&my_system, AgileV->chassis, AgileV->wheelRL, 2);
-            AgileV->setTyreForce(&my_system, AgileV->chassis, AgileV->wheelRR, 3);
+            //AgileV->setTyreForce(&my_system, AgileV->chassis, AgileV->wheelFL, 0);
+            //AgileV->setTyreForce(&my_system, AgileV->chassis, AgileV->wheelFR, 1);
+            //AgileV->setTyreForce(&my_system, AgileV->chassis, AgileV->wheelRL, 2);
+            //AgileV->setTyreForce(&my_system, AgileV->chassis, AgileV->wheelRR, 3);
         
         
         // HERE CHRONO INTEGRATION IS PERFORMED: THE
         // TIME OF THE SIMULATION ADVANCES FOR A SINGLE
         // STEP:
-        my_system.DoStepDynamics(m_realtime_timer.SuggestSimulationStep(0.0010));
+        my_system.DoStepDynamics(m_realtime_timer.SuggestSimulationStep(0.0005));
         printf("Speed:%f %f %f \n", (AgileV->chassis->GetFrame_COG_to_abs()).GetPos_dt().x(), (AgileV->chassis->GetFrame_COG_to_abs()).GetPos_dt().y(), (AgileV->chassis->GetFrame_COG_to_abs()).GetPos_dt().z());
         printf("Position:%f %f %f \n", (AgileV->chassis->GetFrame_COG_to_abs()).GetPos().x(), (AgileV->chassis->GetFrame_COG_to_abs()).GetPos().y(), (AgileV->chassis->GetFrame_COG_to_abs()).GetPos().z());
         // Irrlicht must finish drawing the frame

@@ -16,11 +16,11 @@
 	  <param name="~baud" value="57600" />
     </node>
 	<node pkg="rosserial_python" type="serial_node.py" name="wheel02" output="screen">
-<param name='~port' value='/dev/ttyUSB3' />
+<param name='~port' value='/dev/ttyUSB2' />
 	  <param name="~baud" value="57600" />
     </node>
 	<node pkg="rosserial_python" type="serial_node.py" name="wheel03" output="screen">
-<param name='~port' value='/dev/ttyUSB2' />
+<param name='~port' value='/dev/ttyUSB3' />
 	  <param name="~baud" value="57600" />
     </node>
     
