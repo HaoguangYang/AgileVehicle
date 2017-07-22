@@ -103,8 +103,8 @@ bool getTireForces(double load, double omega, double def_z, double roll_r, doubl
 
 class AgileVehicle {
     public:
-        double torque[4] = {0.};                        //N.m according to definition
-        double steer[4] = {0.};                         //RAD according to definition
+        double torque[4] = {0., 0., 0., 0.};                        //N.m according to definition
+        double steer[4] = {0., 0., 0., 0.};                         //RAD according to definition
         
         const double TW = 1.315;  //Track width
         const double WB = 1.520;  //Wheel base
@@ -141,7 +141,7 @@ class AgileVehicle {
         const double d_R2 = 100.0;
 	    double alpha_1[4] = {1.4, 1.4, 1.4, 1.4};
 	    double alpha_2[4] = {1.3, 1.3, 1.3, 1.3};
-	    double Torque[4] = {0.};
+	    double Torque[4] = {0.,0., 0., 0.};
         // Constructing the suspension by defining force.
         void setSuspensionForce (std::shared_ptr<ChBody> chassis, std::shared_ptr<ChMarker> ref,
                                  std::shared_ptr<ChBody> motorFrame, std::shared_ptr<ChBody> wheel, int i, ChIrrApp* application) {
@@ -175,19 +175,19 @@ class AgileVehicle {
 		    
 			//In Absolute Frame
 			//Seems like it is correct now...
-			ChVector<> V_r = (motorFrame->GetCoord()).TransformDirectionParentToLocal((motorFrame->GetFrame_COG_to_abs()).GetPos_dt()-(ref->GetAbsFrame()).GetPos_dt());
-			ChVector<> X_r = (motorFrame->GetCoord()).TransformDirectionParentToLocal((wheel->GetFrame_COG_to_abs()).GetPos()-(ref->GetAbsFrame()).GetPos());
+			ChVector<> V_r = (motorFrame->GetCoord()).TransformDirectionParentToLocal(motorFrame->GetPos_dt()-(ref->GetAbsFrame()).GetPos_dt());
+			ChVector<> X_r = (motorFrame->GetCoord()).TransformDirectionParentToLocal(wheel->GetPos()-(ref->GetAbsFrame()).GetPos());
 			//printf ("%f %f %f %f %f %f \n",V_r.x(), V_r.y(), V_r.z(), X_r.x(), X_r.y(), X_r.z());
 			ChVector<> force = K1*X_r + d1*V_r;
 			force = (motorFrame->GetCoord()).TransformDirectionLocalToParent(force);
 			//printf ("%f %f %f\n",force.x(), force.y(), force.z());
-			chassis->Accumulate_force(force, (ref->GetAbsFrame()).GetPos(), false);
-			motorFrame->Accumulate_force(-force, (motorFrame->GetFrame_COG_to_abs()).GetPos(), false);
-			ChIrrTools::drawSegment(application->GetVideoDriver(), (motorFrame->GetFrame_COG_to_abs()).GetPos(), (motorFrame->GetFrame_COG_to_abs()).GetPos()-force*0.003, video::SColor(255, 0, 20, 0), true);
+			chassis->Accumulate_force(force, motorFrame->GetPos(), false);
+			motorFrame->Accumulate_force(-force, motorFrame->GetPos(), false);
+			ChIrrTools::drawSegment(application->GetVideoDriver(), motorFrame->GetPos(), motorFrame->GetPos()-force*0.003, video::SColor(255, 0, 20, 0), true);
         }
         
         void setTyreForce (ChSystemNSC* msystem,        // contains all bodies
-                           std::shared_ptr<ChBody> chassis,
+                           std::shared_ptr<ChBody> chassis,	//should be std::shared_ptr<ChMarker> ref ?
                            std::shared_ptr<ChBody> wheel, int i) {
             wheel->Empty_forces_accumulators();
 			ChVector<> load = wheel->GetContactForce();
@@ -196,7 +196,7 @@ class AgileVehicle {
 			//TODO: TO BE POPULATED
 			AngSpeed[i] = omega.y();
 			BLDC_model(ctrlVolt[i], AngSpeed[i], Torque[i]);
-			ChVector<> v_w = ((wheel->GetFrame_COG_to_abs())>>(chassis->GetFrame_COG_to_abs())).GetPos_dt();
+			ChVector<> v_w = ((wheel->GetFrame_COG_to_abs())>>(chassis->GetFrame_COG_to_abs())).GetPos_dt();	//TODO
 			double C = cos(angle_real[i]/180.0*M_PI);
 			double S = sin(angle_real[i]/180.0*M_PI);
 			double v_wx = v_w.x()*C+v_w.y()*S;
@@ -205,7 +205,7 @@ class AgileVehicle {
 			double F_vert, F_lat, F_long, T_ali;
 			getTireForces(load.z(), omega.y(), def_z, R_W-def_z, v_wx, v_wy, v_wz, F_vert, F_lat, F_long, T_ali);
 			wheel-> Accumulate_force(ChVector<>(F_vert, F_lat, F_long), ChVector<>(0., 0., 0.), true);
-			wheel->Accumulate_torque(ChVector<>(0., Torque[i]-F_long*(R_W-def_z), T_ali), true);
+			wheel-> Accumulate_torque(ChVector<>(0., Torque[i]-F_long*(R_W-def_z), T_ali), true);
         }
         
         void BLDC_model(double ctrlVolt, double AngSpeed, double Torque)
@@ -221,12 +221,12 @@ class AgileVehicle {
         
         void TestSteering (std::shared_ptr<ChBody> motorFrame,
                            double Omega) {
-            motorFrame -> SetWvel_par(ChVector<>(0., 0., Omega));
+            motorFrame -> SetWvel_par(ChVector<>(0., 0., Omega));	//TODO
         }
         
         void TestDriving (std::shared_ptr<ChBody> Wheel,
                           double Omega) {
-            Wheel -> SetWvel_par(ChVector<>(Omega, 0., 0.));
+            Wheel -> SetWvel_par(ChVector<>(Omega, 0., 0.));	//TODO
         }
         
         AgileVehicle (ChSystemNSC& my_system,           
@@ -247,7 +247,7 @@ class AgileVehicle {
             motorFrameFL = std::make_shared<ChBodyEasyCylinder>(0.09, 0.30, 1600.0, true, true);
             motorFrameFL->SetName("motorFrameFL");
             motorFrameFL->SetPos(ChVector<>(WB/2.0, TW/2.0-0.15, R_W));
-            motorFrameFL->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Y));
+            motorFrameFL->SetRot(Q_from_AngAxis(CH_C_PI / 2., VECT_Y));
             motorFrameFL->SetBodyFixed(false);
             my_system.AddBody(motorFrameFL);
             
@@ -255,7 +255,7 @@ class AgileVehicle {
             motorFrameFR = std::make_shared<ChBodyEasyCylinder>(0.09, 0.30, 1600.0, true, true);
             motorFrameFR->SetName("motorFrameFR");
             motorFrameFR->SetPos(ChVector<>(WB/2.0, -TW/2.0+0.15, R_W));
-            motorFrameFR->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Y));
+            motorFrameFR->SetRot(Q_from_AngAxis(-CH_C_PI / 2., VECT_Y));
             motorFrameFR->SetBodyFixed(false);
             my_system.AddBody(motorFrameFR);
             
@@ -263,7 +263,7 @@ class AgileVehicle {
             motorFrameRL = std::make_shared<ChBodyEasyCylinder>(0.09, 0.30, 1600.0, true, true);
             motorFrameRL->SetName("motorFrameRL");
             motorFrameRL->SetPos(ChVector<>(-WB/2.0, TW/2.0-0.15, R_W));
-            motorFrameRL->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Y));
+            motorFrameRL->SetRot(Q_from_AngAxis(CH_C_PI / 2., VECT_Y));
             motorFrameRL->SetBodyFixed(false);
             my_system.AddBody(motorFrameRL);
             
@@ -271,7 +271,7 @@ class AgileVehicle {
             motorFrameRR = std::make_shared<ChBodyEasyCylinder>(0.09, 0.30, 1600.0, true, true);
             motorFrameRR->SetName("motorFrameRR");
             motorFrameRR->SetPos(ChVector<>(-WB/2.0, -TW/2.0+0.15, R_W));
-            motorFrameRR->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Y));
+            motorFrameRR->SetRot(Q_from_AngAxis(-CH_C_PI / 2., VECT_Y));
             motorFrameRR->SetBodyFixed(false);
             my_system.AddBody(motorFrameRR);
             
@@ -279,7 +279,7 @@ class AgileVehicle {
             wheelFL = std::make_shared<ChBodyEasyCylinder>(0.21, 0.20, 720.0, true, true);
             wheelFL->SetName("WheelFL");
             wheelFL->SetPos(ChVector<>(WB/2.0, TW/2.0, R_W));
-            wheelFL->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Y));
+            wheelFL->SetRot(Q_from_AngAxis(CH_C_PI / 2., VECT_Y));
 			wheelFL->SetBodyFixed(false);
             wheelFL->AddAsset(texture);
             my_system.AddBody(wheelFL);
@@ -288,7 +288,7 @@ class AgileVehicle {
             wheelFR = std::make_shared<ChBodyEasyCylinder>(0.21, 0.20, 720.0, true, true);
             wheelFR->SetName("WheelFR");
             wheelFR->SetPos(ChVector<>(WB/2.0, -TW/2.0, R_W));
-            wheelFR->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Y));
+            wheelFR->SetRot(Q_from_AngAxis(-CH_C_PI / 2., VECT_Y));
 			wheelFR->SetBodyFixed(false);
             wheelFR->AddAsset(texture);
             my_system.AddBody(wheelFR);
@@ -297,7 +297,7 @@ class AgileVehicle {
             wheelRL = std::make_shared<ChBodyEasyCylinder>(0.21, 0.20, 720.0, true, true);
             wheelRL->SetName("WheelRL");
             wheelRL->SetPos(ChVector<>(-WB/2.0, TW/2.0, R_W));
-            wheelRL->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Y));
+            wheelRL->SetRot(Q_from_AngAxis(CH_C_PI / 2., VECT_Y));
 			wheelRL->SetBodyFixed(false);
             wheelRL->AddAsset(texture);
             my_system.AddBody(wheelRL);
@@ -306,7 +306,7 @@ class AgileVehicle {
             wheelRR = std::make_shared<ChBodyEasyCylinder>(0.21, 0.20, 720.0, true, true);
             wheelRR->SetName("WheelRR");
             wheelRR->SetPos(ChVector<>(-WB/2.0, -TW/2.0, R_W));
-            wheelRR->SetRot(Q_from_AngAxis(CH_C_PI / 2, VECT_Y));
+            wheelRR->SetRot(Q_from_AngAxis(-CH_C_PI / 2., VECT_Y));
 			wheelRR->SetBodyFixed(false);
             wheelRR->AddAsset(texture);
             my_system.AddBody(wheelRR);
@@ -496,8 +496,8 @@ int sim_physics(int argc, char* argv[]) {
     my_system.ShowHierarchy(GetLog());
     
     ChRealtimeStepTimer m_realtime_timer;
-    AgileV->TestSteering(AgileV->motorFrameFL, 1.0);
-    AgileV->TestDriving(AgileV->wheelFR, 1.0);
+    //AgileV->TestSteering(AgileV->motorFrameFL, 1.0);
+    //AgileV->TestDriving(AgileV->wheelFR, 1.0);
     while (application.GetDevice()->run() && no_quit) {
         //TODO: When the simulation starts the car flips over, don't know why.
         // Irrlicht must prepare frame to draw
@@ -543,7 +543,7 @@ int sim_physics(int argc, char* argv[]) {
         // HERE CHRONO INTEGRATION IS PERFORMED: THE
         // TIME OF THE SIMULATION ADVANCES FOR A SINGLE
         // STEP:
-        my_system.DoStepDynamics(m_realtime_timer.SuggestSimulationStep(0.0005));
+        my_system.DoStepDynamics(m_realtime_timer.SuggestSimulationStep(0.002));
         printf("Speed:%f %f %f \n", (AgileV->chassis->GetFrame_COG_to_abs()).GetPos_dt().x(), (AgileV->chassis->GetFrame_COG_to_abs()).GetPos_dt().y(), (AgileV->chassis->GetFrame_COG_to_abs()).GetPos_dt().z());
         printf("Position:%f %f %f \n", (AgileV->chassis->GetFrame_COG_to_abs()).GetPos().x(), (AgileV->chassis->GetFrame_COG_to_abs()).GetPos().y(), (AgileV->chassis->GetFrame_COG_to_abs()).GetPos().z());
         // Irrlicht must finish drawing the frame
