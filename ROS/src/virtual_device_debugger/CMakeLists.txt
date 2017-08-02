@@ -9,8 +9,8 @@ project(virtual_device_debugger)
 ## is used, also find other catkin packages
 
 ##CHRONO
-set(Chrono_DIR /home/Dev/chrono/build/cmake)
-LIST(APPEND CMAKE_PREFIX_PATH "${CMAKE_INSTALL_PREFIX}/../Chrono/lib64")
+set(Chrono_DIR /usr/local/lib64/cmake)
+LIST(APPEND CMAKE_PREFIX_PATH "${CMAKE_INSTALL_PREFIX}/lib64")
 find_package(Chrono
              COMPONENTS Vehicle Irrlicht
              CONFIG)
