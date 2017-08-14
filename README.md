@@ -24,6 +24,7 @@ source ~/.bashrc
 # Additional Dependencies
 sudo apt-get install python-rosinstall python-rosinstall-generator python-wstool build-essential
 sudo apt-get install ros-kinetic-ecl-ipc ros-kinetic-rosserial-arduino ros-kinetic-rosserial rosbash ros-kinetic-rospack ros-kinetic-cv_bridge ros-kinetic-image-transport
+sudo apt-get install libirrlicht-dev libglfw3 libglew-dev slurm swig libglm-dev #for Virtual Device Debugger.
 ```
 
 ## Directory Structure
