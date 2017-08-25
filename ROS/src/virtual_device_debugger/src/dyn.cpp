@@ -247,7 +247,7 @@ class AgileVehicle {
             motorFrameFL = std::make_shared<ChBodyEasyCylinder>(0.09, 0.30, 1600.0, true, true);
             motorFrameFL->SetName("motorFrameFL");
             motorFrameFL->SetPos(ChVector<>(WB/2.0, TW/2.0-0.15, R_W));
-            motorFrameFL->SetRot(Q_from_AngAxis(CH_C_PI / 2., VECT_Y));
+            motorFrameFL->SetRot(Q_from_AngAxis(CH_C_PI_2, VECT_Y));
             motorFrameFL->SetBodyFixed(false);
             my_system.AddBody(motorFrameFL);
             
@@ -255,7 +255,7 @@ class AgileVehicle {
             motorFrameFR = std::make_shared<ChBodyEasyCylinder>(0.09, 0.30, 1600.0, true, true);
             motorFrameFR->SetName("motorFrameFR");
             motorFrameFR->SetPos(ChVector<>(WB/2.0, -TW/2.0+0.15, R_W));
-            motorFrameFR->SetRot(Q_from_AngAxis(-CH_C_PI / 2., VECT_Y));
+            motorFrameFR->SetRot(Q_from_AngAxis(-CH_C_PI_2, VECT_Y));
             motorFrameFR->SetBodyFixed(false);
             my_system.AddBody(motorFrameFR);
             
@@ -263,7 +263,7 @@ class AgileVehicle {
             motorFrameRL = std::make_shared<ChBodyEasyCylinder>(0.09, 0.30, 1600.0, true, true);
             motorFrameRL->SetName("motorFrameRL");
             motorFrameRL->SetPos(ChVector<>(-WB/2.0, TW/2.0-0.15, R_W));
-            motorFrameRL->SetRot(Q_from_AngAxis(CH_C_PI / 2., VECT_Y));
+            motorFrameRL->SetRot(Q_from_AngAxis(CH_C_PI_2, VECT_Y));
             motorFrameRL->SetBodyFixed(false);
             my_system.AddBody(motorFrameRL);
             
@@ -271,7 +271,7 @@ class AgileVehicle {
             motorFrameRR = std::make_shared<ChBodyEasyCylinder>(0.09, 0.30, 1600.0, true, true);
             motorFrameRR->SetName("motorFrameRR");
             motorFrameRR->SetPos(ChVector<>(-WB/2.0, -TW/2.0+0.15, R_W));
-            motorFrameRR->SetRot(Q_from_AngAxis(-CH_C_PI / 2., VECT_Y));
+            motorFrameRR->SetRot(Q_from_AngAxis(-CH_C_PI_2, VECT_Y));
             motorFrameRR->SetBodyFixed(false);
             my_system.AddBody(motorFrameRR);
             
@@ -279,7 +279,7 @@ class AgileVehicle {
             wheelFL = std::make_shared<ChBodyEasyCylinder>(0.21, 0.20, 720.0, true, true);
             wheelFL->SetName("WheelFL");
             wheelFL->SetPos(ChVector<>(WB/2.0, TW/2.0, R_W));
-            wheelFL->SetRot(Q_from_AngAxis(CH_C_PI / 2., VECT_Y));
+            wheelFL->SetRot(Q_from_AngAxis(CH_C_PI_2, VECT_Y));
 			wheelFL->SetBodyFixed(false);
             wheelFL->AddAsset(texture);
             my_system.AddBody(wheelFL);
@@ -288,7 +288,7 @@ class AgileVehicle {
             wheelFR = std::make_shared<ChBodyEasyCylinder>(0.21, 0.20, 720.0, true, true);
             wheelFR->SetName("WheelFR");
             wheelFR->SetPos(ChVector<>(WB/2.0, -TW/2.0, R_W));
-            wheelFR->SetRot(Q_from_AngAxis(-CH_C_PI / 2., VECT_Y));
+            wheelFR->SetRot(Q_from_AngAxis(-CH_C_PI_2, VECT_Y));
 			wheelFR->SetBodyFixed(false);
             wheelFR->AddAsset(texture);
             my_system.AddBody(wheelFR);
@@ -297,7 +297,7 @@ class AgileVehicle {
             wheelRL = std::make_shared<ChBodyEasyCylinder>(0.21, 0.20, 720.0, true, true);
             wheelRL->SetName("WheelRL");
             wheelRL->SetPos(ChVector<>(-WB/2.0, TW/2.0, R_W));
-            wheelRL->SetRot(Q_from_AngAxis(CH_C_PI / 2., VECT_Y));
+            wheelRL->SetRot(Q_from_AngAxis(CH_C_PI_2, VECT_Y));
 			wheelRL->SetBodyFixed(false);
             wheelRL->AddAsset(texture);
             my_system.AddBody(wheelRL);
@@ -306,7 +306,7 @@ class AgileVehicle {
             wheelRR = std::make_shared<ChBodyEasyCylinder>(0.21, 0.20, 720.0, true, true);
             wheelRR->SetName("WheelRR");
             wheelRR->SetPos(ChVector<>(-WB/2.0, -TW/2.0, R_W));
-            wheelRR->SetRot(Q_from_AngAxis(-CH_C_PI / 2., VECT_Y));
+            wheelRR->SetRot(Q_from_AngAxis(-CH_C_PI_2, VECT_Y));
 			wheelRR->SetBodyFixed(false);
             wheelRR->AddAsset(texture);
             my_system.AddBody(wheelRR);
@@ -315,7 +315,7 @@ class AgileVehicle {
             link_revoluteFL = std::make_shared<ChLinkLockRevolute>();
             link_revoluteFL->SetName("WheelAxisFL");
             link_revoluteFL->Initialize(wheelFL, motorFrameFL, \
-                             ChCoordsys<>(ChVector<>(WB/2.0, TW/2.0-0.05, R_W), Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
+                             ChCoordsys<>(ChVector<>(WB/2.0, TW/2.0-0.05, R_W), Q_from_AngAxis(CH_C_PI_2, VECT_Y)));
             link_revoluteFL->GetMarker1()->SetName("WAFL");
             link_revoluteFL->GetMarker2()->SetName("MAFL");
             my_system.AddLink(link_revoluteFL);
@@ -323,7 +323,7 @@ class AgileVehicle {
             link_revoluteFR = std::make_shared<ChLinkLockRevolute>();
             link_revoluteFR->SetName("WheelAxisFR");
             link_revoluteFR->Initialize(wheelFR, motorFrameFR, \
-                             ChCoordsys<>(ChVector<>(WB/2.0, -TW/2.0+0.05, R_W), Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
+                             ChCoordsys<>(ChVector<>(WB/2.0, -TW/2.0+0.05, R_W), Q_from_AngAxis(CH_C_PI_2, VECT_Y)));
             link_revoluteFR->GetMarker1()->SetName("WAFR");
             link_revoluteFR->GetMarker2()->SetName("MAFR");
             my_system.AddLink(link_revoluteFR);
@@ -331,7 +331,7 @@ class AgileVehicle {
             link_revoluteRL = std::make_shared<ChLinkLockRevolute>();
             link_revoluteRL->SetName("WheelAxisRL");
             link_revoluteRL->Initialize(wheelRL, motorFrameRL, \
-                             ChCoordsys<>(ChVector<>(-WB/2.0, TW/2.0-0.05, R_W), Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
+                             ChCoordsys<>(ChVector<>(-WB/2.0, TW/2.0-0.05, R_W), Q_from_AngAxis(CH_C_PI_2, VECT_Y)));
             link_revoluteRL->GetMarker1()->SetName("WARL");
             link_revoluteRL->GetMarker2()->SetName("MARL");
             my_system.AddLink(link_revoluteRL);
@@ -339,7 +339,7 @@ class AgileVehicle {
             link_revoluteRR = std::make_shared<ChLinkLockRevolute>();
             link_revoluteRR->SetName("WheelAxisRR");
             link_revoluteRR->Initialize(wheelRR, motorFrameRR, \
-                             ChCoordsys<>(ChVector<>(-WB/2.0, -TW/2.0+0.05, R_W), Q_from_AngAxis(CH_C_PI / 2, VECT_Y)));
+                             ChCoordsys<>(ChVector<>(-WB/2.0, -TW/2.0+0.05, R_W), Q_from_AngAxis(CH_C_PI_2, VECT_Y)));
             link_revoluteRR->GetMarker1()->SetName("WARR");
             link_revoluteRR->GetMarker2()->SetName("MARR");
             my_system.AddLink(link_revoluteRR);
