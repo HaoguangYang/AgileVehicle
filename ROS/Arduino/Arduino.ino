@@ -1,3 +1,21 @@
+/*
+  ---Code to be run on Single Wheel Driving Units, target prcessor:
+  ---Atmel 328P(Tested); for ATSAM3X8E, refer to Arduino Due Folder.
+  ---Includes a real-time operation system for muti-tasking, including:
+  ---Full-duplex communication with host;
+  ---Reading sensor data;
+  ---Generating control signal with local feedback;
+  ---Power monitoring and management;
+  ---
+  ---Copyright (C) 2017, Future Systems Lab
+  ---Author: Haoguang Yang, Xuexuan Zhao, Zilin Zhu
+  ---
+  ---07/01/2016	Initial programming
+  ---10/15/2016	Functional on standalone steering and driving motors
+  ---02/20/2017	Second version programming: introduced multitasking RTOS
+  ---03/15/2017	Fully functional on test vehicle.
+*/
+
 #include "ros_customized.h"
 #include <std_msgs/UInt16MultiArray.h>
 #include <std_msgs/Float32MultiArray.h>

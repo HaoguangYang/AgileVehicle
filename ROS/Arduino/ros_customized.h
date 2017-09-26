@@ -31,6 +31,14 @@
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+ 
+/*
+  ---The default ROS header for Arduino is too resource-intensive, including
+  ---too many space assigned for buffers, and unused publisher and
+  ---subscriber resources under the limit, which also consumes sRAM.
+  ---In order to resolve insufficient sRAM issue on Atmel328P processors,
+  ---we introduced this customized header as part of the code.
+ */
 
 #ifndef _ROS_CUSTOMIZED_H_
 #define _ROS_CUSTOMIZED_H_
