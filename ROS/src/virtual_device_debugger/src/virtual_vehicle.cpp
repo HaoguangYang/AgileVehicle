@@ -1,3 +1,12 @@
+/*
+ * AgileVSim(TM): Digital Twin of AgileVehicle(TM).
+ * This code is released under GPL-3.0 License.
+ *
+ * Author: Haoguang Yang
+ * May 30, 2017
+ *
+ */
+
 #include "virtual_vehicle.h"
 #include "dyn.h"
 #include <thread>

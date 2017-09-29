@@ -1,3 +1,12 @@
+/*
+ * Host-side communication interface between host and Single Wheel Driving Units.
+ * This code is released under GPL-3.0 License.
+ *
+ * Author: Haoguang Yang
+ * Mar 20, 2017
+ *
+ */
+
 #include "end_publisher.h"
 
 int reverse_MotorPerformance(double AngSpeed, double Torque)

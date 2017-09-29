@@ -1,3 +1,12 @@
+/*
+ * Essential framework for AgileVehicle(TM) running on the host.
+ * This code is released under GPL-3.0 License.
+ *
+ * Author: Haoguang Yang
+ * Mar 10, 2017
+ *
+ */
+
 #include "ros/ros.h"
 #include "GUI.h"
 #include "kinematicCtrl.h"

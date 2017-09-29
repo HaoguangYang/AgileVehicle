@@ -1,3 +1,12 @@
+/*
+ * Basic GUI for AgileVehicle(TM) with indicator of four wheels plus steering and throttle input.
+ * This code is released under GPL-3.0 License.
+ *
+ * Author: Haoguang Yang
+ * Apr 10, 2017
+ *
+ */
+
 #include "GUI.h"
 
 SDL_Window *window;

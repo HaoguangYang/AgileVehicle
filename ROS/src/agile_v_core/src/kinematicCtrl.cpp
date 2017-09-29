@@ -1,3 +1,13 @@
+/*
+ * Basic kinematic controllers for AgileVehicle(TM).
+ * TODO: NOT ALL TESTED !
+ * This code is released under GPL-3.0 License.
+ *
+ * Author: Haoguang Yang
+ * Mar 20, 2017
+ *
+ */
+
 //#include <limits.h>
 #include <float.h>
 #include "kinematicCtrl.h"

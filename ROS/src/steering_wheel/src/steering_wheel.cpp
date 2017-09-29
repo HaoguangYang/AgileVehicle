@@ -1,3 +1,12 @@
+/*
+ * Eletronic Steering Wheel Driver for AgileVehicle(TM).
+ * This code is released under GPL-3.0 License.
+ *
+ * Author: Haoguang Yang
+ * Mar 20, 2017
+ *
+ */
+
 #include "steering_wheel.h"
 #include <math.h>
 

@@ -1,4 +1,14 @@
-//Using Chrono to simulate the vehicle.=
+/*
+ * Using Chrono to simulate the vehicle dynamics.
+ * TODO: VEHICLE TIPS OVER !
+ * This code is released under GPL-3.0 License.
+ *
+ * Author: Haoguang Yang
+ * July 1, 2017
+ *
+ */
+
+//
 #include "dyn.h"
 
 bool no_quit = true;
